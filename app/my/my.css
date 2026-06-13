@@ -1,0 +1,191 @@
+/* Dashboard + account shared styles. Global import, scoped under .my-page /
+   .account-page. (The editor brings its own TemplateEditor.css.) */
+
+.my-page {
+  min-height: 62vh;
+}
+.my-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 36px 20px 80px;
+}
+
+.my-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.my-head h1 {
+  font: 700 32px/1.1 var(--font-sans);
+  letter-spacing: -0.025em;
+  margin: 6px 0 0;
+  color: var(--fg-1);
+}
+.my-head-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.my-section {
+  margin-top: 36px;
+}
+.my-section > h2 {
+  font: 600 18px var(--font-sans);
+  color: var(--fg-1);
+  margin: 0 0 16px;
+}
+
+.my-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.my-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.my-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-2);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+}
+.my-card h3 {
+  font: 600 16px var(--font-sans);
+  margin: 0;
+  color: var(--fg-1);
+}
+.my-card-sub {
+  font-size: 13px;
+  color: var(--fg-3);
+  margin: 0 0 8px;
+}
+.my-card-actions,
+.my-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: auto;
+}
+
+.my-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.my-row {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.my-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.my-row-name {
+  font: 600 15px var(--font-sans);
+  color: var(--fg-1);
+}
+.my-row-sub {
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.my-empty {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.my-empty p {
+  margin: 0;
+  color: var(--fg-2);
+}
+
+/* Destructive buttons + the two-step confirm row (ConfirmButton). */
+.btn.danger {
+  color: #b23b30;
+}
+.btn.danger:hover {
+  background: #fdecea;
+}
+.btn.danger-solid {
+  background: #c0362c;
+  color: #fff;
+}
+.btn.danger-solid:hover {
+  background: #a82d24;
+}
+.confirm-row {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Account settings */
+.account-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 36px 20px 80px;
+}
+.account-wrap h1 {
+  font: 700 30px/1.1 var(--font-sans);
+  letter-spacing: -0.025em;
+  margin: 6px 0 24px;
+  color: var(--fg-1);
+}
+.account-card {
+  padding: 22px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.account-card h2 {
+  font: 600 16px var(--font-sans);
+  margin: 0;
+  color: var(--fg-1);
+}
+.account-card .muted {
+  font-size: 13px;
+  color: var(--fg-3);
+  margin: 0;
+}
+.account-ok {
+  font-size: 13px;
+  color: var(--accent);
+  margin: 0;
+}
+.account-err {
+  font-size: 13px;
+  color: #b23b30;
+  margin: 0;
+}
+.account-danger {
+  border-color: #f0c8c4;
+}
+
+@media (max-width: 640px) {
+  .my-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .my-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

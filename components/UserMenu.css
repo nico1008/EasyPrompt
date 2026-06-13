@@ -1,0 +1,80 @@
+/* User menu in the nav. Global import — all rules scoped under .user-menu. */
+
+.user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line-3);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font: 600 14px var(--font-sans);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 140ms, transform 140ms;
+}
+.user-avatar:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.user-pop {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  min-width: 200px;
+  padding: 6px;
+  background: var(--bg-0);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  box-shadow: 0 12px 32px rgba(15, 15, 30, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 50;
+}
+
+.user-pop-email {
+  padding: 8px 10px 10px;
+  font: 500 12px var(--font-mono);
+  color: var(--fg-3);
+  border-bottom: 1px solid var(--line-1);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-pop a,
+.user-pop-logout button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: var(--r-2);
+  font: 500 14px var(--font-sans);
+  color: var(--fg-1);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+.user-pop a:hover,
+.user-pop-logout button:hover {
+  background: var(--bg-2);
+}
+
+.user-pop-logout {
+  margin: 4px 0 0;
+  border-top: 1px solid var(--line-1);
+  padding-top: 4px;
+}
+.user-pop-logout button {
+  color: #b23b30;
+}

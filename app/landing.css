@@ -1,0 +1,139 @@
+/* Landing — ported from a/landing.html's <style> block, plus responsive rules. */
+
+.landing { min-height: 100dvh; }
+
+/* Hero */
+.hero { position: relative; padding: 96px 28px 80px; overflow: hidden; }
+/* Hero reinforces the global 8px field in its focal zone (same lattice as
+   body::before) rather than introducing a competing scale. */
+.hero-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(15,15,30,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,15,30,0.04) 1px, transparent 1px);
+  background-size: 8px 8px;
+  mask-image: radial-gradient(ellipse at 50% 30%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 0%, transparent 75%);
+}
+.hero-inner { position: relative; max-width: 1080px; margin: 0 auto; text-align: center; }
+.hero .eyebrow {
+  display: inline-flex; padding: 6px 14px;
+  border: 1px solid var(--line-2); border-radius: 999px;
+  background: var(--bg-1); margin-bottom: 28px;
+}
+.hero .sub {
+  margin: 24px auto 36px; max-width: 580px;
+  font: 400 19px/1.5 var(--font-sans); color: var(--fg-2);
+}
+.ctas { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.trust {
+  margin-top: 28px; display: inline-flex; gap: 18px; align-items: center;
+  flex-wrap: wrap; justify-content: center;
+  font: 500 13px var(--font-sans); color: var(--fg-3);
+}
+.trust b { color: var(--fg-1); font-weight: 600; }
+
+/* Demo */
+.demo {
+  max-width: 920px; margin: 60px auto 0; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 14px; text-align: left;
+}
+.demo .form-side { padding: 22px; }
+.form-side .demo-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.form-side .demo-head .title { font: 600 15px var(--font-sans); }
+.form-side .demo-head .pip { font: 400 11px var(--font-mono); color: var(--fg-3); }
+.form-side .field + .field { margin-top: 14px; }
+.demo .output-side { display: flex; flex-direction: column; }
+.demo .output-side .code-body { flex: 1; }
+
+/* Steps */
+.steps { max-width: 1080px; margin: 100px auto; padding: 0 28px; }
+.steps-head { margin-bottom: 36px; }
+.steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.step { padding: 28px 26px; min-height: 220px; display: flex; flex-direction: column; gap: 14px; }
+.step .num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: var(--r-2);
+  background: var(--accent-soft); color: var(--accent);
+  font: 600 14px var(--font-sans);
+}
+.step h3 { font-size: 19px; }
+.step p { font: 400 14px/1.5 var(--font-sans); color: var(--fg-2); margin: 0; }
+.step .pix {
+  width: 100%; height: 78px; margin-top: auto; opacity: 0.5;
+  background-image:
+    linear-gradient(var(--accent) 0 0),
+    linear-gradient(var(--accent) 0 0),
+    linear-gradient(var(--accent) 0 0),
+    linear-gradient(var(--accent) 0 0);
+  background-repeat: no-repeat;
+  background-size: 6px 6px;
+  background-position: 0 100%, 12px 100%, 24px 100%, 36px 100%;
+}
+
+/* Use cases */
+.who { max-width: 1080px; margin: 0 auto 100px; padding: 0 28px; }
+.who-head { margin-bottom: 36px; }
+.who-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.who-card {
+  padding: 22px; min-height: 168px;
+  display: flex; flex-direction: column; gap: 10px;
+  cursor: pointer; transition: transform 140ms;
+}
+.who-card:hover { transform: translateY(-2px); }
+.who-card .icon {
+  width: 36px; height: 36px; border-radius: var(--r-2);
+  background: var(--accent-soft); display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+}
+.who-card h3 { margin: 4px 0 0; font: 600 16px var(--font-sans); letter-spacing: -0.01em; color: var(--fg-1); }
+.who-card p { margin: 0; font: 400 13px/1.45 var(--font-sans); color: var(--fg-2); }
+
+/* Templates strip */
+.templates-strip { padding: 60px 28px 100px; border-top: 1px solid var(--line-1); background: var(--bg-2); }
+.ts-head { max-width: 1080px; margin: 0 auto 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.chips { max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--bg-1);
+  font: 500 13px var(--font-sans);
+  color: var(--fg-1);
+  transition: all 140ms;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Pricing teaser — one quiet band, free-first with Pro visible */
+.pricing-teaser { padding: 72px 28px; border-top: 1px solid var(--line-1); }
+.pricing-teaser .pt-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 32px; flex-wrap: wrap;
+}
+.pricing-teaser .pt-copy { max-width: 640px; }
+.pricing-teaser .pt-copy p {
+  font: 400 15px/1.6 var(--font-sans); color: var(--fg-2); margin: 12px 0 0;
+}
+
+/* Closing band */
+.closing { padding: 100px 28px 120px; text-align: center; max-width: 720px; margin: 0 auto; }
+.closing h2 { margin-bottom: 18px; }
+.closing p { font: 400 17px/1.5 var(--font-sans); color: var(--fg-2); margin: 0 0 28px; }
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .who-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .hero { padding: 56px 20px 56px; }
+  .demo { grid-template-columns: 1fr; }
+  .steps { margin: 64px auto; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .step { min-height: 0; }
+  .who { margin-bottom: 64px; }
+}
+@media (max-width: 480px) {
+  .who-grid { grid-template-columns: 1fr; }
+}

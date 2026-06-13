@@ -1,0 +1,52 @@
+# dependencies
+/node_modules
+
+# build output
+/.next
+/out
+/build
+*.tsbuildinfo
+
+# test coverage
+/coverage
+
+# logs
+*.log
+
+# os files
+.DS_Store
+
+# env / secrets (never commit any env file)
+.env*
+.env.*
+!.env.example
+
+# next.js
+next-env.d.ts
+
+# deploy
+.vercel
+
+# local skill caches (not part of the app)
+.agents
+skills-lock.json
+
+# internal docs (not part of the app)
+/docs
+
+# tests
+/tests
+vitest.config.ts
+
+# claude code config & agent instructions
+/.claude
+CLAUDE.md
+
+# private tooling (access-code mint CLI)
+/scripts
+
+# claude / mcp tooling (not part of the app)
+.mcp.json
+
+# supabase: the migration SQL ships; the local setup guide does not
+supabase/README.md

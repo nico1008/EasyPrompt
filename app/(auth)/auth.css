@@ -1,0 +1,98 @@
+/* Auth pages (login / signup / forgot / reset). All rules scoped under
+   .auth-page — imported CSS is global in the App Router. Reuses the global
+   .panel / .field / .input / .btn primitives from globals.css. */
+
+.auth-page {
+  min-height: 72vh;
+  display: grid;
+  place-items: center;
+  padding: 64px 20px;
+}
+
+.auth-page .auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px 28px;
+}
+
+.auth-page .auth-head {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.auth-page .auth-head h1 {
+  font: 700 28px/1.15 var(--font-sans);
+  letter-spacing: -0.02em;
+  margin: 10px 0 6px;
+  color: var(--fg-1);
+}
+.auth-page .auth-head p {
+  margin: 0;
+  color: var(--fg-3);
+  font-size: 14px;
+}
+
+.auth-page .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.auth-page .auth-form .btn-lg {
+  width: 100%;
+  justify-content: center;
+}
+
+.auth-page .auth-field-err {
+  color: #c0362c;
+  font-size: 12px;
+}
+
+.auth-page .auth-error {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #b23b30;
+  background: #fdecea;
+  border: 1px solid #f5c6c0;
+  border-radius: var(--r-2);
+}
+
+.auth-page .auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+.auth-page .auth-links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.auth-page .auth-links a:hover {
+  text-decoration: underline;
+}
+
+.auth-page .auth-success {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+}
+.auth-page .auth-success strong {
+  font-size: 18px;
+  color: var(--fg-1);
+}
+.auth-page .auth-success p {
+  margin: 0;
+  color: var(--fg-3);
+  font-size: 14px;
+}
+
+.auth-page .auth-notice {
+  line-height: 1.6;
+}
+.auth-page .auth-notice a {
+  color: var(--accent);
+}

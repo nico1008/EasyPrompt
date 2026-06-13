@@ -1,0 +1,41 @@
+/* Save-to-my-prompts control (Builder payoff). Global import, scoped .save-prompt. */
+
+.save-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.save-prompt .input {
+  width: 100%;
+}
+.save-prompt .btn {
+  align-self: flex-start;
+}
+.save-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+.save-err {
+  margin: 0;
+  font-size: 12px;
+  color: #b23b30;
+}
+.save-done {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.save-ok {
+  font-weight: 600;
+  color: var(--accent);
+}
+.save-view {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.save-view:hover {
+  text-decoration: underline;
+}
