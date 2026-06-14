@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { PremiumProvider } from "@/components/PremiumProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { BackgroundField } from "@/components/BackgroundField";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -79,6 +80,7 @@ export default function RootLayout({
         <Nav />
         {children}
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
