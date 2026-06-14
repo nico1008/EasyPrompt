@@ -8,8 +8,6 @@
 import { verifyToken } from "@/lib/access/token";
 import { getBoosters } from "@/data/premium/boosters";
 
-export const runtime = "edge";
-
 const NO_STORE = { "Cache-Control": "no-store", "Content-Type": "application/json" };
 
 function json(body: unknown, status = 200): Response {

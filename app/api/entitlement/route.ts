@@ -8,8 +8,6 @@ import { getProvider } from "@/lib/providers";
 import type { Env } from "@/lib/providers/types";
 import { signToken } from "@/lib/access/token";
 
-export const runtime = "edge";
-
 const NO_STORE = { "Cache-Control": "no-store", "Content-Type": "application/json" };
 
 function json(body: unknown, status = 200): Response {
