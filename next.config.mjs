@@ -28,6 +28,9 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
+  // This project doesn't use ESLint (no config); skip the lint step `next build`
+  // runs by default so the build doesn't fail looking for an eslint install.
+  eslint: { ignoreDuringBuilds: true },
   async headers() {
     return [
       {
