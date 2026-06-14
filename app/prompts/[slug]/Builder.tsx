@@ -17,6 +17,7 @@ import { Toast } from "@/components/Toast";
 import { UnlockForm } from "@/components/UnlockForm";
 import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
 import { SavePromptButton, type SaveSource } from "@/components/SavePromptButton";
+import { useDraft } from "@/lib/drafts/useDraft";
 import { config } from "@/config";
 
 type RelatedLite = { slug: string; title: string; category: string; questions: number };
@@ -81,6 +82,17 @@ export function Builder({
   const [copiedAgain, setCopiedAgain] = useState(false);
 
   const built = useMemo(() => buildPrompt(template, answers), [template, answers]);
+
+  /* ---- Draft autosave: keep an in-progress fresh build (no account needed) so
+     a refresh/navigation doesn't lose work. Off when reopening a saved prompt
+     (initialAnswers set) — that row is the source of truth. Cleared on save. ---- */
+  const { clear: clearDraft } = useDraft({
+    templateId: template.id,
+    enabled: initialAnswers === undefined,
+    answers,
+    hasContent: built.answered > 0,
+    onRestore: setAnswers,
+  });
 
   /* ---- Pro Boosters (premium): server-held enhancement blocks appended to
      the built prompt. Free prompt is `built.text`; pro adds `boosterText`. ---- */
@@ -322,9 +334,9 @@ export function Builder({
                 <SavePromptButton
                   source={saveSource}
                   answers={answers}
-                  text={finalText}
                   defaultName={displayTitle(template)}
                   savedPromptId={savedPromptId}
+                  onSaved={clearDraft}
                 />
               </CrosshairCard>
             </div>

@@ -14,9 +14,8 @@ export const nameSchema = z
   .min(1, "Give it a name.")
   .max(120, "Keep the name under 120 characters.");
 
-/** Size guards so a saved row can't be enormous. */
+/** Size guard so a saved row can't be enormous. */
 export const MAX_ANSWERS_JSON = 20_000;
-export const MAX_GENERATED_TEXT = 50_000;
 
 export type AnswersInput = z.infer<typeof answersSchema>;
 

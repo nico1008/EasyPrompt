@@ -8,14 +8,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { nameSchema, parseAnswers, MAX_GENERATED_TEXT, type AnswersInput } from "./schema";
+import { nameSchema, parseAnswers, type AnswersInput } from "./schema";
 
 export type SaveState = { ok?: boolean; error?: string; savedId?: string };
-
-function clampText(raw: FormDataEntryValue | null): string | null {
-  if (typeof raw !== "string" || !raw) return null;
-  return raw.slice(0, MAX_GENERATED_TEXT);
-}
 
 /* --------------------------------- create --------------------------------- */
 export async function createSavedPromptAction(
@@ -37,7 +32,6 @@ export async function createSavedPromptAction(
   const sourceKind = formData.get("source_kind");
   const answers = parseAnswers(formData.get("answers"));
   if (!answers.ok) return { error: answers.error };
-  const generated = clampText(formData.get("generated_text"));
 
   let row;
   if (sourceKind === "catalog") {
@@ -50,7 +44,6 @@ export async function createSavedPromptAction(
       catalog_slug: slug,
       user_template_id: null,
       answers: answers.value,
-      generated_text: generated,
     };
   } else if (sourceKind === "user") {
     const tid = formData.get("user_template_id");
@@ -62,7 +55,6 @@ export async function createSavedPromptAction(
       catalog_slug: null,
       user_template_id: tid,
       answers: answers.value,
-      generated_text: generated,
     };
   } else {
     return { error: "Unknown template source." };
@@ -97,11 +89,9 @@ export async function updateSavedPromptAnswersAction(
 
   const answers = parseAnswers(formData.get("answers"));
   if (!answers.ok) return { error: answers.error };
-  const generated = clampText(formData.get("generated_text"));
 
-  const patch: { answers: AnswersInput; generated_text: string | null; name?: string } = {
+  const patch: { answers: AnswersInput; name?: string } = {
     answers: answers.value,
-    generated_text: generated,
   };
   const name = (formData.get("name") as string | null)?.trim();
   if (name) {
@@ -171,7 +161,6 @@ export async function duplicateSavedPromptAction(formData: FormData): Promise<vo
     catalog_slug: src.catalog_slug,
     user_template_id: src.user_template_id,
     answers: src.answers,
-    generated_text: src.generated_text,
   });
   revalidatePath("/my");
   redirect("/my");

@@ -213,7 +213,6 @@ export async function updateProfileAction(
     .update({
       display_name: parsed.data.display_name ?? null,
       username: parsed.data.username ?? null,
-      updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
 

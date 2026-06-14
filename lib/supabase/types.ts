@@ -103,7 +103,6 @@ export interface Database {
           catalog_slug: string | null;
           user_template_id: string | null;
           answers: Json;
-          generated_text: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -115,14 +114,42 @@ export interface Database {
           catalog_slug?: string | null;
           user_template_id?: string | null;
           answers: Json;
-          generated_text?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           name?: string;
           answers?: Json;
-          generated_text?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      entitlements: {
+        Row: {
+          id: string;
+          owner_id: string;
+          plan: "lifetime" | "pass" | "subscription";
+          source: string | null;
+          code_hash: string | null;
+          ent_exp: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          plan: "lifetime" | "pass" | "subscription";
+          source?: string | null;
+          code_hash?: string | null;
+          ent_exp?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          plan?: "lifetime" | "pass" | "subscription";
+          source?: string | null;
+          code_hash?: string | null;
+          ent_exp?: string | null;
           updated_at?: string;
         };
         Relationships: [];

@@ -12,7 +12,11 @@ export type Plan = "lifetime" | "pass" | "subscription";
 
 export type Booster = { id: string; label: string; note?: string; text: string };
 
-type Stored = { token: string; code: string; plan: Plan };
+/* `origin` records where the session came from: a manually-pasted code ("code")
+ * or a logged-in account's entitlement ("account"). It drives sign-out: an
+ * account token is cleared on sign-out, a code token survives it. */
+type Origin = "code" | "account";
+type Stored = { token: string; code: string; plan: Plan; origin?: Origin };
 
 const KEY = "easyprompt.premium";
 
@@ -64,12 +68,23 @@ export async function unlock(code: string): Promise<UnlockResult> {
   if (!res.ok || !body.valid || !body.token || !body.plan) {
     return { ok: false, reason: body.reason ?? "invalid" };
   }
-  writeStored({ token: body.token, code: trimmed, plan: body.plan });
+  writeStored({ token: body.token, code: trimmed, plan: body.plan, origin: "code" });
   return { ok: true, plan: body.plan, exp: body.exp };
 }
 
 export function lock(): void {
   writeStored(null);
+}
+
+/** Adopt a token minted from the signed-in account's entitlement (no code on
+ *  this device). Lets Pro follow the user across devices. */
+export function adoptAccountToken(token: string, plan: Plan): void {
+  writeStored({ token, code: "", plan, origin: "account" });
+}
+
+/** True when the current session came from an account (vs. a pasted code). */
+export function accountTokenActive(): boolean {
+  return readStored()?.origin === "account";
 }
 
 /** GET /api/premium with the stored token. On 401, re-mint from the stored code

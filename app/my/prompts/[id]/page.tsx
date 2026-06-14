@@ -8,9 +8,9 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getSavedPrompt } from "@/lib/savedPrompts/repo";
 import { getUserTemplate } from "@/lib/userTemplates/repo";
 import { rowToTemplate } from "@/lib/userTemplates/map";
+import { rowToAnswers } from "@/lib/savedPrompts/map";
 import { getTemplate } from "@/data/templates";
 import type { Template } from "@/data/types";
-import type { Answers } from "@/lib/buildPrompt";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -41,7 +41,7 @@ export default async function OpenSavedPromptPage({
   }
   if (!template || !source) notFound();
 
-  const initialAnswers = (saved.answers as unknown as Answers) ?? undefined;
+  const initialAnswers = rowToAnswers(saved, template);
 
   return (
     <Builder

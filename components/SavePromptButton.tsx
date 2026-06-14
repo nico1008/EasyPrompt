@@ -40,15 +40,16 @@ function SaveSubmit({ editing }: { editing: boolean }) {
 export function SavePromptButton({
   source,
   answers,
-  text,
   defaultName,
   savedPromptId,
+  onSaved,
 }: {
   source: SaveSource;
   answers: Answers;
-  text: string;
   defaultName: string;
   savedPromptId?: string;
+  /** Fired once when a save succeeds — lets the Builder clear its local draft. */
+  onSaved?: () => void;
 }) {
   const editing = Boolean(savedPromptId);
   const [state, formAction] = useActionState(
@@ -70,6 +71,11 @@ export function SavePromptButton({
       active = false;
     };
   }, []);
+
+  // Once a save succeeds, let the parent drop its local draft.
+  useEffect(() => {
+    if (state.ok) onSaved?.();
+  }, [state.ok, onSaved]);
 
   if (!isSupabaseConfigured() || auth === "checking") return null;
 
@@ -102,7 +108,6 @@ export function SavePromptButton({
   return (
     <form action={formAction} className="save-prompt">
       <input type="hidden" name="answers" value={JSON.stringify(answers)} />
-      <input type="hidden" name="generated_text" value={text} />
       {editing ? (
         <input type="hidden" name="id" value={savedPromptId} />
       ) : source.kind === "catalog" ? (

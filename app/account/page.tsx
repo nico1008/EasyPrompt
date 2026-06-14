@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import "../my/my.css";
 import { Eyebrow } from "@/components/Eyebrow";
 import { AccountForms } from "./AccountForms";
+import { ProSection } from "./ProSection";
 import { createClient, getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getEntitlement } from "@/lib/entitlements/repo";
 
 export const metadata: Metadata = {
   title: "Account settings",
@@ -23,6 +25,8 @@ export default async function AccountPage() {
     .eq("id", user.id)
     .maybeSingle();
 
+  const entitlement = await getEntitlement();
+
   return (
     <main className="my-page account-page">
       <div className="account-wrap">
@@ -32,6 +36,10 @@ export default async function AccountPage() {
           email={user.email ?? ""}
           displayName={profile?.display_name ?? ""}
           username={profile?.username ?? ""}
+        />
+        <ProSection
+          currentPlan={entitlement?.plan ?? null}
+          entExp={entitlement?.entExp}
         />
       </div>
     </main>

@@ -9,6 +9,19 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { adoptAccountToken, accountTokenActive, lock } from "@/lib/premium/client";
+import { getEntitlementToken } from "@/lib/entitlements/actions";
+
+/* Keep the device's Pro session in sync with the account: when there's a session
+ * mint a token from the account's entitlement so Pro follows the user across
+ * devices; with no entitlement, drop an account-sourced token (a pasted-code
+ * token survives). A standing code unlock with no account entitlement is left
+ * untouched. */
+async function syncAccountPro(): Promise<void> {
+  const ent = await getEntitlementToken();
+  if (ent) adoptAccountToken(ent.token, ent.plan);
+  else if (accountTokenActive()) lock();
+}
 
 export function AuthProvider() {
   const router = useRouter();
@@ -18,14 +31,19 @@ export function AuthProvider() {
     const supabase = createClient();
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (
-        event === "SIGNED_IN" ||
-        event === "SIGNED_OUT" ||
-        event === "USER_UPDATED" ||
-        event === "TOKEN_REFRESHED"
-      ) {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        if (accountTokenActive()) lock();
         router.refresh();
+        return;
+      }
+      if (session) {
+        // Logged in: reconcile the device's Pro session with the account.
+        void syncAccountPro();
+        if (event !== "INITIAL_SESSION") router.refresh();
+      } else if (event === "INITIAL_SESSION" && accountTokenActive()) {
+        // No session but a stale account token lingers — clear it.
+        lock();
       }
     });
     return () => subscription.unsubscribe();
