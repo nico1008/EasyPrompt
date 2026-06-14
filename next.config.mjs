@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 
-/* Security headers for every route. CSP starts in Report-Only so a violation
- * can't break the site silently; promote to Content-Security-Policy once the
- * report stream is quiet (see docs/ARCHITECTURE.md → Security posture).
- * 'unsafe-inline' style-src is required by Next's inlined critical CSS and
- * the font-variable style attribute set in app/layout.tsx. */
+/* Security headers for every route. CSP is ENFORCED (not Report-Only): the app
+ * has no raw-HTML sinks (no dangerouslySetInnerHTML/innerHTML/eval) so a strict
+ * policy is safe to enforce. 'unsafe-inline' is still required by Next's inlined
+ * hydration scripts + critical CSS and the font-variable style attribute set in
+ * app/layout.tsx; tightening to a nonce-based script-src (Next middleware nonce)
+ * to drop script 'unsafe-inline' is the documented next step. connect-src allows
+ * Supabase Auth/PostgREST (+ wss for future realtime); everything else is 'self'. */
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
@@ -23,7 +25,7 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  { key: "Content-Security-Policy-Report-Only", value: csp },
+  { key: "Content-Security-Policy", value: csp },
 ];
 
 const nextConfig = {

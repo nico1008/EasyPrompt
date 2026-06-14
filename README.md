@@ -36,13 +36,15 @@ Set these in `.env.local`, and in your host's **build** environment for producti
 
 1. Create a free project at [supabase.com](https://supabase.com) and set the two
    `NEXT_PUBLIC_SUPABASE_*` vars above.
-2. Apply the schema: open the project's **SQL Editor** and run
-   [`supabase/migrations/0001_accounts.sql`](supabase/migrations/0001_accounts.sql). It creates
-   `profiles`, `user_templates`, and `saved_prompts` with **Row-Level Security** (each user can only
-   ever read/write their own rows), a profile-on-signup trigger, and a self-serve account-deletion
-   RPC. No service-role key is needed.
+2. Apply the schema: open the project's **SQL Editor** and run the migrations in
+   [`supabase/migrations/`](supabase/migrations/) **in order** (`0001` → `0004`), or
+   `supabase db push`. They create `profiles`, `user_templates`, `saved_prompts`, and `entitlements`
+   with **Row-Level Security** (each user can only ever read/write their own rows), a
+   profile-on-signup trigger, a self-serve account-deletion RPC, and least-privilege grants. No
+   service-role key is needed.
 3. In **Authentication → URL Configuration**, set the Site URL and add a redirect URL ending in
    `/auth/confirm` (for both localhost and your production domain).
+4. Apply the production hardening in [`SECURITY.md`](SECURITY.md) (a few one-time dashboard toggles).
 
 ## Scripts
 

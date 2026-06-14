@@ -7,6 +7,7 @@
 
 import { verifyToken } from "@/lib/access/token";
 import { getBoosters } from "@/data/premium/boosters";
+import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 
 const NO_STORE = { "Cache-Control": "no-store", "Content-Type": "application/json" };
 
@@ -23,6 +24,15 @@ function bearer(req: Request): string | null {
 export async function GET(req: Request): Promise<Response> {
   const secret = process.env.ACCESS_SIGNING_SECRET;
   if (!secret) return json({ error: "server-misconfigured" }, 500);
+
+  // Looser per-IP throttle (keyed by IP so a token can't flood the key space).
+  const rl = checkRateLimit(`premium:${clientIp(req)}`, 60, 60_000);
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "rate-limited" }), {
+      status: 429,
+      headers: { ...NO_STORE, "Retry-After": String(rl.retryAfter) },
+    });
+  }
 
   const token = bearer(req);
   if (!token) return json({ error: "unauthorized" }, 401);

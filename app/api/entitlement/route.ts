@@ -7,11 +7,19 @@
 import { getProvider } from "@/lib/providers";
 import type { Env } from "@/lib/providers/types";
 import { signToken } from "@/lib/access/token";
+import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 
 const NO_STORE = { "Cache-Control": "no-store", "Content-Type": "application/json" };
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: NO_STORE });
+}
+
+function tooMany(retryAfter: number): Response {
+  return new Response(JSON.stringify({ valid: false, reason: "rate-limited" }), {
+    status: 429,
+    headers: { ...NO_STORE, "Retry-After": String(retryAfter) },
+  });
 }
 
 function readEnv(): Env {
@@ -28,6 +36,11 @@ export async function POST(req: Request): Promise<Response> {
   if (!env.ACCESS_SIGNING_SECRET) {
     return json({ valid: false, reason: "server-misconfigured" }, 500);
   }
+
+  // Coarse per-IP throttle before the provider check (the crypto rail proxies
+  // upstream on every call). 10 redeems/minute is far above any honest use.
+  const rl = checkRateLimit(`entitlement:${clientIp(req)}`, 10, 60_000);
+  if (!rl.ok) return tooMany(rl.retryAfter);
 
   let code: unknown;
   try {

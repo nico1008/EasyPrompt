@@ -25,6 +25,12 @@ const NOT_CONFIGURED: ActionState = {
   error: "Accounts aren't set up on this deployment yet.",
 };
 
+/* Neutral signup response — shown whether or not the email already has an
+ * account, so signup can't be used to enumerate registered emails. Pair with
+ * Supabase Auth → "Prevent user existence errors" = ON for full coverage. */
+const SIGNUP_CHECK_EMAIL =
+  "Almost there — check your email for a confirmation link to finish signing up.";
+
 /** Absolute site origin, for email redirect links. */
 async function siteOrigin(): Promise<string> {
   const h = await headers();
@@ -84,18 +90,23 @@ export async function signUpAction(
     },
   });
 
-  if (error) return { error: friendlyAuthError(error.message) };
+  if (error) {
+    // Never reveal that an email is already registered (account enumeration):
+    // return the same neutral "check your email" response. Genuine problems
+    // (weak password, invalid email, rate limiting) still surface.
+    const m = (error.message ?? "").toLowerCase();
+    if (m.includes("already registered") || m.includes("already been registered")) {
+      return { ok: true, message: SIGNUP_CHECK_EMAIL };
+    }
+    return { error: friendlyAuthError(error.message) };
+  }
 
   // If email confirmations are OFF, Supabase returns a live session: go straight in.
   if (data.session) {
     revalidatePath("/", "layout");
     redirect(next);
   }
-  return {
-    ok: true,
-    message:
-      "Almost there — check your email for a confirmation link to finish signing up.",
-  };
+  return { ok: true, message: SIGNUP_CHECK_EMAIL };
 }
 
 /* --------------------------------- sign in -------------------------------- */

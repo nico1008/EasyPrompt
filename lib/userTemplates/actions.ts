@@ -65,7 +65,7 @@ export async function createUserTemplateAction(
     base_prompt: v.base_prompt,
     fields: v.fields,
     checkboxes: v.checkboxes,
-    is_public: v.is_public ?? false,
+    is_public: false, // sharing seam parked — never write a public row (see validate.ts)
   };
 
   // Insert; if the (owner_id, slug) pair collides, retry once with a suffix.
@@ -123,7 +123,7 @@ export async function updateUserTemplateAction(
       base_prompt: v.base_prompt,
       fields: v.fields,
       checkboxes: v.checkboxes,
-      is_public: v.is_public ?? false,
+      is_public: false, // sharing seam parked — never write a public row (see validate.ts)
     })
     .eq("id", id);
 

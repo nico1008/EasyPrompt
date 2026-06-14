@@ -62,7 +62,10 @@ export const userTemplateInputSchema = z.object({
   base_prompt: z.string().trim().min(1, "Write a base prompt.").max(4000),
   fields: z.array(fieldSchema).max(20, "Keep it under 20 fields."),
   checkboxes: z.array(checkboxSchema).max(20, "Keep it under 20 checkboxes."),
-  is_public: z.boolean().optional(),
+  // NOTE: `is_public` is deliberately NOT accepted here. The public-read sharing
+  // seam is parked (see migrations/0004) until it has real UI + a column-scoped
+  // read path; zod strips the key, so a crafted payload can't flip a template
+  // public. Re-introduce with a safe shape when sharing actually ships.
 });
 
 export type UserTemplateInput = z.infer<typeof userTemplateInputSchema>;
