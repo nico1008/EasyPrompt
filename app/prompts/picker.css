@@ -96,6 +96,7 @@
   font: 600 11px var(--font-sans); letter-spacing: 0.04em; text-transform: uppercase;
 }
 .picker-page .card .uses { color: var(--accent); }
+.picker-page .card .foot-right { display: inline-flex; align-items: center; gap: 10px; }
 
 .picker-page .card.popular { box-shadow: inset 0 2px 0 var(--accent), var(--shadow-1); }
 .picker-page .card.popular .star {

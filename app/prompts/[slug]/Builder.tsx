@@ -14,6 +14,10 @@ import { CrosshairCard } from "@/components/CrosshairCard";
 import { Eyebrow } from "@/components/Eyebrow";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
+import { FieldControl } from "@/components/FieldControl";
+import { SegmentedCode } from "@/components/CodeWell";
+import { RatingStars } from "@/components/RatingStars";
+import { BookmarkButton } from "@/components/BookmarkButton";
 import { UnlockForm } from "@/components/UnlockForm";
 import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
 import { SavePromptButton, type SaveSource } from "@/components/SavePromptButton";
@@ -72,6 +76,9 @@ export function Builder({
     () => initialAnswers ?? defaultAnswers(template)
   );
   const saveSource: SaveSource = source ?? { kind: "catalog", slug: template.slug };
+  // Ratings/bookmarks target the public catalog only (the is_public sharing seam
+  // is parked); user templates aren't rateable/bookmarkable yet.
+  const isCatalog = saveSource.kind === "catalog";
   const trail = crumbs ?? [
     { href: "/prompts", label: "Prompts" },
     { href: `/prompts?category=${template.category}`, label: categoryLabel(template.category) },
@@ -241,15 +248,7 @@ export function Builder({
                 </span>
               </div>
               <div className="code-body">
-                {displaySegments.map((s, i) =>
-                  s.kind === "normal" ? (
-                    <span key={i}>{s.text}</span>
-                  ) : (
-                    <span key={i} className={s.kind === "mute" ? "c-mute" : "c-acc"}>
-                      {s.text}
-                    </span>
-                  )
-                )}
+                <SegmentedCode segments={displaySegments} />
               </div>
               <div className="footbar">
                 <span className="label">prompt.md</span>
@@ -339,6 +338,16 @@ export function Builder({
                   onSaved={clearDraft}
                 />
               </CrosshairCard>
+
+              {isCatalog && (
+                <CrosshairCard className="side-card">
+                  <h3>Rate &amp; keep</h3>
+                  <RatingStars target={{ kind: "catalog", key: template.slug }} />
+                  <div className="side-bookmark">
+                    <BookmarkButton target={{ kind: "catalog", key: template.slug }} />
+                  </div>
+                </CrosshairCard>
+              )}
             </div>
           </div>
 
@@ -589,6 +598,12 @@ export function Builder({
 
           <p className="hint">
             Press <kbd>Esc</kbd> to go back
+            {isCatalog && (
+              <>
+                {" · "}
+                <Link href={`/build?from=${template.slug}`}>Customize in builder →</Link>
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -601,99 +616,4 @@ export function Builder({
       </div>
     </main>
   );
-}
-
-/* ---- One field control, switched on type ---- */
-function FieldControl({
-  field,
-  value,
-  onText,
-}: {
-  field: Template["fields"][number];
-  value: string;
-  onText: (id: string, value: string) => void;
-}) {
-  const label = (
-    <label htmlFor={field.id}>
-      {field.label}
-      {field.required && <span className="req">*</span>}
-    </label>
-  );
-
-  if (field.type === "text") {
-    return (
-      <div className="field">
-        {label}
-        <input
-          id={field.id}
-          className="input"
-          value={value}
-          placeholder={field.placeholder}
-          onChange={(e) => onText(field.id, e.target.value)}
-        />
-        {field.helper && <span className="helper">{field.helper}</span>}
-      </div>
-    );
-  }
-
-  if (field.type === "textarea") {
-    return (
-      <div className="field">
-        {label}
-        <textarea
-          id={field.id}
-          className="textarea"
-          value={value}
-          placeholder={field.placeholder}
-          onChange={(e) => onText(field.id, e.target.value)}
-        />
-        {field.helper && <span className="helper">{field.helper}</span>}
-      </div>
-    );
-  }
-
-  if (field.type === "select") {
-    return (
-      <div className="field">
-        {label}
-        <select
-          id={field.id}
-          className="select"
-          value={value}
-          onChange={(e) => onText(field.id, e.target.value)}
-        >
-          {field.options.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-        {field.helper && <span className="helper">{field.helper}</span>}
-      </div>
-    );
-  }
-
-  if (field.type === "pills") {
-    return (
-      <div className="field">
-        {label}
-        <div className="pills" role="group" aria-label={field.label}>
-          {field.options.map((o) => (
-            <button
-              key={o}
-              type="button"
-              aria-pressed={value === o}
-              className={`pill${value === o ? " on" : ""}`}
-              onClick={() => onText(field.id, value === o ? "" : o)}
-            >
-              {o}
-            </button>
-          ))}
-        </div>
-        {field.helper && <span className="helper">{field.helper}</span>}
-      </div>
-    );
-  }
-
-  return null;
 }

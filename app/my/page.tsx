@@ -65,8 +65,14 @@ export default async function MyDashboardPage() {
             <h1>My prompts</h1>
           </div>
           <div className="my-head-actions">
-            <Link className="btn btn-ghost btn-sm" href="/prompts">
-              Browse catalog
+            <Link className="btn btn-ghost btn-sm" href="/my/notebooks">
+              Notebooks
+            </Link>
+            <Link className="btn btn-ghost btn-sm" href="/my/library">
+              Library
+            </Link>
+            <Link className="btn btn-ghost btn-sm" href="/build">
+              + New notebook
             </Link>
             <Link className="btn btn-primary btn-sm" href="/my/templates/new">
               + New template

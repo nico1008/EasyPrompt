@@ -11,6 +11,7 @@ import { useSupabaseUser } from "@/lib/supabase/useUser";
 const BASE_LINKS = [
   { href: "/", label: "Home" },
   { href: "/prompts", label: "Prompts" },
+  { href: "/build", label: "Builder" },
   { href: "/how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },
 ];

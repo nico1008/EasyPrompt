@@ -25,6 +25,10 @@ export const ICON_NAMES = [
   "menu",
   "zap",
   "clock",
+  "bookmark",
+  "plus",
+  "trash",
+  "chevron",
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];

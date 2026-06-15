@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Template } from "@/data/types";
 import { displayTitle, questionCount } from "@/data/templates";
 import { Icon } from "./Icon";
+import { RatingStars } from "./RatingStars";
 
 /* Picker grid card. A plain panel (the crosshair signature is reserved for
    focal hero/payoff moments). The "popular" variant adds an indigo top edge
@@ -25,7 +26,10 @@ export function TemplateCard({ t }: { t: Template }) {
         ) : (
           <span className="tag">{t.tag}</span>
         )}
-        <span className="uses">{questionCount(t)} questions</span>
+        <span className="foot-right">
+          <RatingStars target={{ kind: "catalog", key: t.slug }} compact />
+          <span className="uses">{questionCount(t)} questions</span>
+        </span>
       </div>
     </Link>
   );

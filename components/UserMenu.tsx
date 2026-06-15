@@ -51,6 +51,12 @@ export function UserMenu({ email }: { email: string }) {
           <Link role="menuitem" href="/my" onClick={() => setOpen(false)}>
             My prompts
           </Link>
+          <Link role="menuitem" href="/my/notebooks" onClick={() => setOpen(false)}>
+            My notebooks
+          </Link>
+          <Link role="menuitem" href="/my/library" onClick={() => setOpen(false)}>
+            My library
+          </Link>
           <Link role="menuitem" href="/my/templates/new" onClick={() => setOpen(false)}>
             New template
           </Link>

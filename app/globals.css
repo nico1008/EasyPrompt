@@ -466,6 +466,40 @@ button { font-family: inherit; cursor: pointer; }
   .cursor-glow { display: none; }
 }
 
+/* ===== Ratings (cross-route: catalog cards + builder payoff) ===== */
+.rating { display: flex; flex-direction: column; gap: 6px; }
+.rating-stars { display: inline-flex; gap: 2px; }
+.rating-star {
+  display: inline-flex; padding: 2px; color: var(--line-3);
+  transition: color 120ms cubic-bezier(0.16, 1, 0.3, 1), transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rating-star.on { color: var(--accent); }
+.rating-star:not(:disabled):hover { transform: translateY(-1px); }
+.rating-star:disabled { cursor: default; }
+.rating-meta { font: 500 12px var(--font-mono); color: var(--fg-3); letter-spacing: 0.02em; }
+.rating-login { color: var(--accent); margin-left: 6px; }
+.rating-mine { color: var(--fg-2); }
+.rating-compact {
+  display: inline-flex; align-items: center; gap: 3px;
+  color: var(--fg-2); font: 600 12px var(--font-mono);
+}
+.rating-compact svg { color: var(--accent); }
+.rating-compact .rating-count { color: var(--fg-3); font-weight: 500; }
+
+/* ===== Bookmark button (cross-route: builder payoff + library) ===== */
+.bookmark-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 12px;
+  border: 1px solid var(--line-2); border-radius: var(--r-2);
+  background: var(--bg-1); color: var(--fg-2);
+  font: 600 13px var(--font-sans);
+  transition: border-color 120ms, color 120ms, background 120ms;
+}
+.bookmark-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.bookmark-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.bookmark-btn .bookmark-on { fill: var(--accent); }
+.side-bookmark { margin-top: 12px; }
+
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -1,4 +1,5 @@
 import type { Template } from "@/data/types";
+import type { BlockDoc } from "@/lib/blocks/types";
 
 export type Answers = {
   /** fieldId -> current string value */
@@ -83,6 +84,63 @@ export function buildPrompt(t: Template, a: Answers): BuiltPrompt {
   const total = t.fields.length + t.checkboxes.length;
   const answered = answeredCount(t, a);
 
+  return {
+    text,
+    segments,
+    tokens: Math.max(1, Math.ceil(text.length / 4)),
+    kb: (byteLength(text) / 1024).toFixed(1),
+    answered,
+    total,
+    skipped: Math.max(0, total - answered),
+  };
+}
+
+/* Assemble a notebook (BlockDoc) into the same BuiltPrompt shape as buildPrompt,
+ * reusing the same primitives (markAuthored, byteLength, the ceil(len/4) token
+ * estimate) so the render path — code well, token chip, copy, open-in — is
+ * shared, not forked. Block order is preserved; disabled blocks, empty sections,
+ * and blank variables are omitted (the smart-exclusion rule at the block level).
+ * Section headings render muted (like base_prompt headings); variable fill-ins
+ * render accented (like filled fields). */
+export function buildPromptFromBlocks(doc: BlockDoc): BuiltPrompt {
+  const segments: Segment[] = [];
+  const total = doc.blocks.length;
+  let answered = 0;
+  let first = true;
+
+  const separate = () => {
+    if (!first) segments.push({ text: "\n\n", kind: "normal" });
+    first = false;
+  };
+
+  for (const b of doc.blocks) {
+    if (!b.enabled) continue;
+
+    if (b.kind === "section") {
+      const heading = b.heading.trim();
+      const body = b.body.trim();
+      if (!heading && !body) continue; // smart exclusion: empty section
+      separate();
+      if (heading) {
+        segments.push(...markAuthored(`# ${heading}`));
+        if (body) segments.push({ text: "\n", kind: "normal" });
+      }
+      if (body) segments.push(...markAuthored(body));
+      answered++;
+    } else {
+      const value = b.value.trim();
+      if (!value) continue; // smart exclusion: blank variable
+      separate();
+      // Reuse the field's authored prefix (stripped of its own leading blank
+      // lines — separation is handled above), exactly like buildPrompt does.
+      const prefix = b.field.prefix.replace(/^\n+/, "");
+      if (prefix) segments.push(...markAuthored(prefix));
+      segments.push({ text: value, kind: "acc" });
+      answered++;
+    }
+  }
+
+  const text = segments.map((s) => s.text).join("");
   return {
     text,
     segments,

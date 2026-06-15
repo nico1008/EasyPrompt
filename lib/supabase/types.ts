@@ -154,12 +154,86 @@ export interface Database {
         };
         Relationships: [];
       };
+      prompt_ratings: {
+        Row: {
+          id: string;
+          owner_id: string;
+          target_kind: "catalog";
+          target_key: string;
+          rating: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          target_kind: "catalog";
+          target_key: string;
+          rating: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          rating?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      bookmarks: {
+        Row: {
+          id: string;
+          owner_id: string;
+          target_kind: "catalog";
+          target_key: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          target_kind: "catalog";
+          target_key: string;
+          created_at?: string;
+        };
+        Update: {
+          target_kind?: "catalog";
+          target_key?: string;
+        };
+        Relationships: [];
+      };
+      prompt_notebooks: {
+        Row: {
+          id: string;
+          owner_id: string;
+          name: string;
+          doc: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          name: string;
+          doc?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          doc?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
       delete_current_user: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      rating_aggregate: {
+        Args: { p_target_kind: string; p_target_key: string };
+        Returns: { avg: number; count: number }[];
       };
     };
     Enums: Record<string, never>;

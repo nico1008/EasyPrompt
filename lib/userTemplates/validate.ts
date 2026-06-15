@@ -12,37 +12,11 @@ import { z } from "zod";
 import { ICON_NAMES } from "@/components/iconNames";
 import { CATEGORIES } from "@/data/templates";
 import { buildPrompt, defaultAnswers } from "@/lib/buildPrompt";
+import { idSchema, fieldSchema } from "@/lib/fields/schema";
 import type { Template, Field, Checkbox } from "@/data/types";
 
 const ICON_SET = new Set<string>(ICON_NAMES);
 const CATEGORY_SET = new Set(CATEGORIES.map((c) => c.id));
-
-const idSchema = z
-  .string()
-  .trim()
-  .min(1, "id is required")
-  .max(40, "id is too long")
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/, "Use letters, numbers, _ or - (no spaces).");
-
-const fieldSchema = z
-  .object({
-    id: idSchema,
-    type: z.enum(["text", "textarea", "select", "pills"]),
-    label: z.string().trim().min(1, "Field label is required.").max(80),
-    placeholder: z.string().max(160).optional(),
-    helper: z.string().max(160).optional(),
-    required: z.boolean().optional(),
-    prefix: z.string().min(1, "Field prefix is required.").max(400),
-    default: z.string().max(400).optional(),
-    options: z.array(z.string().trim().min(1).max(60)).max(12).optional(),
-  })
-  .refine(
-    (f) =>
-      f.type === "text" || f.type === "textarea"
-        ? true
-        : Array.isArray(f.options) && f.options.length > 0,
-    { message: "Select and pills fields need at least one option.", path: ["options"] }
-  );
 
 const checkboxSchema = z.object({
   id: idSchema,
