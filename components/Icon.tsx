@@ -139,11 +139,73 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   chevron: <polyline points="6 9 12 15 18 9" />,
+  list: (
+    <>
+      <path d="M8 6h12M8 12h12M8 18h12" />
+      <circle cx="4" cy="6" r="1" />
+      <circle cx="4" cy="12" r="1" />
+      <circle cx="4" cy="18" r="1" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+    </>
+  ),
+  users: (
+    <>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M3 20c0-3.5 3-5 6-5s6 1.5 6 5" />
+      <path d="M16 4.6a3.5 3.5 0 0 1 0 6.8" />
+      <path d="M17.5 15.2c2.2.5 3.5 2 3.5 4.8" />
+    </>
+  ),
+  megaphone: (
+    <>
+      <path d="M4 10v4h3l6 4V6L7 10H4z" />
+      <path d="M16 9a4 4 0 0 1 0 6" />
+    </>
+  ),
+  shield: <path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" />,
+  wrench: (
+    <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-5 5 2 2 5-5a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-2.4 2.5-2.4z" />
+  ),
+  book: (
+    <>
+      <path d="M12 6c-1.7-1.3-4.5-1.8-8-1.5v12c3.5-.3 6.3.2 8 1.5 1.7-1.3 4.5-1.8 8-1.5v-12c-3.5-.3-6.3.2-8 1.5z" />
+      <path d="M12 6v12" />
+    </>
+  ),
+  scale: (
+    <>
+      <path d="M12 3v17" />
+      <path d="M7 20h10" />
+      <path d="M4 7h16" />
+      <path d="M4 7l-2.5 5h5z" />
+      <path d="M20 7l-2.5 5h5z" />
+    </>
+  ),
+  note: (
+    <>
+      <path d="M4 4h16v11l-5 5H4z" />
+      <path d="M20 15h-5v5" />
+    </>
+  ),
+  heading: <path d="M6 5v14M18 5v14M6 12h12" />,
+  minus: <line x1="5" y1="12" x2="19" y2="12" />,
+  more: (
+    <>
+      <circle cx="5" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="19" cy="12" r="1.6" />
+    </>
+  ),
 };
 
 /* The star icon is filled in the prototype; everything else is stroked. The
    bookmark icon fills when given the `is-on` class (active bookmark). */
-const FILLED: IconName[] = ["star"];
+const FILLED: IconName[] = ["star", "more"];
 
 export function Icon({
   name,

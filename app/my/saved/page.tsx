@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import "./my.css";
+import "../my.css";
 import { Eyebrow } from "@/components/Eyebrow";
 import { CrosshairCard } from "@/components/CrosshairCard";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { MyTabs } from "@/components/MyTabs";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { listNotebooks } from "@/lib/notebooks/repo";
-import { rowToNotebook } from "@/lib/notebooks/map";
-import { deleteNotebookAction, duplicateNotebookAction } from "@/lib/notebooks/actions";
+import { listUserTemplates } from "@/lib/userTemplates/repo";
+import { listSavedPrompts } from "@/lib/savedPrompts/repo";
+import {
+  deleteSavedPromptAction,
+  duplicateSavedPromptAction,
+} from "@/lib/savedPrompts/actions";
+import { getTemplate, displayTitle } from "@/data/templates";
 
 export const metadata: Metadata = {
-  title: "My prompts",
+  title: "Saved prompts",
   robots: { index: false, follow: false },
 };
 
@@ -25,13 +29,24 @@ function fmtDate(s: string): string {
   });
 }
 
-export default async function MyBuiltPage() {
+export default async function MySavedPage() {
   if (!isSupabaseConfigured()) redirect("/");
   const user = await getServerUser();
-  if (!user) redirect("/login?next=/my");
+  if (!user) redirect("/login?next=/my/saved");
 
-  const rows = await listNotebooks();
-  const built = rows.map((r) => ({ row: r, nb: rowToNotebook(r) }));
+  const [templates, prompts] = await Promise.all([listUserTemplates(), listSavedPrompts()]);
+  const titleById = new Map(templates.map((t) => [t.id, t.title]));
+
+  function sourceLabel(p: (typeof prompts)[number]): string {
+    if (p.source_kind === "catalog" && p.catalog_slug) {
+      const t = getTemplate(p.catalog_slug);
+      return t ? displayTitle(t) : p.catalog_slug;
+    }
+    if (p.source_kind === "user" && p.user_template_id) {
+      return titleById.get(p.user_template_id) ?? "Custom template";
+    }
+    return "Template";
+  }
 
   return (
     <main className="my-page">
@@ -42,8 +57,8 @@ export default async function MyBuiltPage() {
             <h1>My prompts</h1>
           </div>
           <div className="my-head-actions">
-            <Link className="btn btn-primary btn-sm" href="/build">
-              + New prompt
+            <Link className="btn btn-primary btn-sm" href="/prompts">
+              Browse catalog
             </Link>
           </div>
         </div>
@@ -51,39 +66,35 @@ export default async function MyBuiltPage() {
         <MyTabs />
 
         <section className="my-section">
-          {built.length === 0 ? (
+          {prompts.length === 0 ? (
             <CrosshairCard className="panel my-empty">
-              <p>No prompts yet. Compose one block by block in the builder.</p>
-              <Link className="btn btn-primary btn-sm" href="/build">
-                Open the builder →
+              <p>No saved prompts yet. Fill in any template and hit “Save”.</p>
+              <Link className="btn btn-ghost btn-sm" href="/prompts">
+                Browse templates →
               </Link>
             </CrosshairCard>
           ) : (
             <div className="my-list">
-              {built.map(({ row, nb }) => (
-                <CrosshairCard key={row.id} className="panel my-row">
+              {prompts.map((p) => (
+                <CrosshairCard key={p.id} className="panel my-row">
                   <div className="my-row-main">
-                    <span className="my-row-name">
-                      {row.name}
-                      {row.share_slug && <span className="my-badge">Shared</span>}
-                    </span>
+                    <span className="my-row-name">{p.name}</span>
                     <span className="my-row-sub">
-                      {nb.doc.blocks.length} {nb.doc.blocks.length === 1 ? "block" : "blocks"} ·{" "}
-                      {fmtDate(row.updated_at)}
+                      from {sourceLabel(p)} · {fmtDate(p.updated_at)}
                     </span>
                   </div>
                   <div className="my-row-actions">
-                    <Link className="btn btn-primary btn-sm" href={`/my/notebooks/${row.id}`}>
+                    <Link className="btn btn-primary btn-sm" href={`/my/prompts/${p.id}`}>
                       Open
                     </Link>
-                    <form action={duplicateNotebookAction}>
-                      <input type="hidden" name="id" value={row.id} />
+                    <form action={duplicateSavedPromptAction}>
+                      <input type="hidden" name="id" value={p.id} />
                       <button type="submit" className="btn btn-ghost btn-sm">
                         Duplicate
                       </button>
                     </form>
-                    <form action={deleteNotebookAction}>
-                      <input type="hidden" name="id" value={row.id} />
+                    <form action={deleteSavedPromptAction}>
+                      <input type="hidden" name="id" value={p.id} />
                       <ConfirmButton />
                     </form>
                   </div>

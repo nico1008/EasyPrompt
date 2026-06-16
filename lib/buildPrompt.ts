@@ -104,7 +104,10 @@ export function buildPrompt(t: Template, a: Answers): BuiltPrompt {
  * render accented (like filled fields). */
 export function buildPromptFromBlocks(doc: BlockDoc): BuiltPrompt {
   const segments: Segment[] = [];
-  const total = doc.blocks.length;
+  // `total` counts content blocks (sections + variables) — the ones a "X of Y
+  // active" tally is about. Notes are author-only; dividers are structural; both
+  // are excluded from the count.
+  let total = 0;
   let answered = 0;
   let first = true;
 
@@ -114,6 +117,16 @@ export function buildPromptFromBlocks(doc: BlockDoc): BuiltPrompt {
   };
 
   for (const b of doc.blocks) {
+    // Notes never reach the prompt; dividers emit a rule but aren't counted.
+    if (b.kind === "note") continue;
+    if (b.kind === "divider") {
+      if (!b.enabled) continue;
+      separate();
+      segments.push({ text: "---", kind: "normal" });
+      continue;
+    }
+
+    total++;
     if (!b.enabled) continue;
 
     if (b.kind === "section") {

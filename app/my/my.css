@@ -28,6 +28,39 @@
   gap: 10px;
 }
 
+/* Account-hub tabs (Built / Saved / Templates / Library) */
+.my-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line-2);
+  margin-bottom: 8px;
+}
+.my-tab {
+  position: relative;
+  padding: 10px 14px;
+  font: 600 14px var(--font-sans);
+  color: var(--fg-3);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms;
+}
+.my-tab:hover { color: var(--fg-1); }
+.my-tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* "Shared" pill on a built-prompt row */
+.my-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  font: 600 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--r-1);
+  vertical-align: middle;
+}
+
 .my-section {
   margin-top: 36px;
 }

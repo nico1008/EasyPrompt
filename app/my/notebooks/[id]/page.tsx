@@ -1,30 +1,32 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import "../../../build/notebook.css";
+import "../../../build/builder.css";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getNotebook } from "@/lib/notebooks/repo";
 import { rowToNotebook } from "@/lib/notebooks/map";
-import { NotebookBuilder } from "@/components/notebook/NotebookBuilder";
+import { PromptBuilder } from "@/components/builder/PromptBuilder";
 
 export const metadata: Metadata = {
-  title: "Edit notebook",
+  title: "Edit prompt",
   robots: { index: false, follow: false },
 };
 
-export default async function EditNotebookPage({
+export default async function EditPromptPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   if (!isSupabaseConfigured()) redirect("/");
   const user = await getServerUser();
-  if (!user) redirect("/login?next=/my/notebooks");
+  if (!user) redirect("/login?next=/my");
 
   const { id } = await params;
   const row = await getNotebook(id);
   if (!row) notFound();
 
   const nb = rowToNotebook(row);
-  return <NotebookBuilder initialDoc={nb.doc} notebookId={nb.id} />;
+  return (
+    <PromptBuilder initialDoc={nb.doc} notebookId={nb.id} initialShareSlug={nb.shareSlug} />
+  );
 }

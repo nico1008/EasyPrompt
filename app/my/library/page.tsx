@@ -6,6 +6,7 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { CrosshairCard } from "@/components/CrosshairCard";
 import { Icon } from "@/components/Icon";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import { MyTabs } from "@/components/MyTabs";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { listBookmarks } from "@/lib/bookmarks/repo";
@@ -34,17 +35,16 @@ export default async function MyLibraryPage() {
         <div className="my-head">
           <div>
             <Eyebrow>Your workspace</Eyebrow>
-            <h1>My library</h1>
+            <h1>My prompts</h1>
           </div>
           <div className="my-head-actions">
-            <Link className="btn btn-ghost btn-sm" href="/my">
-              My prompts
-            </Link>
             <Link className="btn btn-primary btn-sm" href="/prompts">
               Browse catalog
             </Link>
           </div>
         </div>
+
+        <MyTabs />
 
         <section className="my-section">
           {items.length === 0 ? (

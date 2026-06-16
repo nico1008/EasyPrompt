@@ -10,10 +10,16 @@ import { emptyBlockDoc } from "@/lib/blocks/defaults";
 
 export type NotebookRow = Database["public"]["Tables"]["prompt_notebooks"]["Row"];
 
-export type Notebook = { id: string; name: string; doc: BlockDoc };
+export type Notebook = {
+  id: string;
+  name: string;
+  doc: BlockDoc;
+  /** Non-null when the prompt is publicly shared (the /p/<slug> token). */
+  shareSlug: string | null;
+};
 
 export function rowToNotebook(row: NotebookRow): Notebook {
   const parsed = validateBlockDoc(row.doc);
   const doc = parsed.ok ? parsed.value : emptyBlockDoc(row.name);
-  return { id: row.id, name: row.name, doc };
+  return { id: row.id, name: row.name, doc, shareSlug: row.share_slug ?? null };
 }

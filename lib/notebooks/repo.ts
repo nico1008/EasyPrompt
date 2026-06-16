@@ -6,6 +6,8 @@ import "server-only";
  * lib/userTemplates/repo.ts. */
 
 import { createClient } from "@/lib/supabase/server";
+import { validateBlockDoc } from "@/lib/blocks/schema";
+import type { BlockDoc } from "@/lib/blocks/types";
 import type { NotebookRow } from "./map";
 
 export async function listNotebooks(): Promise<NotebookRow[]> {
@@ -25,4 +27,19 @@ export async function getNotebook(id: string): Promise<NotebookRow | null> {
     .eq("id", id)
     .maybeSingle();
   return data ?? null;
+}
+
+/* Public read for a shared prompt. Goes through the security-definer RPC
+ * (shared_notebook), which returns name+doc for an EXACT slug only — no table
+ * read, no enumeration, no owner exposure. Anon-safe (no session required). */
+export async function getSharedNotebook(
+  slug: string
+): Promise<{ name: string; doc: BlockDoc } | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("shared_notebook", { p_slug: slug });
+  if (error || !data || data.length === 0) return null;
+  const row = data[0];
+  const parsed = validateBlockDoc(row.doc);
+  if (!parsed.ok) return null;
+  return { name: row.name, doc: parsed.value };
 }

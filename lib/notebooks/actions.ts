@@ -13,8 +13,11 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { nameSchema } from "@/lib/savedPrompts/schema";
 import { parseBlockDoc } from "@/lib/blocks/schema";
 import type { BlockDoc } from "@/lib/blocks/types";
+import { recordVersion } from "./versions/repo";
+import { makeShareSlug } from "./share";
 
 export type NotebookSaveState = { ok?: boolean; error?: string; savedId?: string };
+export type ShareState = { ok?: boolean; error?: string; shareSlug?: string | null };
 
 /* --------------------------------- create --------------------------------- */
 export async function createNotebookAction(
@@ -29,7 +32,7 @@ export async function createNotebookAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in to save." };
 
-  const name = (formData.get("name") as string | null)?.trim() || "Untitled notebook";
+  const name = (formData.get("name") as string | null)?.trim() || "Untitled prompt";
   const nameCheck = nameSchema.safeParse(name);
   if (!nameCheck.success) return { error: nameCheck.error.issues[0].message };
 
@@ -43,7 +46,7 @@ export async function createNotebookAction(
     .single();
   if (error || !data) return { error: "Couldn't save. Please try again." };
 
-  revalidatePath("/my/notebooks");
+  revalidatePath("/my");
   return { ok: true, savedId: data.id };
 }
 
@@ -74,31 +77,87 @@ export async function updateNotebookAction(
     patch.name = nameCheck.data;
   }
 
+  // Snapshot the pre-save state for version history (best-effort).
+  const { data: prev } = await supabase
+    .from("prompt_notebooks")
+    .select("name, doc")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("prompt_notebooks").update(patch).eq("id", id);
   if (error) return { error: "Couldn't save your changes." };
 
-  revalidatePath("/my/notebooks");
+  if (prev) {
+    await recordVersion(supabase, {
+      notebookId: id,
+      ownerId: user.id,
+      name: prev.name,
+      doc: prev.doc,
+    });
+  }
+
+  revalidatePath("/my");
   revalidatePath(`/my/notebooks/${id}`);
   return { ok: true, savedId: id };
 }
 
+/* ------------------------------- sharing ---------------------------------- */
+/** Turn public sharing on (mint/keep a slug) or off (clear it). RLS owner-only. */
+export async function setNotebookShareAction(
+  _prev: ShareState,
+  formData: FormData
+): Promise<ShareState> {
+  if (!isSupabaseConfigured()) return { error: "Accounts aren't set up here." };
+
+  const id = formData.get("id");
+  if (typeof id !== "string" || !id) return { error: "Missing id." };
+  const on = formData.get("on") === "1";
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in." };
+
+  let shareSlug: string | null = null;
+  if (on) {
+    // Keep an existing slug stable so a shared link doesn't churn on re-toggle.
+    const { data: existing } = await supabase
+      .from("prompt_notebooks")
+      .select("share_slug")
+      .eq("id", id)
+      .maybeSingle();
+    shareSlug = existing?.share_slug ?? makeShareSlug();
+  }
+
+  const { error } = await supabase
+    .from("prompt_notebooks")
+    .update({ share_slug: shareSlug })
+    .eq("id", id);
+  if (error) return { error: "Couldn't update sharing." };
+
+  revalidatePath("/my");
+  revalidatePath(`/my/notebooks/${id}`);
+  return { ok: true, shareSlug };
+}
+
 /* --------------------------------- delete --------------------------------- */
 export async function deleteNotebookAction(formData: FormData): Promise<void> {
-  if (!isSupabaseConfigured()) redirect("/my/notebooks");
+  if (!isSupabaseConfigured()) redirect("/my");
   const id = formData.get("id");
-  if (typeof id !== "string" || !id) redirect("/my/notebooks");
+  if (typeof id !== "string" || !id) redirect("/my");
 
   const supabase = await createClient();
   await supabase.from("prompt_notebooks").delete().eq("id", id);
-  revalidatePath("/my/notebooks");
-  redirect("/my/notebooks");
+  revalidatePath("/my");
+  redirect("/my");
 }
 
 /* ------------------------------- duplicate -------------------------------- */
 export async function duplicateNotebookAction(formData: FormData): Promise<void> {
-  if (!isSupabaseConfigured()) redirect("/my/notebooks");
+  if (!isSupabaseConfigured()) redirect("/my");
   const id = formData.get("id");
-  if (typeof id !== "string" || !id) redirect("/my/notebooks");
+  if (typeof id !== "string" || !id) redirect("/my");
 
   const supabase = await createClient();
   const {
@@ -111,13 +170,13 @@ export async function duplicateNotebookAction(formData: FormData): Promise<void>
     .select("*")
     .eq("id", id)
     .maybeSingle();
-  if (!src) redirect("/my/notebooks");
+  if (!src) redirect("/my");
 
   await supabase.from("prompt_notebooks").insert({
     owner_id: user.id,
     name: `${src.name} (copy)`,
     doc: src.doc,
   });
-  revalidatePath("/my/notebooks");
-  redirect("/my/notebooks");
+  revalidatePath("/my");
+  redirect("/my");
 }

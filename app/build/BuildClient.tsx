@@ -10,7 +10,7 @@ import { useSearchParams } from "next/navigation";
 import { getTemplate } from "@/data/templates";
 import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
 import { emptyBlockDoc } from "@/lib/blocks/defaults";
-import { NotebookBuilder } from "@/components/notebook/NotebookBuilder";
+import { PromptBuilder } from "@/components/builder/PromptBuilder";
 
 export function BuildClient() {
   const params = useSearchParams();
@@ -24,5 +24,5 @@ export function BuildClient() {
     return { doc: emptyBlockDoc(), draftId: "new" };
   }, [from]);
 
-  return <NotebookBuilder key={draftId} initialDoc={doc} draftId={draftId} />;
+  return <PromptBuilder key={draftId} initialDoc={doc} draftId={draftId} />;
 }

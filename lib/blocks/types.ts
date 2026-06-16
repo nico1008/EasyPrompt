@@ -1,26 +1,46 @@
-/* The block document — the typed source a notebook builder edits and the
- * notebook assembler (lib/buildPrompt.ts → buildPromptFromBlocks) consumes.
+/* The block document — the typed source the prompt builder edits and the
+ * assembler (lib/buildPrompt.ts → buildPromptFromBlocks) consumes.
  *
- * A notebook is a list of reorderable, toggleable blocks. Each block contributes
- * one chunk of the assembled prompt, in document order. Two kinds:
- *   - `section`  : a heading + markdown body (role/context/task/constraints/
- *                  examples/output/free markdown — driven by `preset`).
+ * A prompt is a list of reorderable, toggleable blocks. Each block contributes
+ * (at most) one chunk of the assembled prompt, in document order. Four kinds:
+ *   - `section`  : a heading + markdown body, shaped by `preset` (role/context/
+ *                  task/…). The bulk of the taxonomy is presets over this kind.
  *   - `variable` : wraps a Field (data/types.ts) with an inline fill-in `value`,
  *                  so the same FieldControl + smart-exclusion rule apply.
+ *   - `note`     : an author annotation — NEVER added to the assembled prompt.
+ *   - `divider`  : a structural rule (`---`) between sections.
  *
- * A disabled block, an empty section, or a blank variable is omitted from the
- * output — the "smart exclusion" rule lifted to the block level. */
+ * A disabled block, an empty section, a blank variable, or any note is omitted
+ * from the output — the "smart exclusion" rule lifted to the block level. */
 
 import type { Field } from "@/data/types";
 
+/** Section presets. Drive the label, starter content, icon and palette grouping.
+ *  The first seven are the original set (kept stable for fromTemplate + tests). */
 export type BlockPreset =
+  // core
   | "role"
-  | "context"
   | "task"
+  | "context"
+  | "instructions"
   | "constraints"
-  | "examples"
   | "output"
+  // advanced
+  | "persona"
+  | "audience"
+  | "tone"
+  | "examples"
+  | "cot"
+  | "evaluation"
+  | "knowledge"
+  | "system_rules"
+  | "tool_usage"
+  // utility
+  | "header"
   | "markdown";
+
+/** Palette grouping for a block type. */
+export type BlockCategory = "core" | "advanced" | "variables" | "utility";
 
 type BlockCommon = {
   id: string;
@@ -48,11 +68,21 @@ export type VariableBlock = BlockCommon & {
   value: string;
 };
 
-export type Block = SectionBlock | VariableBlock;
+export type NoteBlock = BlockCommon & {
+  kind: "note";
+  /** Author-only annotation. Never added to the assembled prompt. */
+  text: string;
+};
+
+export type DividerBlock = BlockCommon & {
+  kind: "divider";
+};
+
+export type Block = SectionBlock | VariableBlock | NoteBlock | DividerBlock;
 
 export type BlockDoc = {
   version: 1;
-  /** Notebook display name; maps to prompt_notebooks.name on save. */
+  /** Prompt display name; maps to prompt_notebooks.name on save. */
   title: string;
   blocks: Block[];
 };

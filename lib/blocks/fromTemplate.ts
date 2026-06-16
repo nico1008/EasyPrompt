@@ -14,11 +14,20 @@ import type { Block, BlockDoc, BlockPreset, SectionBlock, VariableBlock } from "
 
 function presetFor(heading: string): BlockPreset {
   const h = heading.toLowerCase();
-  if (/role|you are|persona|system/.test(h)) return "role";
+  if (/persona|character/.test(h)) return "persona";
+  if (/role|you are|act as/.test(h)) return "role";
+  if (/system|guardrail/.test(h)) return "system_rules";
+  if (/tool|function call/.test(h)) return "tool_usage";
+  if (/audience|reader|for whom/.test(h)) return "audience";
+  if (/tone|voice|style/.test(h)) return "tone";
   if (/context|background/.test(h)) return "context";
-  if (/task|goal|objective|instruction/.test(h)) return "task";
-  if (/constraint|rule|requirement|guideline/.test(h)) return "constraints";
+  if (/instruction|steps|how to/.test(h)) return "instructions";
+  if (/task|goal|objective/.test(h)) return "task";
+  if (/constraint|rule|requirement|guideline|avoid/.test(h)) return "constraints";
   if (/example/.test(h)) return "examples";
+  if (/reason|think|chain.of.thought|step.by.step/.test(h)) return "cot";
+  if (/eval|criteria|rubric|quality/.test(h)) return "evaluation";
+  if (/knowledge|reference|facts|source/.test(h)) return "knowledge";
   if (/output|format|deliverable|response/.test(h)) return "output";
   return "markdown";
 }

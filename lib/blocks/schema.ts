@@ -1,19 +1,33 @@
 /* Zod schema + parse helpers for a BlockDoc. Pure — shared by the notebook
  * server actions, the anonymous draft layer (lib/drafts/notebookDraft.ts), and
  * unit tests. Mirrors lib/savedPrompts/schema.ts (parse + size cap + a stable
- * { ok, value } | { ok, error } result). */
+ * { ok, value } | { ok, error } result). The preset enum MUST mirror the
+ * BlockPreset union in ./types (the project's keep-in-sync rule). */
 
 import { z } from "zod";
 import { idSchema, fieldSchema } from "@/lib/fields/schema";
 import type { BlockDoc } from "./types";
 
 export const blockPresetSchema = z.enum([
+  // core
   "role",
-  "context",
   "task",
+  "context",
+  "instructions",
   "constraints",
-  "examples",
   "output",
+  // advanced
+  "persona",
+  "audience",
+  "tone",
+  "examples",
+  "cot",
+  "evaluation",
+  "knowledge",
+  "system_rules",
+  "tool_usage",
+  // utility
+  "header",
   "markdown",
 ]);
 
@@ -36,9 +50,26 @@ const variableBlockSchema = z.object({
   collapsed: z.boolean(),
 });
 
+const noteBlockSchema = z.object({
+  kind: z.literal("note"),
+  id: idSchema,
+  text: z.string().max(8000),
+  enabled: z.boolean(),
+  collapsed: z.boolean(),
+});
+
+const dividerBlockSchema = z.object({
+  kind: z.literal("divider"),
+  id: idSchema,
+  enabled: z.boolean(),
+  collapsed: z.boolean(),
+});
+
 export const blockSchema = z.discriminatedUnion("kind", [
   sectionBlockSchema,
   variableBlockSchema,
+  noteBlockSchema,
+  dividerBlockSchema,
 ]);
 
 export const blockDocSchema = z.object({
@@ -49,7 +80,7 @@ export const blockDocSchema = z.object({
 
 export type BlockDocInput = z.infer<typeof blockDocSchema>;
 
-/** Size guard so a single notebook can't blow up storage / a row. */
+/** Size guard so a single prompt can't blow up storage / a row. */
 export const MAX_NOTEBOOK_JSON = 50_000;
 
 /** Validate a parsed object as a BlockDoc, enforcing unique block ids. */
@@ -57,24 +88,24 @@ export function validateBlockDoc(
   json: unknown
 ): { ok: true; value: BlockDoc } | { ok: false; error: string } {
   const parsed = blockDocSchema.safeParse(json);
-  if (!parsed.success) return { ok: false, error: "That notebook looks malformed." };
+  if (!parsed.success) return { ok: false, error: "That prompt looks malformed." };
   const ids = parsed.data.blocks.map((b) => b.id);
   if (new Set(ids).size !== ids.length)
     return { ok: false, error: "Block ids must be unique." };
   return { ok: true, value: parsed.data as BlockDoc };
 }
 
-/** Parse + size-check a notebook-doc JSON string (form field / column value). */
+/** Parse + size-check a block-doc JSON string (form field / column value). */
 export function parseBlockDoc(
   raw: FormDataEntryValue | null
 ): { ok: true; value: BlockDoc } | { ok: false; error: string } {
   const s = typeof raw === "string" ? raw : "";
-  if (s.length > MAX_NOTEBOOK_JSON) return { ok: false, error: "That notebook is too large to save." };
+  if (s.length > MAX_NOTEBOOK_JSON) return { ok: false, error: "That prompt is too large to save." };
   let json: unknown;
   try {
     json = JSON.parse(s || "null");
   } catch {
-    return { ok: false, error: "Couldn't read the notebook." };
+    return { ok: false, error: "Couldn't read the prompt." };
   }
   return validateBlockDoc(json);
 }

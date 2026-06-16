@@ -206,6 +206,8 @@ export interface Database {
           owner_id: string;
           name: string;
           doc: Json;
+          /** Non-null = publicly shareable via /p/<slug> (capability token). */
+          share_slug: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -214,13 +216,38 @@ export interface Database {
           owner_id: string;
           name: string;
           doc?: Json;
+          share_slug?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           name?: string;
           doc?: Json;
+          share_slug?: string | null;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      prompt_notebook_versions: {
+        Row: {
+          id: string;
+          notebook_id: string;
+          owner_id: string;
+          name: string;
+          doc: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          notebook_id: string;
+          owner_id: string;
+          name: string;
+          doc: Json;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          doc?: Json;
         };
         Relationships: [];
       };
@@ -234,6 +261,10 @@ export interface Database {
       rating_aggregate: {
         Args: { p_target_kind: string; p_target_key: string };
         Returns: { avg: number; count: number }[];
+      };
+      shared_notebook: {
+        Args: { p_slug: string };
+        Returns: { name: string; doc: Json }[];
       };
     };
     Enums: Record<string, never>;

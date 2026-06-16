@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BuildClient } from "./BuildClient";
-import "./notebook.css";
+import "./builder.css";
 
 /* The block-based prompt builder. Statically generated: it reads no per-request
    user or searchParams on the server — the client island resolves `?from=` and
