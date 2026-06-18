@@ -30,8 +30,8 @@ export function BackgroundField() {
     };
 
     const tick = (now: number) => {
-      x += (targetX - x) * 0.15;
-      y += (targetY - y) * 0.15;
+      x += (targetX - x) * 0.3;
+      y += (targetY - y) * 0.3;
 
       const moving = now - lastMove < 150 ? 1 : 0;
       energy += (moving - energy) * 0.08;

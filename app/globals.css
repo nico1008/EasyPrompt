@@ -451,15 +451,16 @@ button { font-family: inherit; cursor: pointer; }
   z-index: var(--z-field);
   pointer-events: none;
   opacity: var(--glow, 0);
-  /* Blue grid lines, plus a faint blue fill so the pool reads on the white theme. */
+  /* Soft indigo fill + gently-lit grid lines: indigo at low alpha (0.40), NOT the old
+     full-opacity --accent lines that read harsh. */
   background:
-    radial-gradient(circle 75px at var(--mx, 50%) var(--my, 50%), rgba(91,91,255,0.10), transparent 75%),
-    linear-gradient(var(--accent) 1px, transparent 1px),
-    linear-gradient(90deg, var(--accent) 1px, transparent 1px);
+    radial-gradient(circle 110px at var(--mx, 50%) var(--my, 50%), rgba(91,91,255,0.14), rgba(91,91,255,0.05) 55%, transparent 78%),
+    linear-gradient(rgba(91,91,255,0.40) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91,91,255,0.40) 1px, transparent 1px);
   background-size: auto, 8px 8px, 8px 8px;
-  /* Reveal only a ~2cm pool around the cursor (75px ≈ 2cm). Single, non-repeating. */
-  -webkit-mask: radial-gradient(circle 75px at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 75%) no-repeat;
-          mask: radial-gradient(circle 75px at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 75%) no-repeat;
+  /* Larger, softly-feathered pool (~110px) instead of a hard 75px cut. Single, non-repeating. */
+  -webkit-mask: radial-gradient(circle 110px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.55) 55%, transparent 80%) no-repeat;
+          mask: radial-gradient(circle 110px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.55) 55%, transparent 80%) no-repeat;
 }
 /* Touch / coarse pointers have no cursor to follow — the static base grid stays. */
 @media (hover: none), (pointer: coarse) {
