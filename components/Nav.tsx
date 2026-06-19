@@ -8,12 +8,12 @@ import { config } from "@/config";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useSupabaseUser } from "@/lib/supabase/useUser";
 
+// Core content-model nav. Marketing links (Home / How it works / Pricing) live in
+// the footer; Home is reachable via the brand logo.
 const BASE_LINKS = [
-  { href: "/", label: "Home" },
+  { href: "/templates", label: "Templates" },
   { href: "/prompts", label: "Prompts" },
   { href: "/build", label: "Builder" },
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/pricing", label: "Pricing" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -32,7 +32,7 @@ export function Nav() {
 
   const links =
     accountsOn && userEmail
-      ? [...BASE_LINKS, { href: "/my", label: "My prompts" }]
+      ? [...BASE_LINKS, { href: "/my", label: "My Library" }]
       : BASE_LINKS;
 
   return (
@@ -68,7 +68,7 @@ export function Nav() {
             </Link>
           </>
         ) : (
-          <Link className="btn btn-primary btn-sm" href="/prompts">
+          <Link className="btn btn-primary btn-sm" href="/templates">
             Get started
           </Link>
         )}

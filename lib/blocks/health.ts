@@ -21,24 +21,31 @@ export type HealthCheck = {
   done: boolean;
 };
 
+/** Headline readiness — what the inspector leads with. Deliberately NOT a grade:
+ *  a short, focused prompt with a clear objective is "ready", however few of the
+ *  optional sections it uses. */
+export type HealthStatus = "empty" | "needs-objective" | "ready";
+
 export type PromptHealth = {
   warnings: HealthWarning[];
+  /** Optional-section coverage checklist — suggestions, not requirements. */
   checks: HealthCheck[];
-  /** Completeness across the checklist, 0–100. */
+  /** Coverage of the optional checklist, 0–100. Not a quality score; the headline
+   *  is `status`. Kept for tooling/tests. */
   score: number;
+  status: HealthStatus;
 };
 
 /** A token count above which a prompt is flagged as "very long". */
 const LONG_TOKENS = 2000;
 
-/** True when an enabled section of `preset` has any heading or body content. */
+/** True when an enabled section of `preset` has real **body** content. A heading
+ *  alone (e.g. a starter "Role" block with an empty body) is not credited — it
+ *  emits a bare `# Role` and adds nothing, so counting it would overstate the
+ *  prompt's substance. */
 function hasContentSection(doc: BlockDoc, preset: BlockPreset): boolean {
   return doc.blocks.some(
-    (b) =>
-      b.enabled &&
-      b.kind === "section" &&
-      b.preset === preset &&
-      (b.heading.trim().length > 0 || b.body.trim().length > 0)
+    (b) => b.enabled && b.kind === "section" && b.preset === preset && b.body.trim().length > 0
   );
 }
 
@@ -129,5 +136,14 @@ export function analyzeDoc(doc: BlockDoc, built: BuiltPrompt): PromptHealth {
   const done = checks.filter((c) => c.done).length;
   const score = Math.round((done / checks.length) * 100);
 
-  return { warnings, checks, score };
+  // Headline readiness. "ready" the moment there's content + a stated objective —
+  // independent of how many optional sections exist, so a tight prompt isn't
+  // framed as incomplete.
+  const status: HealthStatus = !built.text.trim()
+    ? "empty"
+    : hasObjective
+      ? "ready"
+      : "needs-objective";
+
+  return { warnings, checks, score, status };
 }

@@ -7,6 +7,7 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import "./SharedPrompt.css";
 import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";

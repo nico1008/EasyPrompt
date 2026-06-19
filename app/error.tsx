@@ -61,7 +61,7 @@ export default function Error({
           <button className="btn btn-primary" onClick={reset}>
             Try again
           </button>
-          <Link className="btn btn-ghost" href="/prompts">
+          <Link className="btn btn-ghost" href="/templates">
             Browse prompts
           </Link>
         </div>

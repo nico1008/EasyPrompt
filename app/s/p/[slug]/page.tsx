@@ -1,40 +1,41 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { getSharedNotebook } from "@/lib/notebooks/repo";
+import { getSharedPrompt } from "@/lib/savedPrompts/repo";
 import { shareSlugSchema } from "@/lib/notebooks/share";
-import { buildPromptFromBlocks } from "@/lib/buildPrompt";
 import { SharedPrompt } from "@/components/SharedPrompt";
 
-/* A publicly shared prompt. Read-only, no auth: the data comes from the
- * security-definer shared_notebook(slug) RPC (exact-slug only, no enumeration).
- * noindex — user content shouldn't be crawled. Dynamic by nature (per-slug). */
+/* Public share link for a Prompt (published OR unlisted). Read-only, no auth:
+ * data comes from the security-definer shared_prompt(slug) RPC (exact-slug,
+ * visibility-gated). noindex — user content shouldn't be crawled. */
 export const metadata: Metadata = {
   title: "Shared prompt",
   robots: { index: false, follow: false },
 };
 
-export default async function SharedPromptPage({
+export default async function SharedPromptLinkPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   if (!isSupabaseConfigured()) notFound();
-
   const { slug } = await params;
   if (!shareSlugSchema.safeParse(slug).success) notFound();
 
-  const shared = await getSharedNotebook(slug);
+  const shared = await getSharedPrompt(slug);
   if (!shared) notFound();
 
-  const built = buildPromptFromBlocks(shared.doc);
+  const text = shared.text;
+  const tokens = Math.max(1, Math.ceil(text.length / 4));
+  const kb = (new TextEncoder().encode(text).length / 1024).toFixed(1);
+
   return (
     <SharedPrompt
       name={shared.name}
-      segments={built.segments}
-      tokens={built.tokens}
-      kb={built.kb}
-      text={built.text}
+      segments={[{ text, kind: "normal" as const }]}
+      tokens={tokens}
+      kb={kb}
+      text={text}
     />
   );
 }

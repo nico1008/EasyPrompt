@@ -22,6 +22,8 @@ import { UnlockForm } from "@/components/UnlockForm";
 import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
 import { SavePromptButton, type SaveSource } from "@/components/SavePromptButton";
 import { useDraft } from "@/lib/drafts/useDraft";
+import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
+import { notebookDraftKey, serializeNotebookDraft } from "@/lib/drafts/notebookDraft";
 import { config } from "@/config";
 
 type RelatedLite = { slug: string; title: string; category: string; questions: number };
@@ -57,7 +59,7 @@ export function Builder({
   source,
   savedPromptId,
   crumbs,
-  backHref = "/prompts",
+  backHref = "/templates",
 }: {
   template: Template;
   related: RelatedLite[];
@@ -80,13 +82,15 @@ export function Builder({
   // is parked); user templates aren't rateable/bookmarkable yet.
   const isCatalog = saveSource.kind === "catalog";
   const trail = crumbs ?? [
-    { href: "/prompts", label: "Prompts" },
-    { href: `/prompts?category=${template.category}`, label: categoryLabel(template.category) },
+    { href: "/templates", label: "Templates" },
+    { href: `/templates?category=${template.category}`, label: categoryLabel(template.category) },
     { label: displayTitle(template) },
   ];
   const [step, setStep] = useState<"form" | "payoff">("form");
   const [toast, setToast] = useState(false);
   const [copiedAgain, setCopiedAgain] = useState(false);
+  /** fieldId → has an unmet required-field error (cleared as the user types). */
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const built = useMemo(() => buildPrompt(template, answers), [template, answers]);
 
@@ -141,6 +145,7 @@ export function Builder({
 
   const setField = useCallback((id: string, value: string) => {
     setAnswers((a) => ({ ...a, fields: { ...a.fields, [id]: value } }));
+    setErrors((e) => (e[id] ? { ...e, [id]: false } : e));
   }, []);
   const toggleCheck = useCallback((id: string) => {
     setAnswers((a) => ({ ...a, checks: { ...a.checks, [id]: !a.checks[id] } }));
@@ -152,11 +157,24 @@ export function Builder({
   }, []);
 
   const submit = useCallback(async () => {
+    // Honour required fields (the * FieldControl shows): block until they're
+    // filled, flag them, and jump to the first one — rather than silently
+    // producing a prompt that's missing inputs the template marked required.
+    const missing = template.fields.filter(
+      (f) => f.required && (answers.fields[f.id] ?? "").trim().length === 0
+    );
+    if (missing.length > 0) {
+      setErrors(Object.fromEntries(missing.map((f) => [f.id, true])));
+      const el = typeof document !== "undefined" ? document.getElementById(missing[0].id) : null;
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus?.();
+      return;
+    }
     await copyText(finalText);
     setStep("payoff");
     flashToast();
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [finalText, flashToast]);
+  }, [template.fields, answers.fields, finalText, flashToast]);
 
   const copyAgain = useCallback(async () => {
     const ok = await copyText(finalText);
@@ -190,6 +208,19 @@ export function Builder({
     const ok = await copyText(finalText);
     if (ok) flashToast();
   }, [finalText, template, flashToast]);
+
+  // Bridge to the block builder. Stash the in-progress answers as the builder's
+  // anonymous draft (keyed to match /build?from=<slug>), so crossing over keeps
+  // the user's work instead of reseeding from template defaults. The builder
+  // restores this draft after mount (no hydration mismatch).
+  const openInBuilder = useCallback(() => {
+    try {
+      const json = serializeNotebookDraft(blockDocFromTemplate(template, answers));
+      if (json) window.localStorage.setItem(notebookDraftKey(`new-from-${template.slug}`), json);
+    } catch {
+      /* non-fatal — the builder still seeds from template defaults */
+    }
+  }, [template, answers]);
 
   // Esc steps back. Enter no longer auto-submits: on a multi-field, mostly
   // optional form it was too easy to finalize by reflex while mid-edit. The
@@ -442,13 +473,13 @@ export function Builder({
                   from scratch.
                 </p>
               </div>
-              <Link className="more" href="/prompts">
+              <Link className="more" href="/templates">
                 Browse all →
               </Link>
             </div>
             <div className="related">
               {related.map((r) => (
-                <Link key={r.slug} href={`/prompts/${r.slug}`}>
+                <Link key={r.slug} href={`/templates/${r.slug}`}>
                   <span className="t">{r.title}</span>
                   <span className="s">
                     {categoryLabel(r.category)} · {r.questions} questions
@@ -537,6 +568,7 @@ export function Builder({
                         field={f}
                         value={answers.fields[f.id] ?? ""}
                         onText={setField}
+                        error={errors[f.id] ? "Required — add a value." : undefined}
                       />
                     ))}
                   </div>
@@ -546,6 +578,7 @@ export function Builder({
                     field={group[0]}
                     value={answers.fields[group[0].id] ?? ""}
                     onText={setField}
+                    error={errors[group[0].id] ? "Required — add a value." : undefined}
                   />
                 )
               )}
@@ -583,7 +616,7 @@ export function Builder({
 
             <div className="foot">
               <span className="meta">
-                <b>{built.skipped}</b> skipped · will be left out
+                Blanks are skipped automatically — fill only what matters.
               </span>
               <div className="actions">
                 <Link className="btn btn-ghost btn-sm btn-back" href={backHref}>
@@ -601,7 +634,9 @@ export function Builder({
             {isCatalog && (
               <>
                 {" · "}
-                <Link href={`/build?from=${template.slug}`}>Customize in builder →</Link>
+                <Link href={`/build?from=${template.slug}`} onClick={openInBuilder}>
+                  Make it your own template — keeps your answers →
+                </Link>
               </>
             )}
           </p>

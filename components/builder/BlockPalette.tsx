@@ -92,6 +92,10 @@ export function BlockPalette({
             value={q}
             placeholder="Search blocks…"
             aria-label="Search block types"
+            role="combobox"
+            aria-expanded
+            aria-controls="pb-palette-listbox"
+            aria-activedescendant={filtered[active] ? `pb-pe-${filtered[active].key}` : undefined}
             onChange={(e) => {
               setQ(e.target.value);
               setActive(0);
@@ -100,7 +104,7 @@ export function BlockPalette({
           <kbd>esc</kbd>
         </div>
 
-        <div className="pb-palette-list" role="listbox" aria-label="Block types">
+        <div className="pb-palette-list" role="listbox" id="pb-palette-listbox" aria-label="Block types">
           {groups.length === 0 && (
             <p className="pb-palette-none">No blocks match “{q.trim()}”.</p>
           )}
@@ -113,6 +117,7 @@ export function BlockPalette({
                 return (
                   <button
                     key={e.key}
+                    id={`pb-pe-${e.key}`}
                     type="button"
                     role="option"
                     aria-selected={isActive}

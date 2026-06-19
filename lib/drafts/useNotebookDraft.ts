@@ -18,6 +18,8 @@ export function useNotebookDraft(opts: {
   hasContent: boolean;
   /** Called once on mount with a restored draft, if one exists. */
   onRestore: (doc: BlockDoc) => void;
+  /** Reports autosave outcome ("saved" / "too-big") for a status indicator. */
+  onStatus?: (status: "saved" | "too-big") => void;
 }): { clear: () => void } {
   return useLocalDraft<BlockDoc>({
     key: notebookDraftKey(opts.notebookId),
@@ -27,5 +29,6 @@ export function useNotebookDraft(opts: {
     serialize: serializeNotebookDraft,
     parse: parseNotebookDraft,
     onRestore: opts.onRestore,
+    onStatus: opts.onStatus,
   });
 }

@@ -10,10 +10,13 @@ export function FieldControl({
   field,
   value,
   onText,
+  error,
 }: {
   field: Field;
   value: string;
   onText: (id: string, value: string) => void;
+  /** Inline validation message (e.g. a required field left blank). */
+  error?: string;
 }) {
   const label = (
     <label htmlFor={field.id}>
@@ -21,6 +24,17 @@ export function FieldControl({
       {field.required && <span className="req">*</span>}
     </label>
   );
+
+  const invalid = error ? true : undefined;
+  const describedBy = error ? `${field.id}-err` : undefined;
+  // Error supersedes the helper line; otherwise show the helper if present.
+  const foot = error ? (
+    <span id={`${field.id}-err`} className="field-error" role="alert">
+      {error}
+    </span>
+  ) : field.helper ? (
+    <span className="helper">{field.helper}</span>
+  ) : null;
 
   if (field.type === "text") {
     return (
@@ -31,9 +45,11 @@ export function FieldControl({
           className="input"
           value={value}
           placeholder={field.placeholder}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
           onChange={(e) => onText(field.id, e.target.value)}
         />
-        {field.helper && <span className="helper">{field.helper}</span>}
+        {foot}
       </div>
     );
   }
@@ -47,9 +63,11 @@ export function FieldControl({
           className="textarea"
           value={value}
           placeholder={field.placeholder}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
           onChange={(e) => onText(field.id, e.target.value)}
         />
-        {field.helper && <span className="helper">{field.helper}</span>}
+        {foot}
       </div>
     );
   }
@@ -62,6 +80,8 @@ export function FieldControl({
           id={field.id}
           className="select"
           value={value}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
           onChange={(e) => onText(field.id, e.target.value)}
         >
           {field.options.map((o) => (
@@ -70,7 +90,7 @@ export function FieldControl({
             </option>
           ))}
         </select>
-        {field.helper && <span className="helper">{field.helper}</span>}
+        {foot}
       </div>
     );
   }
@@ -79,7 +99,13 @@ export function FieldControl({
     return (
       <div className="field">
         {label}
-        <div className="pills" role="group" aria-label={field.label}>
+        <div
+          className="pills"
+          role="group"
+          aria-label={field.label}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
+        >
           {field.options.map((o) => (
             <button
               key={o}
@@ -92,7 +118,7 @@ export function FieldControl({
             </button>
           ))}
         </div>
-        {field.helper && <span className="helper">{field.helper}</span>}
+        {foot}
       </div>
     );
   }

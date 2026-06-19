@@ -136,6 +136,49 @@
   font-size: 12px;
   color: var(--fg-3);
 }
+.my-row-sub a {
+  color: var(--accent);
+}
+.my-row-sub a:hover {
+  text-decoration: underline;
+}
+
+/* Object-type chip (Template / Prompt) in the unified library */
+.my-type {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 7px;
+  font: 600 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--r-1);
+  vertical-align: middle;
+}
+.my-type-template {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.my-type-prompt {
+  color: var(--fg-2);
+  background: var(--bg-3);
+}
+
+/* Per-card publish/share controls */
+.lib-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lib-vis {
+  height: 32px;
+  width: auto;
+  padding: 0 8px;
+  font-size: 13px;
+}
+.lib-err {
+  font-size: 12px;
+  color: var(--danger);
+}
 
 .my-empty {
   padding: 28px;

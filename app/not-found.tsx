@@ -13,7 +13,7 @@ export default function NotFound() {
             The page you&apos;re after doesn&apos;t exist — but a perfect prompt is
             still 30 seconds away.
           </p>
-          <Link className="btn btn-primary btn-lg" href="/prompts">
+          <Link className="btn btn-primary btn-lg" href="/templates">
             Browse prompts →
           </Link>
         </CrosshairCard>

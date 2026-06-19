@@ -1,35 +1,30 @@
 "use client";
 
-/* Tab bar for the account hub. Each tab is a real route (so its data is
- * server-rendered, RLS-scoped); this just highlights the active one. Rendered at
- * the top of each list page, not in a layout, so editor sub-pages aren't wrapped. */
+/* Filter bar for the unified My Library. Each filter is a `?filter=` query on
+ * /my (one server-rendered, RLS-scoped list); this just highlights the active
+ * one. Object-type + status filters, never the internal storage concepts. */
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const TABS = [
-  { href: "/my", label: "Built" },
-  { href: "/my/saved", label: "Saved" },
-  { href: "/my/templates", label: "Templates" },
-  { href: "/my/library", label: "Library" },
-];
+import { useSearchParams } from "next/navigation";
+import { LIBRARY_FILTERS } from "@/lib/library/list";
 
 export function MyTabs() {
-  const path = usePathname() || "/my";
+  const sp = useSearchParams();
+  const active = sp.get("filter") ?? "all";
   return (
-    <div className="my-tabs" role="tablist" aria-label="Your workspace">
-      {TABS.map((t) => {
-        const active = path === t.href;
+    <div className="my-tabs" role="tablist" aria-label="Library filters">
+      {LIBRARY_FILTERS.map((f) => {
+        const on = active === f.id;
+        const href = f.id === "all" ? "/my" : `/my?filter=${f.id}`;
         return (
           <Link
-            key={t.href}
-            href={t.href}
+            key={f.id}
+            href={href}
             role="tab"
-            aria-selected={active}
-            aria-current={active ? "page" : undefined}
-            className={`my-tab${active ? " on" : ""}`}
+            aria-selected={on}
+            className={`my-tab${on ? " on" : ""}`}
           >
-            {t.label}
+            {f.label}
           </Link>
         );
       })}

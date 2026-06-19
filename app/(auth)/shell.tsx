@@ -43,7 +43,7 @@ export function NotConfigured() {
           <h1>Accounts coming soon</h1>
           <p className="auth-notice">
             This deployment doesn&apos;t have accounts configured yet. The prompt
-            builder works without one — <Link href="/prompts">browse prompts →</Link>
+            builder works without one — <Link href="/templates">browse prompts →</Link>
           </p>
         </div>
       </CrosshairCard>

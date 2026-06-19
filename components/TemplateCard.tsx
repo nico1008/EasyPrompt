@@ -9,7 +9,7 @@ import { RatingStars } from "./RatingStars";
    + star. The whole card is a link to the builder. */
 export function TemplateCard({ t }: { t: Template }) {
   return (
-    <Link className={`card panel${t.popular ? " popular" : ""}`} href={`/prompts/${t.slug}`}>
+    <Link className={`card panel${t.popular ? " popular" : ""}`} href={`/templates/${t.slug}`}>
       <div className="top">
         <h3>{displayTitle(t)}</h3>
         <div className="icon">

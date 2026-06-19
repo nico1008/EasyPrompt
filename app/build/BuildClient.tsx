@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { getTemplate } from "@/data/templates";
 import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
-import { emptyBlockDoc } from "@/lib/blocks/defaults";
+import { blankBlockDoc } from "@/lib/blocks/defaults";
 import { PromptBuilder } from "@/components/builder/PromptBuilder";
 
 export function BuildClient() {
@@ -21,7 +21,7 @@ export function BuildClient() {
       const t = getTemplate(from);
       if (t) return { doc: blockDocFromTemplate(t), draftId: `new-from-${from}` };
     }
-    return { doc: emptyBlockDoc(), draftId: "new" };
+    return { doc: blankBlockDoc(), draftId: "new" };
   }, [from]);
 
   return <PromptBuilder key={draftId} initialDoc={doc} draftId={draftId} />;

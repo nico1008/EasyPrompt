@@ -18,6 +18,13 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+/** Shared visibility for Templates + Prompts (migration 0007). */
+export type ContentVisibility = "draft" | "published" | "unlisted";
+
+/* NOTE (internal ↔ external naming): in the UI, both `prompt_notebooks`
+ * (block-built) and `user_templates` (form-based) are "Templates", and
+ * `saved_prompts` are "Prompts". The table names are implementation detail. */
+
 export interface Database {
   public: {
     Tables: {
@@ -58,6 +65,8 @@ export interface Database {
           fields: Json;
           checkboxes: Json;
           is_public: boolean;
+          visibility: ContentVisibility;
+          share_slug: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -75,6 +84,8 @@ export interface Database {
           fields?: Json;
           checkboxes?: Json;
           is_public?: boolean;
+          visibility?: ContentVisibility;
+          share_slug?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -90,6 +101,8 @@ export interface Database {
           fields?: Json;
           checkboxes?: Json;
           is_public?: boolean;
+          visibility?: ContentVisibility;
+          share_slug?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -99,10 +112,13 @@ export interface Database {
           id: string;
           owner_id: string;
           name: string;
-          source_kind: "catalog" | "user";
+          source_kind: "catalog" | "user" | "import" | "manual" | "ai";
           catalog_slug: string | null;
           user_template_id: string | null;
           answers: Json;
+          body: string | null;
+          visibility: ContentVisibility;
+          share_slug: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -110,16 +126,22 @@ export interface Database {
           id?: string;
           owner_id: string;
           name: string;
-          source_kind: "catalog" | "user";
+          source_kind: "catalog" | "user" | "import" | "manual" | "ai";
           catalog_slug?: string | null;
           user_template_id?: string | null;
           answers: Json;
+          body?: string | null;
+          visibility?: ContentVisibility;
+          share_slug?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           name?: string;
           answers?: Json;
+          body?: string | null;
+          visibility?: ContentVisibility;
+          share_slug?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -200,14 +222,16 @@ export interface Database {
         };
         Relationships: [];
       };
+      // A "Template" in the UI (block-built). See the naming note at the top.
       prompt_notebooks: {
         Row: {
           id: string;
           owner_id: string;
           name: string;
           doc: Json;
-          /** Non-null = publicly shareable via /p/<slug> (capability token). */
+          /** Non-null = shareable via /s/t/<slug> (capability token). */
           share_slug: string | null;
+          visibility: ContentVisibility;
           created_at: string;
           updated_at: string;
         };
@@ -217,6 +241,7 @@ export interface Database {
           name: string;
           doc?: Json;
           share_slug?: string | null;
+          visibility?: ContentVisibility;
           created_at?: string;
           updated_at?: string;
         };
@@ -224,6 +249,7 @@ export interface Database {
           name?: string;
           doc?: Json;
           share_slug?: string | null;
+          visibility?: ContentVisibility;
           updated_at?: string;
         };
         Relationships: [];
@@ -266,8 +292,23 @@ export interface Database {
         Args: { p_slug: string };
         Returns: { name: string; doc: Json }[];
       };
+      shared_template: {
+        Args: { p_slug: string };
+        Returns: { kind: "notebook" | "user_template"; title: string; payload: Json }[];
+      };
+      shared_prompt: {
+        Args: { p_slug: string };
+        Returns: {
+          name: string;
+          body: string | null;
+          answers: Json;
+          source_kind: string;
+          catalog_slug: string | null;
+          user_template_id: string | null;
+        }[];
+      };
     };
-    Enums: Record<string, never>;
+    Enums: { content_visibility: ContentVisibility };
     CompositeTypes: Record<string, never>;
   };
 }

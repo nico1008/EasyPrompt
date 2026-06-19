@@ -246,6 +246,13 @@ export function emptyBlockDoc(title = ""): BlockDoc {
   return { version: 1, title, blocks: [newSectionBlock("role")] };
 }
 
+/** A truly empty prompt (no blocks) — used for a cold builder open so the
+ *  onboarding empty state shows and teaches the block model, instead of dropping
+ *  the user onto a lone, unexplained "Role" card. */
+export function blankBlockDoc(title = ""): BlockDoc {
+  return { version: 1, title, blocks: [] };
+}
+
 /* --------------------------- block type chrome --------------------------- */
 
 const VAR_META: Record<Field["type"], { label: string; description: string }> = {
@@ -255,13 +262,15 @@ const VAR_META: Record<Field["type"], { label: string; description: string }> = 
   pills: { label: "Choice pills", description: "Pick one from tappable options." },
 };
 
-/** Type chip label for a block in the editor / outline. */
+/** Type chip label for a block in the editor / outline. For variables, show the
+ *  chosen input type ("Short text", "Dropdown", …) so the card matches the word
+ *  used in the palette and the Type dropdown — not the internal "Variable". */
 export function blockTypeLabel(b: Block): string {
   switch (b.kind) {
     case "section":
       return PRESET_META[b.preset].label;
     case "variable":
-      return "Variable";
+      return VAR_META[b.field.type].label;
     case "note":
       return "Note";
     case "divider":

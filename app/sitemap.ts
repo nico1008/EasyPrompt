@@ -6,7 +6,7 @@ const SITE = "https://easyprompt.app";
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${SITE}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${SITE}/prompts`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${SITE}/templates`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE}/how-it-works`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE}/pricing`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE}/submit-template`, changeFrequency: "yearly", priority: 0.3 },
@@ -15,7 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const templatePages: MetadataRoute.Sitemap = TEMPLATES.map((t) => ({
-    url: `${SITE}/prompts/${t.slug}`,
+    url: `${SITE}/templates/${t.slug}`,
     changeFrequency: "monthly",
     priority: 0.8,
   }));

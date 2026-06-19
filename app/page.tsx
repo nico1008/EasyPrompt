@@ -27,7 +27,7 @@ const CHIPS: { label: string; slug?: string }[] = [
 ];
 
 function chipHref(c: { label: string; slug?: string }) {
-  return c.slug ? `/prompts/${c.slug}` : `/prompts?q=${encodeURIComponent(c.label)}`;
+  return c.slug ? `/templates/${c.slug}` : `/templates?q=${encodeURIComponent(c.label)}`;
 }
 
 export default function LandingPage() {
@@ -50,7 +50,7 @@ export default function LandingPage() {
             get a perfectly crafted prompt to paste into ChatGPT, Claude, or Gemini.
           </p>
           <div className="ctas">
-            <Link className="btn btn-primary btn-lg" href="/prompts">
+            <Link className="btn btn-primary btn-lg" href="/templates">
               Try a template →
             </Link>
             <Link className="btn btn-ghost btn-lg" href="/how-it-works">
@@ -184,7 +184,7 @@ export default function LandingPage() {
           <h2 className="h2">No matter what you&apos;re trying to make.</h2>
         </div>
         <div className="who-grid">
-          <Link className="panel who-card" href="/prompts?category=education">
+          <Link className="panel who-card" href="/templates?category=education">
             <div className="icon">
               <Icon name="teacher" />
             </div>
@@ -194,7 +194,7 @@ export default function LandingPage() {
               make coffee.
             </p>
           </Link>
-          <Link className="panel who-card" href="/prompts?category=marketing">
+          <Link className="panel who-card" href="/templates?category=marketing">
             <div className="icon">
               <Icon name="chart" />
             </div>
@@ -204,7 +204,7 @@ export default function LandingPage() {
               copywriter.
             </p>
           </Link>
-          <Link className="panel who-card" href="/prompts?category=writing">
+          <Link className="panel who-card" href="/templates?category=writing">
             <div className="icon">
               <Icon name="briefcase" />
             </div>
@@ -214,7 +214,7 @@ export default function LandingPage() {
               emails that land.
             </p>
           </Link>
-          <Link className="panel who-card" href="/prompts?category=code">
+          <Link className="panel who-card" href="/templates?category=code">
             <div className="icon">
               <Icon name="code" />
             </div>
@@ -236,7 +236,7 @@ export default function LandingPage() {
               A starting point for whatever you need.
             </h2>
           </div>
-          <Link className="btn btn-ghost btn-sm" href="/prompts">
+          <Link className="btn btn-ghost btn-sm" href="/templates">
             Browse all →
           </Link>
         </div>
@@ -270,7 +270,7 @@ export default function LandingPage() {
       <section className="closing">
         <h2 className="h2">A perfect prompt is 30 seconds away.</h2>
         <p>Free to start. No credit card. No prompt-engineering YouTube tutorials.</p>
-        <Link className="btn btn-primary btn-lg" href="/prompts">
+        <Link className="btn btn-primary btn-lg" href="/templates">
           Try a template →
         </Link>
       </section>

@@ -20,11 +20,11 @@ export function Footer() {
         <nav className="footer-col" aria-label="Categories">
           <h4>Browse</h4>
           {CATEGORIES.map((c) => (
-            <Link key={c.id} href={`/prompts?category=${c.id}`}>
+            <Link key={c.id} href={`/templates?category=${c.id}`}>
               {c.label}
             </Link>
           ))}
-          <Link href="/prompts">All prompts</Link>
+          <Link href="/templates">All prompts</Link>
         </nav>
 
         <nav className="footer-col" aria-label="Product">

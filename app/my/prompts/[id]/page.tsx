@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import "@/app/prompts/[slug]/builder.css";
-import { Builder } from "@/app/prompts/[slug]/Builder";
+import "@/app/templates/[slug]/builder.css";
+import { Builder } from "@/app/templates/[slug]/Builder";
 import type { SaveSource } from "@/components/SavePromptButton";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -50,7 +50,7 @@ export default async function OpenSavedPromptPage({
       initialAnswers={initialAnswers}
       source={source}
       savedPromptId={saved.id}
-      crumbs={[{ href: "/my", label: "My prompts" }, { label: saved.name }]}
+      crumbs={[{ href: "/my", label: "My Library" }, { label: saved.name }]}
       backHref="/my"
     />
   );

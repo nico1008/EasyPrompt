@@ -28,11 +28,11 @@ export async function generateMetadata({
   return {
     title: t.seo_title,
     description: t.seo_description,
-    alternates: { canonical: `/prompts/${t.slug}` },
+    alternates: { canonical: `/templates/${t.slug}` },
     openGraph: {
       title: t.seo_title,
       description: t.seo_description,
-      url: `/prompts/${t.slug}`,
+      url: `/templates/${t.slug}`,
       type: "website",
     },
   };

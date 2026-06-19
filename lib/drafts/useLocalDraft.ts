@@ -28,8 +28,11 @@ export function useLocalDraft<T>(opts: {
   parse: (raw: string | null | undefined) => T | null;
   /** Called once on mount with a restored draft, if one exists. */
   onRestore: (value: T) => void;
+  /** Reports each autosave write: "saved" on success, "too-big" when there's
+   *  content but it exceeds the size cap (so the caller can warn the user). */
+  onStatus?: (status: "saved" | "too-big") => void;
 }): { clear: () => void } {
-  const { key, enabled, value, hasContent, serialize, parse, onRestore } = opts;
+  const { key, enabled, value, hasContent, serialize, parse, onRestore, onStatus } = opts;
   const ready = useRef(false);
   const onRestoreRef = useRef(onRestore);
   onRestoreRef.current = onRestore;
@@ -37,6 +40,8 @@ export function useLocalDraft<T>(opts: {
   serializeRef.current = serialize;
   const parseRef = useRef(parse);
   parseRef.current = parse;
+  const onStatusRef = useRef(onStatus);
+  onStatusRef.current = onStatus;
 
   // Restore once, after mount. Marks `ready` so autosave doesn't run first.
   useEffect(() => {
@@ -51,8 +56,13 @@ export function useLocalDraft<T>(opts: {
     if (!enabled || !ready.current || typeof window === "undefined") return;
     const handle = window.setTimeout(() => {
       const serialized = hasContent ? serializeRef.current(value) : null;
-      if (serialized) window.localStorage.setItem(key, serialized);
-      else window.localStorage.removeItem(key);
+      if (serialized) {
+        window.localStorage.setItem(key, serialized);
+        onStatusRef.current?.("saved");
+      } else {
+        window.localStorage.removeItem(key);
+        if (hasContent) onStatusRef.current?.("too-big");
+      }
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(handle);
   }, [value, hasContent, enabled, key]);

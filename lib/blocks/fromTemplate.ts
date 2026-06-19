@@ -10,6 +10,7 @@
  *   leading heading stripped to avoid a doubled heading); enabled = its default. */
 
 import type { Template, Field } from "@/data/types";
+import type { Answers } from "@/lib/buildPrompt";
 import type { Block, BlockDoc, BlockPreset, SectionBlock, VariableBlock } from "./types";
 
 function presetFor(heading: string): BlockPreset {
@@ -66,7 +67,11 @@ function stripLeadingHeading(text: string): string {
   return text.replace(/^\s+/, "").replace(/^#\s+.*(?:\n|$)/, "").trim();
 }
 
-export function blockDocFromTemplate(template: Template): BlockDoc {
+/* `answers` (optional) carries a user's in-progress classic-form input across the
+ * "open in builder" bridge, so crossing over doesn't discard their work: a field's
+ * typed value seeds the matching variable block, and a checked box enables its
+ * section. Absent answers fall back to template defaults (the original behaviour). */
+export function blockDocFromTemplate(template: Template, answers?: Answers): BlockDoc {
   const blocks: Block[] = [];
   let n = 0;
   const id = () => `seed-${n++}`;
@@ -90,7 +95,7 @@ export function blockDocFromTemplate(template: Template): BlockDoc {
       id: id(),
       kind: "variable",
       field: { ...field } as Field,
-      value: field.default ?? "",
+      value: answers?.fields[field.id] ?? field.default ?? "",
       enabled: true,
       collapsed: false,
     };
@@ -106,7 +111,7 @@ export function blockDocFromTemplate(template: Template): BlockDoc {
       preset: "output",
       heading: c.label,
       body,
-      enabled: Boolean(c.default),
+      enabled: answers ? Boolean(answers.checks[c.id]) : Boolean(c.default),
       collapsed: false,
     };
     blocks.push(block);

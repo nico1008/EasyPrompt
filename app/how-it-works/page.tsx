@@ -90,7 +90,7 @@ export default function HowItWorksPage() {
         </div>
 
         <div className="center-cta">
-          <Link className="btn btn-primary btn-lg" href="/prompts">
+          <Link className="btn btn-primary btn-lg" href="/templates">
             Try a template →
           </Link>
         </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import "@/app/prompts/[slug]/builder.css";
-import { Builder } from "@/app/prompts/[slug]/Builder";
+import "@/app/templates/[slug]/builder.css";
+import { Builder } from "@/app/templates/[slug]/Builder";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getUserTemplate } from "@/lib/userTemplates/repo";
@@ -28,7 +28,7 @@ export default async function RunUserTemplatePage({
       template={template}
       related={[]}
       source={{ kind: "user", userTemplateId: row.id }}
-      crumbs={[{ href: "/my", label: "My prompts" }, { label: template.seo_title }]}
+      crumbs={[{ href: "/my", label: "My Library" }, { label: template.seo_title }]}
       backHref="/my"
     />
   );

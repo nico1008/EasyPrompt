@@ -13,7 +13,7 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { buildPromptFromBlocks, openInUrl } from "@/lib/buildPrompt";
-import { analyzeDoc } from "@/lib/blocks/health";
+import { analyzeDoc, type HealthStatus } from "@/lib/blocks/health";
 import type { Block, BlockDoc } from "@/lib/blocks/types";
 import { newBlockId } from "@/lib/blocks/defaults";
 import { useNotebookDraft } from "@/lib/drafts/useNotebookDraft";
@@ -95,7 +95,15 @@ export function PromptBuilder({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [paletteOpen, setPaletteOpen] = useState(false);
+  // Narrow-screen view switch (the panes can't sit side-by-side under ~860px).
+  const [mobileView, setMobileView] = useState<"outline" | "build" | "preview">("build");
   const insertIndexRef = useRef<number>(0);
+  // Save status (visibility of system status). New notebooks: the autosave-draft
+  // outcome. Existing notebooks: dirty/saved vs the last save (snapshot below).
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saved" | "too-big">("idle");
+  const [savedSnapshot, setSavedSnapshot] = useState(() => JSON.stringify(initialDoc));
+  const docRef = useRef(doc);
+  docRef.current = doc;
 
   const built = useMemo(() => buildPromptFromBlocks(doc), [doc]);
   const health = useMemo(() => analyzeDoc(doc, built), [doc, built]);
@@ -107,7 +115,27 @@ export function PromptBuilder({
     doc,
     hasContent: built.answered > 0 || doc.title.trim().length > 0,
     onRestore: setDoc,
+    onStatus: setDraftStatus,
   });
+
+  // On a successful save, clear the draft and reset the dirty baseline.
+  const markSaved = useCallback(() => {
+    clearDraft();
+    setSavedSnapshot(JSON.stringify(docRef.current));
+  }, [clearDraft]);
+
+  const dirty = notebookId !== undefined && JSON.stringify(doc) !== savedSnapshot;
+  const tooBig = notebookId === undefined && draftStatus === "too-big";
+  const saveLabel =
+    notebookId !== undefined
+      ? dirty
+        ? "Unsaved changes"
+        : "Saved"
+      : tooBig
+        ? "Too long to autosave — save it to keep it"
+        : draftStatus === "saved"
+          ? "Draft saved"
+          : null;
 
   /* ---- block mutations ---- */
   const patchBlock = useCallback((id: string, next: Block) => {
@@ -189,8 +217,12 @@ export function PromptBuilder({
 
   const jumpTo = useCallback((id: string) => {
     setActiveId(id);
-    const el = document.getElementById(`pb-block-${id}`);
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // On narrow screens the canvas may be hidden behind the view switch — show it
+    // first, then scroll once it's laid out (rAF). Harmless on desktop.
+    setMobileView("build");
+    requestAnimationFrame(() => {
+      document.getElementById(`pb-block-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   }, []);
 
   /* ---- preview actions ---- */
@@ -221,17 +253,22 @@ export function PromptBuilder({
       {/* ---- top toolbar ---- */}
       <header className="pb-toolbar">
         <div className="pb-toolbar-title">
-          <Eyebrow>Prompt builder</Eyebrow>
+          <Eyebrow>Template builder</Eyebrow>
           <input
             className="pb-title-input"
             value={doc.title}
-            placeholder="Untitled prompt"
-            aria-label="Prompt title"
+            placeholder="Untitled template"
+            aria-label="Template title"
             maxLength={120}
             onChange={(e) => setDoc((d) => ({ ...d, title: e.target.value }))}
           />
         </div>
         <div className="pb-toolbar-actions">
+          {saveLabel && (
+            <span className={`pb-savestate${tooBig ? " alert" : ""}`} role="status">
+              {saveLabel}
+            </span>
+          )}
           {notebookId && (
             <HistoryControl
               notebookId={notebookId}
@@ -245,21 +282,39 @@ export function PromptBuilder({
           )}
           {notebookId && <ShareControl notebookId={notebookId} initialSlug={initialShareSlug} />}
           <ExportMenu text={built.text} onDownload={download} />
-          <button className="btn btn-primary btn-sm" onClick={() => void copy()} disabled={!built.text}>
-            <Icon name="copy" size={14} strokeWidth={2} /> Copy
-          </button>
           <SaveControl
             notebookId={notebookId}
             name={doc.title}
             doc={doc}
-            onSaved={clearDraft}
+            onSaved={markSaved}
             onCreated={(id) => router.push(`/my/notebooks/${id}`)}
           />
+          {/* Copy is the single primary action (the prompt → clipboard payoff): it
+              alone is indigo, and sits in the rightmost/strongest position. */}
+          <button className="btn btn-primary btn-sm" onClick={() => void copy()} disabled={!built.text}>
+            <Icon name="copy" size={14} strokeWidth={2} /> Copy
+          </button>
         </div>
       </header>
 
+      {/* ---- narrow-screen view switch (≤860px; hidden on desktop) ---- */}
+      <div className="pb-viewtoggle" role="tablist" aria-label="Builder view">
+        {(["outline", "build", "preview"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={mobileView === v}
+            className={`pb-viewtab${mobileView === v ? " on" : ""}`}
+            onClick={() => setMobileView(v)}
+          >
+            {v === "outline" ? "Outline" : v === "build" ? "Build" : "Preview"}
+          </button>
+        ))}
+      </div>
+
       {/* ---- 3-pane workspace ---- */}
-      <div className="pb-grid">
+      <div className={`pb-grid m-${mobileView}`}>
         <Outline
           blocks={doc.blocks}
           activeId={activeId}
@@ -271,11 +326,14 @@ export function PromptBuilder({
           {doc.blocks.length === 0 ? (
             <div className="pb-empty panel">
               <Icon name="plus" size={20} />
-              <h2>Start your prompt</h2>
-              <p>Add blocks — a role, an objective, context, examples — and watch the prompt assemble live.</p>
+              <h2>Build a reusable template, block by block</h2>
+              <p>Add the parts — a role, an objective, context, examples, and your own variables — and reuse it to generate a prompt whenever you need one. The preview on the right shows what it produces.</p>
               <button className="btn btn-primary btn-sm" onClick={() => openPalette(0)}>
                 <Icon name="plus" size={14} strokeWidth={2.2} /> Add your first block
               </button>
+              <p className="pb-empty-alt">
+                Want a head start? <Link href="/templates">Browse ready-made templates →</Link>
+              </p>
             </div>
           ) : (
             doc.blocks.map((b, i) => (
@@ -351,17 +409,25 @@ export function PromptBuilder({
 }
 
 /* --------------------------- prompt health panel -------------------------- */
+const HEALTH_STATUS: Record<HealthStatus, string> = {
+  empty: "Empty",
+  "needs-objective": "Add an objective",
+  ready: "Ready",
+};
+
 function PromptHealth({ health }: { health: ReturnType<typeof analyzeDoc> }) {
   return (
     <div className="pb-health panel">
       <div className="pb-health-head">
         <span className="pb-health-title">Prompt health</span>
-        <span className="pb-health-score">{health.score}%</span>
-      </div>
-      <div className="pb-health-bar" role="progressbar" aria-valuenow={health.score} aria-valuemin={0} aria-valuemax={100}>
-        <span style={{ width: `${health.score}%` }} />
+        <span className={`pb-health-status ${health.status}`} role="status">
+          {HEALTH_STATUS[health.status]}
+        </span>
       </div>
 
+      <div className="pb-checks-head">
+        Suggested sections <span>· optional, a focused prompt can be short</span>
+      </div>
       <ul className="pb-checks">
         {health.checks.map((c) => (
           <li key={c.id} className={c.done ? "done" : ""}>
@@ -434,9 +500,10 @@ const EMPTY_SAVE: NotebookSaveState = {};
 
 function SaveSubmit({ editing }: { editing: boolean }) {
   const { pending } = useFormStatus();
+  // Secondary (dark) so it doesn't compete with the indigo Copy primary.
   return (
-    <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>
-      {pending ? "Saving…" : editing ? "Save" : "Save prompt"}
+    <button className="btn btn-ink btn-sm" type="submit" disabled={pending}>
+      {pending ? "Saving…" : editing ? "Save" : "Save template"}
     </button>
   );
 }
@@ -607,6 +674,8 @@ function HistoryControl({
   const [versions, setVersions] = useState<NotebookVersion[] | null>(null);
   const [restoreState, restoreAction] = useActionState(restoreVersionAction, {} as RestoreState);
   const [snapState, snapAction] = useActionState(snapshotNotebookAction, {} as VersionSaveState);
+  // Which version is awaiting a restore confirm (restore overwrites current work).
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setVersions(null);
@@ -616,6 +685,10 @@ function HistoryControl({
   useEffect(() => {
     if (open) load();
   }, [open, load]);
+
+  useEffect(() => {
+    if (!open) setConfirmId(null);
+  }, [open]);
 
   useEffect(() => {
     if (snapState.ok) load();
@@ -653,13 +726,27 @@ function HistoryControl({
               {versions.map((v) => (
                 <li key={v.id}>
                   <span className="pb-version-when">{fmtWhen(v.createdAt)}</span>
-                  <form action={restoreAction}>
-                    <input type="hidden" name="notebookId" value={notebookId} />
-                    <input type="hidden" name="versionId" value={v.id} />
-                    <button className="pb-version-restore" type="submit">
+                  {confirmId === v.id ? (
+                    <form action={restoreAction}>
+                      <input type="hidden" name="notebookId" value={notebookId} />
+                      <input type="hidden" name="versionId" value={v.id} />
+                      <button
+                        className="pb-version-restore pb-danger"
+                        type="submit"
+                        title="Replaces the current prompt — unsaved edits are lost"
+                      >
+                        Replace current?
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      className="pb-version-restore"
+                      type="button"
+                      onClick={() => setConfirmId(v.id)}
+                    >
                       Restore
                     </button>
-                  </form>
+                  )}
                 </li>
               ))}
             </ul>

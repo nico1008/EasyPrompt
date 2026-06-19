@@ -80,7 +80,7 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <Link className="btn btn-primary btn-lg" href="/prompts">
+            <Link className="btn btn-primary btn-lg" href="/templates">
               Get started →
             </Link>
           </CrosshairCard>

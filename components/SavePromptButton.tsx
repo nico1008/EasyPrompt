@@ -83,7 +83,7 @@ export function SavePromptButton({
     const next =
       typeof window !== "undefined"
         ? window.location.pathname + window.location.search
-        : "/prompts";
+        : "/templates";
     return (
       <div className="save-prompt">
         <p className="save-hint">Want to keep this prompt?</p>
