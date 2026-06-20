@@ -6,7 +6,7 @@
  * unconfigured. Mounted once in the root layout, renders nothing. */
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { adoptAccountToken, accountTokenActive, lock } from "@/lib/premium/client";
@@ -25,6 +25,7 @@ async function syncAccountPro(): Promise<void> {
 
 export function AuthProvider() {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -48,6 +49,24 @@ export function AuthProvider() {
     });
     return () => subscription.unsubscribe();
   }, [router]);
+
+  // Reconcile the device's Pro session with the account on every navigation —
+  // covers server-action logins/logouts the browser client never sees an event
+  // for (it didn't perform them, so onAuthStateChange stays silent until reload).
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    let active = true;
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (!active) return;
+        if (data.user) void syncAccountPro();
+        else if (accountTokenActive()) lock();
+      });
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   return null;
 }

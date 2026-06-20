@@ -150,7 +150,6 @@ export async function deleteNotebookAction(formData: FormData): Promise<void> {
   const supabase = await createClient();
   await supabase.from("prompt_notebooks").delete().eq("id", id);
   revalidatePath("/my");
-  redirect("/my");
 }
 
 /* ------------------------------- duplicate -------------------------------- */
@@ -178,5 +177,4 @@ export async function duplicateNotebookAction(formData: FormData): Promise<void>
     doc: src.doc,
   });
   revalidatePath("/my");
-  redirect("/my");
 }

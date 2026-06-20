@@ -2,8 +2,8 @@
 
 /* Toggle a bookmark on/off. Authorizes with getUser(); RLS guarantees a user can
  * only touch their own rows and the unique (owner, target) constraint keeps it
- * idempotent. Returns the new state for optimistic UI and revalidates the
- * library page. */
+ * idempotent. Returns the new state for optimistic UI and revalidates My Library
+ * (/my — favorites render there under ?filter=favorites). */
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -43,7 +43,7 @@ export async function toggleBookmarkAction(target: BookmarkTarget): Promise<Book
   if (existing) {
     const { error } = await supabase.from("bookmarks").delete().eq("id", existing.id);
     if (error) return { error: "Couldn't update your library." };
-    revalidatePath("/my/library");
+    revalidatePath("/my");
     return { ok: true, bookmarked: false };
   }
 
@@ -51,19 +51,20 @@ export async function toggleBookmarkAction(target: BookmarkTarget): Promise<Book
     .from("bookmarks")
     .insert({ owner_id: user.id, target_kind: t.data.kind, target_key: t.data.key });
   if (error) return { error: "Couldn't update your library." };
-  revalidatePath("/my/library");
+  revalidatePath("/my");
   return { ok: true, bookmarked: true };
 }
 
-/* Remove a bookmark by row id — form action for the "My library" page. RLS
- * scopes the delete to the owner. */
+/* Remove a bookmark by row id — form action for the My Library favorites tab. RLS
+ * scopes the delete to the owner. No redirect: the form lives on /my, so
+ * revalidatePath + the automatic post-action refresh updates the list in place
+ * (redirecting to the current URL would dedupe and leave the list stale). */
 export async function removeBookmarkAction(formData: FormData): Promise<void> {
-  if (!isSupabaseConfigured()) redirect("/my/library");
+  if (!isSupabaseConfigured()) redirect("/my");
   const id = formData.get("id");
-  if (typeof id !== "string" || !id) redirect("/my/library");
+  if (typeof id !== "string" || !id) redirect("/my");
 
   const supabase = await createClient();
   await supabase.from("bookmarks").delete().eq("id", id);
-  revalidatePath("/my/library");
-  redirect("/my/library");
+  revalidatePath("/my");
 }

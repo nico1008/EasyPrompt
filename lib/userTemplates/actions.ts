@@ -143,7 +143,6 @@ export async function deleteUserTemplateAction(formData: FormData): Promise<void
   const supabase = await createClient();
   await supabase.from("user_templates").delete().eq("id", id);
   revalidatePath("/my");
-  redirect("/my");
 }
 
 /* ------------------------------- duplicate -------------------------------- */
@@ -182,5 +181,4 @@ export async function duplicateUserTemplateAction(formData: FormData): Promise<v
   });
 
   revalidatePath("/my");
-  redirect("/my");
 }

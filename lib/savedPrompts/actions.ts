@@ -196,7 +196,6 @@ export async function renameSavedPromptAction(formData: FormData): Promise<void>
   const supabase = await createClient();
   await supabase.from("saved_prompts").update({ name: nameCheck.data }).eq("id", id);
   revalidatePath("/my");
-  redirect("/my");
 }
 
 /* --------------------------------- delete --------------------------------- */
@@ -208,7 +207,6 @@ export async function deleteSavedPromptAction(formData: FormData): Promise<void>
   const supabase = await createClient();
   await supabase.from("saved_prompts").delete().eq("id", id);
   revalidatePath("/my");
-  redirect("/my");
 }
 
 /* ------------------------------- duplicate -------------------------------- */
@@ -239,5 +237,4 @@ export async function duplicateSavedPromptAction(formData: FormData): Promise<vo
     answers: src.answers,
   });
   revalidatePath("/my");
-  redirect("/my");
 }
