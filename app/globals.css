@@ -454,25 +454,30 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 /* ===== Background field: cursor glow =====
-   A full-viewport layer behind all content (--z-field) that paints the accent grid
-   and reveals a soft pool of it around the pointer. The component writes the cursor
-   position (--mx/--my) and intensity (--glow) onto :root each frame. */
+   A full-viewport layer behind all content (--z-field) that lights ONLY the accent grid
+   strokes under the pointer — never the gaps between them. The component writes the cursor
+   position (--mx/--my) and a movement-driven intensity (--glow) onto :root each frame.
+
+   Premium / Apple-like rule: this layer paints a tinted copy of the 8px grid LINES only
+   (no radial fill — a fill would wash the gaps and read like a neon blob), then a tight,
+   softly-feathered radial mask reveals just the strokes near the cursor. Lines sit exactly
+   on the base body::before grid (same 8px lattice), so the cursor "polishes" the existing
+   grid rather than drawing a second one. */
 .cursor-glow {
   position: fixed;
   inset: 0;
   z-index: var(--z-field);
   pointer-events: none;
   opacity: var(--glow, 0);
-  /* Soft indigo fill + gently-lit grid lines: indigo at low alpha (0.40), NOT the old
-     full-opacity --accent lines that read harsh. */
+  /* Tinted grid LINES only — muted indigo (--accent at low alpha). No radial fill layer. */
   background:
-    radial-gradient(circle 110px at var(--mx, 50%) var(--my, 50%), rgba(91,91,255,0.14), rgba(91,91,255,0.05) 55%, transparent 78%),
-    linear-gradient(rgba(91,91,255,0.40) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(91,91,255,0.40) 1px, transparent 1px);
-  background-size: auto, 8px 8px, 8px 8px;
-  /* Larger, softly-feathered pool (~110px) instead of a hard 75px cut. Single, non-repeating. */
-  -webkit-mask: radial-gradient(circle 110px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.55) 55%, transparent 80%) no-repeat;
-          mask: radial-gradient(circle 110px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.55) 55%, transparent 80%) no-repeat;
+    linear-gradient(rgba(91,91,255,0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91,91,255,0.55) 1px, transparent 1px);
+  background-size: 8px 8px, 8px 8px;
+  /* Tight, softly-feathered reveal (~140px). Solid core → feathered to nothing by ~85%,
+     so the highlight stays localized around the cursor. Single, non-repeating. */
+  -webkit-mask: radial-gradient(circle 140px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
+          mask: radial-gradient(circle 140px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
 }
 /* Touch / coarse pointers have no cursor to follow — the static base grid stays. */
 @media (hover: none), (pointer: coarse) {
