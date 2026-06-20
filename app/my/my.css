@@ -163,6 +163,25 @@
   background: var(--bg-3);
 }
 
+/* Status chip (Draft / Published / Unlisted) — replaces the old status tabs.
+   Draft stays quiet; Published/Unlisted read as active states. */
+.my-status {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  font: 600 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--r-1);
+  vertical-align: middle;
+}
+.my-status-draft { color: var(--fg-3); background: var(--bg-3); }
+.my-status-published { color: #0f7b52; background: #e6f6ee; }
+.my-status-unlisted { color: #9a6a00; background: #fdf1d8; }
+
+/* Favorites cards now carry a type chip too; keep it tidy at the top. */
+.my-card .my-type { align-self: flex-start; margin: 0 0 2px; }
+
 /* Per-card publish/share controls */
 .lib-controls {
   display: inline-flex;

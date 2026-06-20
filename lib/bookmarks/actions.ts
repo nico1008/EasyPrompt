@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getTemplate } from "@/data/templates";
+import { getExamplePrompt } from "@/data/prompts";
 import { bookmarkTargetSchema, type BookmarkTarget } from "./schema";
 
 export type BookmarkState = { ok?: boolean; error?: string; bookmarked?: boolean };
@@ -20,9 +21,11 @@ export async function toggleBookmarkAction(target: BookmarkTarget): Promise<Book
   const t = bookmarkTargetSchema.safeParse(target);
   if (!t.success) return { error: "Unknown bookmark target." };
 
-  // Only catalog templates are bookmarkable today (sharing seam parked).
+  // Validate the target exists in the static catalog it claims to belong to.
   if (t.data.kind === "catalog" && !getTemplate(t.data.key))
     return { error: "Unknown template." };
+  if (t.data.kind === "example_prompt" && !getExamplePrompt(t.data.key))
+    return { error: "Unknown prompt." };
 
   const supabase = await createClient();
   const {

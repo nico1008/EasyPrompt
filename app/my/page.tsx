@@ -33,6 +33,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
+  published: "Published",
+  unlisted: "Unlisted",
+};
+
 type FormAction = (formData: FormData) => void | Promise<void>;
 const DUP: Record<LibraryInternal, FormAction> = {
   notebook: duplicateNotebookAction,
@@ -66,11 +72,11 @@ export default async function MyLibraryPage({
             <h1>My Library</h1>
           </div>
           <div className="my-head-actions">
-            <Link className="btn btn-primary btn-sm" href="/build">
-              + New template
+            <Link className="btn btn-primary btn-sm" href="/build/template">
+              + New Template
             </Link>
-            <Link className="btn btn-ghost btn-sm" href="/my/templates/new">
-              Form editor
+            <Link className="btn btn-ink btn-sm" href="/build/prompt">
+              + New Prompt
             </Link>
           </div>
         </div>
@@ -96,10 +102,13 @@ async function OwnedList({ filter }: { filter: LibraryFilter }) {
   if (items.length === 0) {
     return (
       <CrosshairCard className="panel my-empty">
-        <p>Nothing here yet. Build a template, or fill one in to generate a prompt.</p>
+        <p>Nothing here yet. Create a template or a prompt to get started.</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Link className="btn btn-primary btn-sm" href="/build">
-            Build a template →
+          <Link className="btn btn-primary btn-sm" href="/build/template">
+            + New Template
+          </Link>
+          <Link className="btn btn-ink btn-sm" href="/build/prompt">
+            + New Prompt
           </Link>
           <Link className="btn btn-ghost btn-sm" href="/templates">
             Browse templates
@@ -119,6 +128,7 @@ async function OwnedList({ filter }: { filter: LibraryFilter }) {
                 {it.objectType === "template" ? "Template" : "Prompt"}
               </span>
               {it.title}
+              <span className={`my-status my-status-${it.status}`}>{STATUS_LABEL[it.status]}</span>
               {it.shared && <span className="my-badge">Shared</span>}
             </span>
             <span className="my-row-sub">
@@ -164,35 +174,46 @@ async function OwnedList({ filter }: { filter: LibraryFilter }) {
 }
 
 async function Favorites() {
-  const items = (await listBookmarks()).map((row) => rowToBookmark(row)).filter((b) => b.template !== null);
+  // Bookmarks point at catalog Templates or curated example Prompts; drop any
+  // whose target was since removed.
+  const items = (await listBookmarks())
+    .map((row) => rowToBookmark(row))
+    .filter((b) => b.template !== null || b.prompt !== null);
+
   if (items.length === 0) {
     return (
       <CrosshairCard className="panel my-empty">
-        <p>No favorites yet. Tap the bookmark on any template to keep it here.</p>
-        <Link className="btn btn-primary btn-sm" href="/templates">
-          Browse templates →
-        </Link>
+        <p>No favorites yet. Tap the bookmark on any template or prompt to keep it here.</p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Link className="btn btn-primary btn-sm" href="/templates">
+            Browse templates →
+          </Link>
+          <Link className="btn btn-ghost btn-sm" href="/prompts">
+            Browse prompts
+          </Link>
+        </div>
       </CrosshairCard>
     );
   }
+
   return (
     <div className="my-grid">
-      {items.map((b) => {
-        const t = b.template!;
-        return (
+      {items.map((b) =>
+        b.template ? (
           <CrosshairCard key={b.id} className="panel my-card">
             <div className="my-card-icon">
-              <Icon name={t.icon} size={20} />
+              <Icon name={b.template.icon} size={20} />
             </div>
-            <h3>{displayTitle(t)}</h3>
+            <span className="my-type my-type-template">Template</span>
+            <h3>{displayTitle(b.template)}</h3>
             <p className="my-card-sub">
-              {categoryLabel(t.category)} · {questionCount(t)} questions
+              {categoryLabel(b.template.category)} · {questionCount(b.template)} questions
             </p>
             <div className="my-card-actions">
-              <Link className="btn btn-primary btn-sm" href={`/templates/${t.slug}`}>
+              <Link className="btn btn-primary btn-sm" href={`/templates/${b.template.slug}`}>
                 Use
               </Link>
-              <Link className="btn btn-ghost btn-sm" href={`/build?from=${t.slug}`}>
+              <Link className="btn btn-ghost btn-sm" href={`/build/template?from=${b.template.slug}`}>
                 Customize
               </Link>
               <form action={removeBookmarkAction}>
@@ -201,8 +222,26 @@ async function Favorites() {
               </form>
             </div>
           </CrosshairCard>
-        );
-      })}
+        ) : (
+          <CrosshairCard key={b.id} className="panel my-card">
+            <div className="my-card-icon">
+              <Icon name={b.prompt!.icon} size={20} />
+            </div>
+            <span className="my-type my-type-prompt">Prompt</span>
+            <h3>{b.prompt!.title}</h3>
+            <p className="my-card-sub">{categoryLabel(b.prompt!.category)} · ready to use</p>
+            <div className="my-card-actions">
+              <Link className="btn btn-primary btn-sm" href={`/prompts/${b.prompt!.slug}`}>
+                Open
+              </Link>
+              <form action={removeBookmarkAction}>
+                <input type="hidden" name="id" value={b.id} />
+                <ConfirmButton label="Remove" confirmLabel="Confirm remove" />
+              </form>
+            </div>
+          </CrosshairCard>
+        )
+      )}
     </div>
   );
 }

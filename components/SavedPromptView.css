@@ -1,0 +1,30 @@
+/* Saved-prompt read view (My Library → Open, template-sourced). Scoped under
+   .saved-view; root transparent so the ambient grid shows. */
+
+.saved-view { min-height: 100dvh; background: transparent; }
+.sv-wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+
+.sv-back { display: inline-flex; align-items: center; gap: 6px; font: 600 13px var(--font-sans); color: var(--fg-2); margin-bottom: 18px; }
+.sv-back:hover { color: var(--fg-1); }
+.sv-back svg { transform: rotate(180deg); }
+
+.sv-head { margin-bottom: 16px; }
+.sv-head h1 { font: 700 clamp(24px, 4vw, 32px) / 1.12 var(--font-sans); letter-spacing: -0.025em; color: var(--fg-1); margin: 0; text-wrap: balance; }
+.sv-source { font-size: 13px; color: var(--fg-3); margin: 8px 0 0; }
+.sv-source a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+
+.saved-view .code-well { margin: 0; }
+.saved-view .code-body { min-height: 200px; max-height: 60vh; overflow: auto; }
+
+.sv-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.sv-openin { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.sv-openin .btn { gap: 8px; }
+.sv-lg { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: var(--r-1); font: 700 11px var(--font-mono); color: #fff; flex-shrink: 0; }
+.sv-lg.gpt { background: #10a37f; }
+.sv-lg.cl { background: #d97757; }
+.sv-lg.gem { background: #4285f4; }
+
+@media (max-width: 600px) {
+  .sv-openin { margin-left: 0; width: 100%; }
+  .sv-actions .btn-primary { flex: 1; justify-content: center; }
+}

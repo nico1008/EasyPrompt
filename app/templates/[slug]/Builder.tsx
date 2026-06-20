@@ -210,7 +210,7 @@ export function Builder({
   }, [finalText, template, flashToast]);
 
   // Bridge to the block builder. Stash the in-progress answers as the builder's
-  // anonymous draft (keyed to match /build?from=<slug>), so crossing over keeps
+  // anonymous draft (keyed to match /build/template?from=<slug>), so crossing keeps
   // the user's work instead of reseeding from template defaults. The builder
   // restores this draft after mount (no hydration mismatch).
   const openInBuilder = useCallback(() => {
@@ -634,7 +634,7 @@ export function Builder({
             {isCatalog && (
               <>
                 {" · "}
-                <Link href={`/build?from=${template.slug}`} onClick={openInBuilder}>
+                <Link href={`/build/template?from=${template.slug}`} onClick={openInBuilder}>
                   Make it your own template — keeps your answers →
                 </Link>
               </>

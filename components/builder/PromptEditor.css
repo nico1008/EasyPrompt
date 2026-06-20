@@ -1,0 +1,68 @@
+/* Markdown Prompt editor. Two panes on desktop (edit | live preview), stacked on
+   narrow screens. Scoped under .prompt-editor (imported CSS is global). Root stays
+   transparent so the ambient grid shows; editing surfaces are opaque .panel. */
+
+.prompt-editor { min-height: 100dvh; background: transparent; }
+
+.pe-bar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 24px;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--line-1);
+}
+.pe-crumbs { display: flex; align-items: center; gap: 8px; font: 500 13px var(--font-sans); color: var(--fg-2); }
+.pe-crumbs a { color: var(--fg-2); }
+.pe-crumbs a:hover { color: var(--accent); }
+.pe-crumbs span[aria-hidden] { color: var(--line-3); }
+.pe-crumbs > span:last-child { color: var(--fg-1); font-weight: 600; }
+.pe-bar-actions { display: flex; align-items: center; gap: 8px; }
+.pe-save-form { display: inline-flex; }
+
+.pe-err {
+  max-width: 1100px; margin: 12px auto 0; padding: 0 24px;
+  color: var(--danger, #d4183d); font: 500 13px var(--font-sans);
+}
+
+.pe-grid {
+  max-width: 1100px; margin: 0 auto; padding: 22px 24px 80px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  align-items: start;
+}
+
+.pe-edit { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.pe-title {
+  width: 100%;
+  border: none; background: transparent;
+  font: 700 22px var(--font-sans); letter-spacing: -0.02em; color: var(--fg-1);
+  padding: 4px 2px;
+  border-bottom: 1px solid transparent;
+}
+.pe-title:focus { outline: none; border-bottom-color: var(--accent); }
+.pe-title::placeholder { color: var(--fg-3); }
+
+.pe-textarea {
+  width: 100%; min-height: 52vh; resize: vertical;
+  border: 1px solid var(--line-2); border-radius: var(--r-2);
+  background: var(--bg-2); color: var(--fg-1);
+  padding: 14px;
+  font: 400 14px/1.6 var(--font-mono);
+  tab-size: 2;
+}
+.pe-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pe-hint { font: 400 12px var(--font-sans); color: var(--fg-3); margin: 0; }
+.pe-hint code { font-family: var(--font-mono); background: var(--bg-2); padding: 1px 4px; border-radius: var(--r-1); }
+
+.pe-preview { position: sticky; top: 78px; display: flex; flex-direction: column; gap: 12px; }
+.pe-preview .code-well { margin: 0; }
+.pe-preview .code-body { min-height: 52vh; max-height: 64vh; overflow: auto; }
+.pe-empty { color: var(--fg-3); font: 400 13px var(--font-mono); }
+.pe-openin { display: flex; gap: 8px; flex-wrap: wrap; }
+.pe-openin [aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+
+@media (max-width: 880px) {
+  .pe-grid { grid-template-columns: 1fr; }
+  .pe-preview { position: static; }
+  .pe-textarea { min-height: 36vh; }
+  .pe-preview .code-body { min-height: 30vh; }
+}

@@ -2,22 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  CATEGORIES,
-  TEMPLATES,
-  countFor,
-  displayTitle,
-} from "@/data/templates";
-import type { Template } from "@/data/types";
-import { TemplateCard } from "@/components/TemplateCard";
+import { CATEGORIES } from "@/data/templates";
+import { EXAMPLE_PROMPTS, promptCountFor, type ExamplePrompt } from "@/data/prompts";
+import { PromptCard } from "@/components/PromptCard";
 import { Eyebrow } from "@/components/Eyebrow";
 import { Icon, type IconName } from "@/components/Icon";
 
 type Sort = "popular" | "new" | "az";
-type Filter = "none" | "top" | "small" | "fresh";
 
-/* Sidebar icon per category — keeps the picker on the Icon system instead of
-   mixing emoji into an otherwise stroked-icon UI. */
+/* Sidebar icon per category — same vocabulary as the Templates picker so the two
+   libraries read as one system. */
 const CATEGORY_ICONS: Record<string, IconName> = {
   life: "meal",
   writing: "letter",
@@ -28,28 +22,19 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   code: "code",
 };
 
-/* "12.4k" -> 12400 for numeric sorting. */
-function usesToNumber(uses: string): number {
-  const n = parseFloat(uses);
-  return uses.toLowerCase().includes("k") ? n * 1000 : n;
-}
-
-export function PromptsClient() {
+export function PromptsLibraryClient() {
   const params = useSearchParams();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [sort, setSort] = useState<Sort>("popular");
-  const [filter, setFilter] = useState<Filter>("none");
   const [isMac, setIsMac] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Show the platform-correct shortcut hint (⌘K on Mac, Ctrl K elsewhere).
-  // Defaults to the non-Mac label so SSR and first client render agree.
   useEffect(() => {
     setIsMac(/mac|iphone|ipad/i.test(navigator.userAgent));
   }, []);
 
-  // Seed state from the URL (footer category links, landing chips).
+  // Seed state from the URL (landing links, category deep-links).
   useEffect(() => {
     const q = params.get("q");
     const cat = params.get("category");
@@ -71,44 +56,35 @@ export function PromptsClient() {
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list: Template[] = TEMPLATES.filter((t) => {
-      if (category !== "all" && t.category !== category) return false;
-      if (filter === "top" && !t.popular) return false;
-      if (filter === "small" && t.fields.length > 4) return false;
-      if (filter === "fresh" && (t.added ?? 0) < 4) return false;
+    let list: ExamplePrompt[] = EXAMPLE_PROMPTS.filter((p) => {
+      if (category !== "all" && p.category !== category) return false;
       if (!q) return true;
-      const hay = [
-        displayTitle(t),
-        t.blurb,
-        t.tag,
-        t.category,
-        t.seo_title,
-      ]
-        .join(" ")
-        .toLowerCase();
+      const hay = [p.title, p.blurb, p.tag, p.category].join(" ").toLowerCase();
       return hay.includes(q);
     });
 
     list = [...list].sort((a, b) => {
-      if (sort === "az") return displayTitle(a).localeCompare(displayTitle(b));
+      if (sort === "az") return a.title.localeCompare(b.title);
       if (sort === "new") return (b.added ?? 0) - (a.added ?? 0);
-      // popular: popular flag first, then uses desc
-      if (a.popular !== b.popular) return a.popular ? -1 : 1;
-      return usesToNumber(b.uses) - usesToNumber(a.uses);
+      // popular: popular flag first, then newest
+      if (Boolean(a.popular) !== Boolean(b.popular)) return a.popular ? -1 : 1;
+      return (b.added ?? 0) - (a.added ?? 0);
     });
     return list;
-  }, [query, category, sort, filter]);
+  }, [query, category, sort]);
+
+  // Only show categories that actually contain example prompts.
+  const cats = CATEGORIES.filter((c) => promptCountFor(c.id) > 0);
 
   return (
     <main className="picker-page">
       <div className="wrap">
         <div className="page-head">
-          <Eyebrow>Template library</Eyebrow>
-          <h1>Pick a starting point.</h1>
+          <Eyebrow>Prompt library</Eyebrow>
+          <h1>Ready to paste, right now.</h1>
           <p>
-            Browse our library of ready-made templates. Pick one, answer a few
-            short questions, and get a polished prompt for ChatGPT, Claude, or
-            Gemini — in seconds.
+            Browse finished prompts you can copy as-is — or customize one to fit your
+            situation. Each is written to work with ChatGPT, Claude, or Gemini.
           </p>
         </div>
 
@@ -119,8 +95,8 @@ export function PromptsClient() {
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="What are you trying to make today? Try 'cover letter' or 'meal plan'…"
-              aria-label="Search templates"
+              placeholder="Search prompts… try 'cover letter' or 'meal plan'"
+              aria-label="Search prompts"
             />
             <span className="k">{isMac ? "⌘K" : "Ctrl K"}</span>
           </div>
@@ -156,10 +132,10 @@ export function PromptsClient() {
               className={category === "all" ? "on" : undefined}
               onClick={() => setCategory("all")}
             >
-              <span>All templates</span>
-              <span className="ct">{countFor("all")}</span>
+              <span>All prompts</span>
+              <span className="ct">{promptCountFor("all")}</span>
             </button>
-            {CATEGORIES.map((c) => (
+            {cats.map((c) => (
               <button
                 key={c.id}
                 className={category === c.id ? "on" : undefined}
@@ -167,46 +143,20 @@ export function PromptsClient() {
               >
                 <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} />
                 {c.label}
-                <span className="ct">{countFor(c.id)}</span>
+                <span className="ct">{promptCountFor(c.id)}</span>
               </button>
             ))}
-            <div className="group">Filter</div>
-            <button
-              className={filter === "top" ? "on" : undefined}
-              aria-pressed={filter === "top"}
-              onClick={() => setFilter((f) => (f === "top" ? "none" : "top"))}
-            >
-              <Icon name="star" size={15} />
-              <span>Top rated</span>
-            </button>
-            <button
-              className={filter === "small" ? "on" : undefined}
-              aria-pressed={filter === "small"}
-              onClick={() => setFilter((f) => (f === "small" ? "none" : "small"))}
-            >
-              <Icon name="zap" size={15} />
-              <span>Under 5 fields</span>
-            </button>
-            <button
-              className={filter === "fresh" ? "on" : undefined}
-              aria-pressed={filter === "fresh"}
-              onClick={() => setFilter((f) => (f === "fresh" ? "none" : "fresh"))}
-            >
-              <Icon name="clock" size={15} />
-              <span>Added this week</span>
-            </button>
           </aside>
 
           <div>
             <div className="grid">
               {results.length === 0 ? (
                 <div className="empty">
-                  No templates match <b>“{query}”</b>. Try a different search or{" "}
+                  No prompts match <b>“{query}”</b>. Try a different search or{" "}
                   <button
                     onClick={() => {
                       setQuery("");
                       setCategory("all");
-                      setFilter("none");
                     }}
                     style={{
                       background: "none",
@@ -222,7 +172,7 @@ export function PromptsClient() {
                   .
                 </div>
               ) : (
-                results.map((t) => <TemplateCard key={t.id} t={t} />)
+                results.map((p) => <PromptCard key={p.id} p={p} />)
               )}
             </div>
           </div>

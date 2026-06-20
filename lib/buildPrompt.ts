@@ -35,6 +35,14 @@ function markAuthored(text: string): Segment[] {
   return out;
 }
 
+/** Split ready-to-paste markdown into highlighted segments (headings muted),
+ *  for the shared dark code well. Used by the Prompts detail view and the prompt
+ *  editor preview so a standalone `body` renders like every other assembled
+ *  prompt. */
+export function segmentMarkdown(text: string): Segment[] {
+  return markAuthored(text);
+}
+
 function byteLength(s: string): number {
   if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(s).length;
   return unescape(encodeURIComponent(s)).length;

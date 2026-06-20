@@ -1,0 +1,70 @@
+/* Builder overview — the create hub. Scoped under .build-overview (imported CSS
+   is global). Root stays transparent so the ambient grid shows. */
+
+.build-overview { min-height: 100dvh; background: transparent; }
+.bo-wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 90px; }
+
+.bo-head { margin-bottom: 28px; }
+.bo-head h1 {
+  font: 700 clamp(28px, 4.5vw, 40px) / 1.08 var(--font-sans);
+  letter-spacing: -0.03em; color: var(--fg-1); margin: 10px 0 0;
+  text-wrap: balance;
+}
+.bo-head p { font-size: 16px; line-height: 1.6; color: var(--fg-2); margin: 12px 0 0; max-width: 60ch; }
+
+/* ---- Two create choices ---- */
+.bo-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.bo-choice {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 22px; border-radius: var(--r-3);
+  border: 1px solid var(--line-2); background: var(--bg-1);
+  color: inherit;
+  transition: border-color 160ms, transform 160ms, box-shadow 160ms;
+}
+.bo-choice:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 12px 30px rgba(80, 70, 230, 0.10); }
+.bo-choice-ic {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: var(--r-2);
+  background: var(--accent-soft); color: var(--accent);
+  margin-bottom: 6px;
+}
+.bo-choice-kicker { font: 600 11px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); }
+.bo-choice-title { display: inline-flex; align-items: center; gap: 6px; font: 700 19px var(--font-sans); letter-spacing: -0.02em; color: var(--fg-1); }
+.bo-choice-blurb { font-size: 13.5px; line-height: 1.55; color: var(--fg-2); }
+.bo-choice-go { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font: 600 13px var(--font-sans); color: var(--accent); }
+
+/* ---- Sign-in nudge ---- */
+.bo-signin { margin-top: 22px; padding: 18px 20px; }
+.bo-signin p { margin: 0; font-size: 14px; color: var(--fg-2); }
+.bo-signin a { color: var(--accent); font-weight: 600; }
+
+/* ---- Recent creations ---- */
+.bo-recent { margin-top: 36px; }
+.bo-recent-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.bo-recent-head h2 { font: 600 16px var(--font-sans); color: var(--fg-1); margin: 0; }
+.bo-viewall { font: 600 13px var(--font-sans); color: var(--accent); }
+.bo-empty { padding: 18px 20px; }
+.bo-empty p { margin: 0; font-size: 14px; color: var(--fg-2); }
+
+.bo-recent-list { display: flex; flex-direction: column; gap: 8px; }
+.bo-recent-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: var(--r-2);
+}
+.bo-recent-name { display: flex; align-items: center; gap: 8px; font: 600 14px var(--font-sans); color: var(--fg-1); flex: 1; min-width: 0; }
+.bo-recent-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bo-recent-meta { font-size: 12px; color: var(--fg-3); flex-shrink: 0; }
+.bo-recent-row .btn { flex-shrink: 0; }
+
+.bo-type {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  height: 19px; padding: 0 7px; border-radius: 999px;
+  font: 600 10px var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.bo-type-template { background: var(--accent-soft); color: var(--accent); }
+.bo-type-prompt { background: rgba(15, 15, 30, 0.06); color: var(--fg-2); }
+
+@media (max-width: 680px) {
+  .bo-choices { grid-template-columns: 1fr; }
+  .bo-recent-meta { display: none; }
+}

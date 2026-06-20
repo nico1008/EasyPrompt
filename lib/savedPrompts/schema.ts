@@ -17,6 +17,14 @@ export const nameSchema = z
 /** Size guard so a saved row can't be enormous. */
 export const MAX_ANSWERS_JSON = 20_000;
 
+/** Markdown body for a manual / standalone Prompt (source_kind='manual'). */
+export const MAX_BODY = 20_000;
+export const bodySchema = z
+  .string()
+  .trim()
+  .min(1, "Write your prompt first.")
+  .max(MAX_BODY, "That prompt is too long to save.");
+
 export type AnswersInput = z.infer<typeof answersSchema>;
 
 /** Parse + size-check an answers JSON string. */

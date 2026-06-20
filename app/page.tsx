@@ -231,10 +231,15 @@ export default function LandingPage() {
       <section className="templates-strip">
         <div className="ts-head">
           <div>
-            <Eyebrow>{TEMPLATES.length} prompts and counting</Eyebrow>
+            <Eyebrow>{TEMPLATES.length} templates and counting</Eyebrow>
             <h2 className="h2" style={{ marginTop: 14 }}>
               A starting point for whatever you need.
             </h2>
+            <p className="ts-sub">
+              Want something you can paste right now? Browse our{" "}
+              <Link href="/prompts">ready-to-use prompts</Link> — finished examples you can copy or
+              tweak.
+            </p>
           </div>
           <Link className="btn btn-ghost btn-sm" href="/templates">
             Browse all →

@@ -1,47 +1,24 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import "@/app/my/my.css";
-import { Eyebrow } from "@/components/Eyebrow";
-import { CrosshairCard } from "@/components/CrosshairCard";
+import "@/app/templates/picker.css";
+import "./prompts.css";
+import { PromptsLibraryClient } from "./PromptsLibraryClient";
 
 /* The Prompts catalog. A "Prompt" is a finished, ready-to-paste instruction (the
- * counterpart to a reusable Template). Public discovery of community-published
- * prompts is a follow-up (needs a listing RPC); for now this orients users to the
- * ways a Prompt comes to exist — generated from a Template, or built. */
+ * counterpart to a reusable Template). This browses a curated set of example
+ * Prompts; public discovery of community-published prompts is a follow-up (needs
+ * a listing RPC). Mirrors the Template library so the two read as one system. */
 export const metadata: Metadata = {
-  title: "Prompts — ready-to-use",
+  title: "Prompt library — ready-to-use prompts",
   description:
-    "Ready-to-use AI prompts for ChatGPT, Claude, and Gemini. Generate one from a template, then save, share, and publish it.",
+    "Browse ready-to-use AI prompts for ChatGPT, Claude, and Gemini. Copy one as-is, or customize it to fit your situation.",
   alternates: { canonical: "/prompts" },
 };
 
 export default function PromptsCatalogPage() {
   return (
-    <main className="my-page">
-      <div className="my-wrap" style={{ maxWidth: 760 }}>
-        <div className="my-head">
-          <div>
-            <Eyebrow>Prompts</Eyebrow>
-            <h1>Ready-to-use prompts</h1>
-          </div>
-        </div>
-
-        <CrosshairCard className="panel my-empty">
-          <p>
-            A <strong>prompt</strong> is a finished, ready-to-paste instruction. Generate one by
-            filling in a <strong>template</strong>, then save it, share a link, or publish it to your
-            library.
-          </p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-            <Link className="btn btn-primary btn-sm" href="/templates">
-              Browse templates →
-            </Link>
-            <Link className="btn btn-ghost btn-sm" href="/build">
-              Open the builder
-            </Link>
-          </div>
-        </CrosshairCard>
-      </div>
-    </main>
+    <Suspense fallback={<main className="picker-page" style={{ minHeight: "100dvh" }} />}>
+      <PromptsLibraryClient />
+    </Suspense>
   );
 }

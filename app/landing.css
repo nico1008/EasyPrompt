@@ -92,6 +92,8 @@
 /* Templates strip */
 .templates-strip { padding: 60px 28px 100px; border-top: 1px solid var(--line-1); background: var(--bg-2); }
 .ts-head { max-width: 1080px; margin: 0 auto 28px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.ts-sub { margin: 10px 0 0; max-width: 56ch; font: 400 15px/1.6 var(--font-sans); color: var(--fg-2); }
+.ts-sub a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
 .chips { max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
   display: inline-flex; align-items: center; gap: 8px;

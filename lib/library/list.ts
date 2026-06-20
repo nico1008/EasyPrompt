@@ -24,15 +24,21 @@ export type LibraryFilter =
   | "shared"
   | "favorites";
 
+/** Every recognized filter (kept valid so old deep links / redirects still
+ *  resolve). Status — draft/published/unlisted — surfaces as a chip on each card
+ *  rather than its own tab, so the visible tab bar stays at four (PRIMARY_FILTERS). */
 export const LIBRARY_FILTERS: { id: LibraryFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "templates", label: "Templates" },
   { id: "prompts", label: "Prompts" },
+  { id: "favorites", label: "Favorites" },
   { id: "drafts", label: "Drafts" },
   { id: "published", label: "Published" },
   { id: "shared", label: "Shared" },
-  { id: "favorites", label: "Favorites" },
 ];
+
+/** The four tabs shown in the My Library bar (the rest stay valid as deep links). */
+export const PRIMARY_FILTERS: { id: LibraryFilter; label: string }[] = LIBRARY_FILTERS.slice(0, 4);
 
 export function isLibraryFilter(v: string | undefined): v is LibraryFilter {
   return !!v && LIBRARY_FILTERS.some((f) => f.id === v);

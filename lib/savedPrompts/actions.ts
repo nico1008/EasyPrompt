@@ -8,9 +8,85 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { nameSchema, parseAnswers, type AnswersInput } from "./schema";
+import { nameSchema, parseAnswers, bodySchema, type AnswersInput } from "./schema";
 
 export type SaveState = { ok?: boolean; error?: string; savedId?: string };
+
+/* ---------------------- create a manual (standalone) Prompt ---------------------
+ * A Prompt written directly in the markdown editor — no source Template. Stores
+ * the markdown in `body` (the source of truth for source_kind='manual'); answers
+ * stay empty. visibility defaults to 'draft'. */
+export async function createManualPromptAction(
+  _prev: SaveState,
+  formData: FormData
+): Promise<SaveState> {
+  if (!isSupabaseConfigured()) return { error: "Accounts aren't set up here." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in to save." };
+
+  const name = (formData.get("name") as string | null)?.trim() || "Untitled prompt";
+  const nameCheck = nameSchema.safeParse(name);
+  if (!nameCheck.success) return { error: nameCheck.error.issues[0].message };
+
+  const bodyCheck = bodySchema.safeParse((formData.get("body") as string | null) ?? "");
+  if (!bodyCheck.success) return { error: bodyCheck.error.issues[0].message };
+
+  const { data, error } = await supabase
+    .from("saved_prompts")
+    .insert({
+      owner_id: user.id,
+      name: nameCheck.data,
+      source_kind: "manual",
+      catalog_slug: null,
+      user_template_id: null,
+      answers: { fields: {}, checks: {} },
+      body: bodyCheck.data,
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { error: "Couldn't save. Please try again." };
+
+  revalidatePath("/my");
+  return { ok: true, savedId: data.id };
+}
+
+/* ----------------------- update a manual Prompt's body ------------------------ */
+export async function updateManualPromptAction(
+  _prev: SaveState,
+  formData: FormData
+): Promise<SaveState> {
+  if (!isSupabaseConfigured()) return { error: "Accounts aren't set up here." };
+
+  const id = formData.get("id");
+  if (typeof id !== "string" || !id) return { error: "Missing id." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in to save." };
+
+  const bodyCheck = bodySchema.safeParse((formData.get("body") as string | null) ?? "");
+  if (!bodyCheck.success) return { error: bodyCheck.error.issues[0].message };
+
+  const patch: { body: string; name?: string } = { body: bodyCheck.data };
+  const name = (formData.get("name") as string | null)?.trim();
+  if (name) {
+    const nameCheck = nameSchema.safeParse(name);
+    if (!nameCheck.success) return { error: nameCheck.error.issues[0].message };
+    patch.name = nameCheck.data;
+  }
+
+  const { error } = await supabase.from("saved_prompts").update(patch).eq("id", id);
+  if (error) return { error: "Couldn't save your changes." };
+
+  revalidatePath("/my");
+  return { ok: true, savedId: id };
+}
 
 /* --------------------------------- create --------------------------------- */
 export async function createSavedPromptAction(
