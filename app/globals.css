@@ -474,10 +474,10 @@ button { font-family: inherit; cursor: pointer; }
     linear-gradient(rgba(91,91,255,0.55) 1px, transparent 1px),
     linear-gradient(90deg, rgba(91,91,255,0.55) 1px, transparent 1px);
   background-size: 8px 8px, 8px 8px;
-  /* Tight, softly-feathered reveal (~140px). Solid core → feathered to nothing by ~85%,
+  /* Tight, softly-feathered reveal (~70px radius). Solid core → feathered to nothing by ~85%,
      so the highlight stays localized around the cursor. Single, non-repeating. */
-  -webkit-mask: radial-gradient(circle 140px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
-          mask: radial-gradient(circle 140px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
+  -webkit-mask: radial-gradient(circle 70px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
+          mask: radial-gradient(circle 70px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
 }
 /* Touch / coarse pointers have no cursor to follow — the static base grid stays. */
 @media (hover: none), (pointer: coarse) {
