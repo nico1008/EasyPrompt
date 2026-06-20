@@ -1,80 +1,38 @@
 # EasyPrompt
 
-A form-to-prompt builder. Pick a template, answer a short form, and copy a ready-to-paste prompt
-for ChatGPT, Claude, or Gemini. Create a free account to save prompts and build your own templates.
+**Build better AI prompts in seconds.**
 
-Built with **Next.js 15** (App Router), **React 19**, **TypeScript**, and **Supabase**.
+EasyPrompt helps you turn reusable templates into polished prompts for ChatGPT, Claude, Gemini, and more — without starting from a blank page.
 
-## Quickstart
+[**Try EasyPrompt →**](https://easy-prompt-theta.vercel.app/)
 
-```bash
-npm install
-cp .env.example .env.local   # fill in the values below
-npm run dev                  # http://localhost:3000
-```
+---
 
-The builder works anonymously out of the box. Account features (saving prompts, authoring
-templates) light up once Supabase is configured.
+## Why EasyPrompt
 
-## Environment
+* **Start from templates** instead of writing prompts from scratch
+* **Fill in a few inputs** and get a polished prompt instantly
+* **Create your own templates** for repeatable workflows
+* **Save, edit, and reuse** prompts in one place
+* **Share prompts or templates** with a permanent link
 
-Set these in `.env.local`, and in your host's **build** environment for production:
+---
 
-| Variable | Needed for | Purpose |
-|---|---|---|
-| `ACCESS_SIGNING_SECRET` | Pro access codes | HMAC secret that signs/verifies access codes. Use a long random string: `openssl rand -base64 48`. |
-| `NEXT_PUBLIC_SUPABASE_URL` | accounts | Supabase project URL (Project Settings → API). |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | accounts | Supabase anon / publishable key. Safe in the browser — it's gated by Row-Level Security. |
-| `PAYMENT_PROVIDER` | optional | `telegram` (default) or `crypto`. |
-| `PRO_BOOSTERS_B64` | optional | base64 JSON of the Pro Boosters content (kept out of the repo). Unset → a small generic sample. |
+## What it is
 
-> ⚠️ The `NEXT_PUBLIC_*` vars are inlined at **build time** — they must be present when the app is
-> built (e.g. in Vercel's build environment), not only at runtime. If they're absent the account UI
-> stays off and the anonymous builder still works.
+EasyPrompt is a prompt workspace built around two things:
 
-## Database (Supabase)
+* **Templates** — reusable prompt frameworks
+* **Prompts** — completed prompts generated from those templates
 
-1. Create a free project at [supabase.com](https://supabase.com) and set the two
-   `NEXT_PUBLIC_SUPABASE_*` vars above.
-2. Apply the schema: open the project's **SQL Editor** and run the migrations in
-   [`supabase/migrations/`](supabase/migrations/) **in order** (`0001` → `0004`), or
-   `supabase db push`. They create `profiles`, `user_templates`, `saved_prompts`, and `entitlements`
-   with **Row-Level Security** (each user can only ever read/write their own rows), a
-   profile-on-signup trigger, a self-serve account-deletion RPC, and least-privilege grants. No
-   service-role key is needed.
-3. In **Authentication → URL Configuration**, set the Site URL and add a redirect URL ending in
-   `/auth/confirm` (for both localhost and your production domain).
-4. Apply the production hardening in [`SECURITY.md`](SECURITY.md) (a few one-time dashboard toggles).
+Use it for writing, coding, marketing, research, brainstorming, and more.
 
-## Scripts
+---
 
-| Script | Purpose |
-|---|---|
-| `npm run dev` | Dev server on http://localhost:3000 |
-| `npm run build` | Production build |
-| `npm run start` | Serve the production build |
+## Built with
 
-## Project layout
+**Next.js · React · TypeScript · Supabase**
 
-- `app/` — App Router pages + per-route CSS. `app/prompts/[slug]` is the catalog builder (statically
-  generated per template, for SEO); `app/(auth)`, `app/my`, `app/account` are the account areas.
-- `components/` — presentational UI and small client islands.
-- `lib/` — `buildPrompt.ts` (pure prompt assembly), `supabase/` (clients + the `isSupabaseConfigured`
-  gate), and `auth/` · `userTemplates/` · `savedPrompts/` (Zod-validated Server Actions + RLS-scoped
-  data access).
-- `data/` — the content schema and the static template catalog.
-- `supabase/migrations/` — the database schema.
+---
 
-## Architecture notes
-
-- **Auth** uses Supabase with httpOnly cookies. All mutations are Server Actions; `middleware.ts`
-  refreshes the session and guards `/my` + `/account`. Authorization is enforced in the database by
-  Row-Level Security, with server-side `getUser()` checks as defense in depth.
-- **Static-first:** marketing pages and the per-template catalog stay statically rendered. Nav auth
-  state is resolved client-side, so the shared layout never reads cookies (which would otherwise
-  force every page to render dynamically).
-
-## Deploy
-
-Targets Vercel. Add the environment variables above to the project's settings (so they're present at
-build time), then deploy.
+[**Open EasyPrompt →**](https://easy-prompt-theta.vercel.app/)
