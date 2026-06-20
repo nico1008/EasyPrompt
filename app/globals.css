@@ -471,13 +471,14 @@ button { font-family: inherit; cursor: pointer; }
   opacity: var(--glow, 0);
   /* Tinted grid LINES only — muted indigo (--accent at low alpha). No radial fill layer. */
   background:
-    linear-gradient(rgba(91,91,255,0.55) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(91,91,255,0.55) 1px, transparent 1px);
+    linear-gradient(rgba(91,91,255,0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91,91,255,0.35) 1px, transparent 1px);
   background-size: 8px 8px, 8px 8px;
-  /* Tight, softly-feathered reveal (~70px radius). Solid core → feathered to nothing by ~85%,
-     so the highlight stays localized around the cursor. Single, non-repeating. */
-  -webkit-mask: radial-gradient(circle 70px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
-          mask: radial-gradient(circle 70px at var(--mx, 50%) var(--my, 50%), #000 0%, rgba(0,0,0,0.6) 45%, transparent 85%) no-repeat;
+  /* Tight, gently-feathered reveal (~52px radius). No hard core — the mask starts fading
+     immediately so even the centre is soft, reading as a faint surface sheen rather than a
+     spotlight. Single, non-repeating. */
+  -webkit-mask: radial-gradient(circle 52px at var(--mx, 50%) var(--my, 50%), rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 78%) no-repeat;
+          mask: radial-gradient(circle 52px at var(--mx, 50%) var(--my, 50%), rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 78%) no-repeat;
 }
 /* Touch / coarse pointers have no cursor to follow — the static base grid stays. */
 @media (hover: none), (pointer: coarse) {

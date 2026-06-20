@@ -34,17 +34,18 @@ export function BackgroundField() {
     };
 
     const tick = (now: number) => {
-      // Slight trail toward the pointer — soft, no jitter.
-      x += (targetX - x) * 0.18;
-      y += (targetY - y) * 0.18;
+      // Track the pointer closely — just enough lag to feel smooth, not a chasing blob.
+      x += (targetX - x) * 0.24;
+      y += (targetY - y) * 0.24;
 
       // Intensity is purely movement-driven: rises while moving, eases back to 0 when idle.
-      const moving = now - lastMove < 150 ? 1 : 0;
-      energy += (moving - energy) * 0.08;
+      const moving = now - lastMove < 120 ? 1 : 0;
+      energy += (moving - energy) * 0.07;
 
       root.style.setProperty("--mx", `${x}px`);
       root.style.setProperty("--my", `${y}px`);
-      root.style.setProperty("--glow", (energy * 0.85).toFixed(3));
+      // Low peak so it stays a faint sheen, never a bright highlight.
+      root.style.setProperty("--glow", (energy * 0.55).toFixed(3));
 
       raf = requestAnimationFrame(tick);
     };
