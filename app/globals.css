@@ -10,6 +10,7 @@
   --bg-2: #FAFAFA;        /* slight gray for input wells, inset code panels */
   --bg-3: #F4F4F2;        /* hover / chip backgrounds */
   --bg-ink: #262626;      /* dark surface for code blocks — softer than near-black */
+  --bg-md: #1E1E26;       /* markdown-file surface — Prompts cards + the prompt editor */
 
   /* -------- Foreground -------- */
   --fg-1: #0E0E14;        /* primary text */
@@ -25,6 +26,13 @@
   --accent-soft:   #EEEEFF;       /* tinted background */
   --accent-tint:   rgba(91,91,255,0.10);
   --accent-glow:   rgba(91,91,255,0.20);
+
+  /* -------- Prompt accent (the second object's identity: a calm terminal green) --
+     Used sparingly as the Prompts marker vs the indigo Templates — chips, the
+     .md-file card pip, the editor. AA on white and on --bg-md. */
+  --prompt-accent:      #0F7A57;     /* AA on white + on --prompt-accent-soft for small chip text */
+  --prompt-accent-soft: #E3F5EE;
+  --prompt-accent-on-dark: #46D6A6;  /* lifted for contrast on the dark .md surface */
 
   /* -------- Borders -------- */
   --line-1: rgba(15,15,30,0.06);    /* hairline / subtle */
@@ -504,6 +512,19 @@ button { font-family: inherit; cursor: pointer; }
 .bookmark-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .bookmark-btn .bookmark-on { fill: var(--accent); }
 .side-bookmark { margin-top: 12px; }
+
+/* Favorite toggle micro-interaction: the icon pops once when switched on. The
+   transient .bookmark-pop class is added on the toggle-on tick and removed after
+   the animation. Reduced-motion users get no transform. */
+.bookmark-btn svg { transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1); }
+@media (prefers-reduced-motion: no-preference) {
+  .bookmark-btn .bookmark-pop { animation: bookmark-pop 320ms cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes bookmark-pop {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+}
 
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {

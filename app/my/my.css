@@ -143,24 +143,28 @@
   text-decoration: underline;
 }
 
-/* Object-type chip (Template / Prompt) in the unified library */
+/* Object-type chip (Template / Prompt) in the unified library — glyph + label so
+   the two read apart at a glance (see lib/library/objectMeta.ts). */
 .my-type {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin-right: 8px;
-  padding: 1px 7px;
+  padding: 2px 8px;
   font: 600 10px var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   border-radius: var(--r-1);
   vertical-align: middle;
 }
+.my-type svg { width: 11px; height: 11px; }
 .my-type-template {
   color: var(--accent);
   background: var(--accent-soft);
 }
 .my-type-prompt {
-  color: var(--fg-2);
-  background: var(--bg-3);
+  color: var(--prompt-accent);
+  background: var(--prompt-accent-soft);
 }
 
 /* Status chip (Draft / Published / Unlisted) — replaces the old status tabs.
@@ -200,16 +204,27 @@
 }
 
 .my-empty {
-  padding: 28px;
+  padding: 36px 28px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
 }
+.my-empty-ic {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: var(--r-3);
+  background: var(--bg-3); color: var(--fg-3);
+  margin-bottom: 4px;
+}
+.my-empty-ic-template { background: var(--accent-soft); color: var(--accent); }
+.my-empty-ic-prompt { background: var(--prompt-accent-soft); color: var(--prompt-accent); }
+.my-empty h3 { font: 700 18px var(--font-sans); letter-spacing: -0.02em; color: var(--fg-1); margin: 0; }
 .my-empty p {
   margin: 0;
   color: var(--fg-2);
+  max-width: 52ch;
 }
+.my-empty-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 
 /* Destructive buttons + the two-step confirm row (ConfirmButton). */
 .btn.danger {

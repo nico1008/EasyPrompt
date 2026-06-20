@@ -1,24 +1,25 @@
 "use client";
 
-/* Dependency-free Markdown Prompt editor. Left pane: a title + a raw markdown
- * textarea. Right pane: the live preview in the shared dark code well (same
- * segment highlighting as every other assembled prompt — the "preview we already
- * have"). Anon-safe: it autosaves a local draft and offers Copy/Open-in while
- * logged out; Save-to-library prompts sign-in. Signed in, it writes a
- * source_kind='manual' Prompt (body = the markdown) and, on first save, routes to
- * the saved Prompt. Reused by /build/prompt (new) and /my/prompts/[id] (edit). */
+/* Single-pane Markdown Prompt editor. One styled .md surface: a transparent
+ * <textarea> stacked over a syntax-highlighted <pre> mirror with identical
+ * metrics, so headings/lists/code/bold color live AS YOU TYPE and the caret never
+ * drifts (the highlighted-textarea technique — react-simple-code-editor pattern,
+ * hand-rolled, no dep). The editor grows with content and the page scrolls; the
+ * action bar is sticky so Copy / Open-in / Save stay reachable with no layout
+ * shift while typing. Anon-safe (local draft + Copy/Open-in logged out; Save
+ * prompts sign-in). Reused by /build/prompt (new) and /my/prompts/[id] (manual). */
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useCallback, useEffect, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/client";
 import { copyText } from "@/lib/clipboard";
-import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
+import { openInUrl } from "@/lib/buildPrompt";
+import { highlightMarkdown } from "@/lib/markdown/highlight";
 import { useLocalDraft } from "@/lib/drafts/useLocalDraft";
 import {
   createManualPromptAction,
@@ -56,6 +57,7 @@ export function PromptEditor({
   const [body, setBody] = useState(initialBody);
   const [auth, setAuth] = useState<"checking" | "anon" | "ready">("checking");
   const [toast, setToast] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [state, formAction] = useActionState(
     editing ? updateManualPromptAction : createManualPromptAction,
@@ -100,7 +102,6 @@ export function PromptEditor({
       return null;
     },
     onRestore: (v) => {
-      // Only restore if the user hasn't been handed seeded content.
       if (!initialBody) {
         setName((n) => n || v.name);
         setBody((b) => b || v.body);
@@ -120,18 +121,22 @@ export function PromptEditor({
     }
   }, [state.ok, state.savedId, editing, clear, router]);
 
-  const segments = useMemo(() => segmentMarkdown(body), [body]);
+  const segments = useMemo(() => highlightMarkdown(body), [body]);
+  // Trailing-line guard: a <pre> drops the height of a final empty line, so add a
+  // phantom newline to the mirror when the body is empty or ends in a newline.
+  const needsGuard = body === "" || body.endsWith("\n");
   const tokens = Math.max(1, Math.ceil(body.length / 4));
   const kb = (new TextEncoder().encode(body).length / 1024).toFixed(1);
   const hasBody = body.trim().length > 0;
 
   const copy = useCallback(async () => {
     if (await copyText(body)) {
-      setToast("Prompt copied to clipboard");
-      window.setTimeout(() => setToast(null), 2200);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
     }
   }, [body]);
 
+  const fileName = `${(name || "untitled").replace(/\s+/g, "-").toLowerCase()}.md`;
   const loginNext =
     typeof window !== "undefined" ? window.location.pathname + window.location.search : "/build/prompt";
 
@@ -146,8 +151,12 @@ export function PromptEditor({
           <span>{editing ? "Edit prompt" : "New prompt"}</span>
         </div>
         <div className="pe-bar-actions">
-          <button className="btn btn-ghost btn-sm" onClick={() => void copy()} disabled={!hasBody}>
-            <Icon name="copy" size={14} /> Copy
+          <button
+            className={`btn btn-ghost btn-sm${copied ? " is-copied" : ""}`}
+            onClick={() => void copy()}
+            disabled={!hasBody}
+          >
+            <Icon name={copied ? "check" : "copy"} size={14} /> {copied ? "Copied!" : "Copy"}
           </button>
           {auth === "ready" ? (
             <form action={formAction} className="pe-save-form">
@@ -173,50 +182,62 @@ export function PromptEditor({
         </p>
       )}
 
-      <div className="pe-grid">
-        <section className="pe-edit panel">
-          <input
-            className="pe-title"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Untitled prompt"
-            aria-label="Prompt name"
-            maxLength={120}
-          />
-          <textarea
-            className="pe-textarea"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder={`Write your prompt in markdown…\n\n# Role\nYou are a…\n\n# Task\n…`}
-            aria-label="Prompt body (markdown)"
-            spellCheck
-          />
-          <p className="pe-hint">
-            Markdown supported. Lines starting with <code>#</code> render as muted headings in the
-            preview.
-          </p>
-        </section>
+      <div className="pe-wrap">
+        <input
+          className="pe-title"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Untitled prompt"
+          aria-label="Prompt name"
+          maxLength={120}
+        />
 
-        <section className="pe-preview">
-          <CodeWell
-            title={`${(name || "prompt").replace(/\s+/g, "-").toLowerCase()}.md`}
-            segments={segments}
-            tokens={tokens}
-            kb={kb}
-            empty={<span className="pe-empty">Your prompt will appear here as you type.</span>}
-          />
-          <div className="pe-openin">
-            <a className="btn btn-ghost btn-sm" href={openInUrl("chatgpt", body)} target="_blank" rel="noopener noreferrer" aria-disabled={!hasBody}>
-              Open in ChatGPT
-            </a>
-            <a className="btn btn-ghost btn-sm" href={openInUrl("claude", body)} target="_blank" rel="noopener noreferrer" aria-disabled={!hasBody}>
-              Claude
-            </a>
-            <a className="btn btn-ghost btn-sm" href={openInUrl("gemini", body)} target="_blank" rel="noopener noreferrer">
-              Gemini
-            </a>
+        <div className="pe-openin" aria-label="Open this prompt in">
+          <span className="pe-openin-label">Open in</span>
+          <a className="md-open" href={openInUrl("chatgpt", body)} target="_blank" rel="noopener noreferrer" aria-disabled={!hasBody}>
+            ChatGPT
+          </a>
+          <a className="md-open" href={openInUrl("claude", body)} target="_blank" rel="noopener noreferrer" aria-disabled={!hasBody}>
+            Claude
+          </a>
+          <a className="md-open" href={openInUrl("gemini", body)} target="_blank" rel="noopener noreferrer">
+            Gemini
+          </a>
+        </div>
+
+        <div className="md-editor">
+          <div className="md-bar">
+            <span className="md-dot" aria-hidden="true" />
+            <span className="md-file">{fileName}</span>
+            <span className="md-meta">
+              {tokens} tokens · {kb} KB
+            </span>
           </div>
-        </section>
+
+          <div className="md-surface">
+            <pre className="md-mirror" aria-hidden="true">
+              {segments.map((s, i) => (
+                <span key={i} className={`hl-${s.kind}`}>
+                  {s.text}
+                </span>
+              ))}
+              {needsGuard && "\n"}
+            </pre>
+            <textarea
+              className="md-input"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder={"Write your prompt in markdown…\n\n# Role\nYou are a…\n\n# Task\n…"}
+              aria-label="Prompt body (markdown)"
+              spellCheck
+            />
+          </div>
+        </div>
+
+        <p className="pe-hint">
+          Markdown is highlighted live — <code>#</code> headings, <code>- </code> lists,{" "}
+          <code>**bold**</code>, and <code>`code`</code>.
+        </p>
       </div>
     </main>
   );

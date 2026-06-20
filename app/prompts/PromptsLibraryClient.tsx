@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { CATEGORIES } from "@/data/templates";
 import { EXAMPLE_PROMPTS, promptCountFor, type ExamplePrompt } from "@/data/prompts";
 import { PromptCard } from "@/components/PromptCard";
-import { Eyebrow } from "@/components/Eyebrow";
 import { Icon, type IconName } from "@/components/Icon";
 
 type Sort = "popular" | "new" | "az";
@@ -77,14 +76,14 @@ export function PromptsLibraryClient() {
   const cats = CATEGORIES.filter((c) => promptCountFor(c.id) > 0);
 
   return (
-    <main className="picker-page">
+    <main className="picker-page prompts-theme">
       <div className="wrap">
         <div className="page-head">
-          <Eyebrow>Prompt library</Eyebrow>
+          <span className="prompts-eyebrow">~/prompts</span>
           <h1>Ready to paste, right now.</h1>
           <p>
-            Browse finished prompts you can copy as-is — or customize one to fit your
-            situation. Each is written to work with ChatGPT, Claude, or Gemini.
+            Finished prompts you can copy as-is — or customize one to fit your situation.
+            Each is written to work with ChatGPT, Claude, or Gemini.
           </p>
         </div>
 

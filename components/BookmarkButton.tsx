@@ -24,6 +24,7 @@ export function BookmarkButton({
 }) {
   const [on, setOn] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pop, setPop] = useState(false);
   const email = useSupabaseUser();
   const loggedIn = Boolean(email);
 
@@ -46,6 +47,11 @@ export function BookmarkButton({
     setBusy(true);
     const prev = on;
     setOn(!prev); // optimistic
+    if (!prev) {
+      // Pop the icon only when switching ON.
+      setPop(true);
+      window.setTimeout(() => setPop(false), 340);
+    }
     const res = await toggleBookmarkAction(target);
     if (!res.ok) setOn(prev);
     else if (typeof res.bookmarked === "boolean") setOn(res.bookmarked);
@@ -77,7 +83,11 @@ export function BookmarkButton({
         void toggle();
       }}
     >
-      <Icon name="bookmark" size={16} className={on ? "bookmark-on" : undefined} />
+      <Icon
+        name="bookmark"
+        size={16}
+        className={`${on ? "bookmark-on" : ""}${pop ? " bookmark-pop" : ""}`.trim() || undefined}
+      />
       {!compact && (on ? "Saved" : "Save")}
     </button>
   );

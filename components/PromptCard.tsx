@@ -8,9 +8,9 @@ import { BookmarkButton } from "./BookmarkButton";
 import { copyText } from "@/lib/clipboard";
 import type { ExamplePrompt } from "@/data/prompts";
 
-/* Prompts-library grid card. Mirrors TemplateCard (same .picker-page .card
-   styles) but for a ready-to-use Prompt: the whole card links to the detail
-   page, while the Favorite toggle and one-tap Copy stop propagation so they act
+/* Prompts-library card — rendered as a dark markdown-FILE tile (titlebar +
+   `slug.md`) so a Prompt never reads like a Template. The whole tile links to the
+   detail page; the Favorite toggle and one-tap Copy stop propagation so they act
    without navigating. */
 export function PromptCard({ p }: { p: ExamplePrompt }) {
   const [copied, setCopied] = useState(false);
@@ -28,27 +28,32 @@ export function PromptCard({ p }: { p: ExamplePrompt }) {
   );
 
   return (
-    <Link className={`card panel${p.popular ? " popular" : ""}`} href={`/prompts/${p.slug}`}>
-      <div className="top">
-        <h3>{p.title}</h3>
-        <span className="card-fav">
+    <Link className="prompt-tile" href={`/prompts/${p.slug}`}>
+      <div className="pt-bar">
+        <span className="pt-pips" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className="pt-file">{p.slug}.md</span>
+        <span className="pt-fav">
           <BookmarkButton compact target={{ kind: "example_prompt", key: p.slug }} />
         </span>
-        <div className="icon">
-          <Icon name={p.icon} size={18} />
-        </div>
       </div>
-      <p>{p.blurb}</p>
-      <div className="foot">
-        <span className="tag">{p.tag}</span>
+      <div className="pt-body">
+        <h3 className="pt-title">{p.title}</h3>
+        <p className="pt-blurb">{p.blurb}</p>
+      </div>
+      <div className="pt-foot">
+        <span className="pt-tag">{p.tag}</span>
         <button
           type="button"
-          className={`prompt-copy${copied ? " done" : ""}`}
+          className={`pt-copy${copied ? " done" : ""}`}
           onClick={copy}
           aria-label={`Copy the ${p.title} prompt`}
         >
           <Icon name={copied ? "check" : "copy"} size={13} />
-          {copied ? "Copied" : "Copy"}
+          {copied ? "Copied!" : "Copy"}
         </button>
       </div>
     </Link>

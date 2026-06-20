@@ -20,6 +20,7 @@ import type { ExamplePrompt } from "@/data/prompts";
 export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
   const [toast, setToast] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const text = prompt.body;
   const segments = useMemo(() => segmentMarkdown(text), [text]);
@@ -32,7 +33,11 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
   }, []);
 
   const copy = useCallback(async () => {
-    if (await copyText(text)) flash("Prompt copied to clipboard");
+    if (await copyText(text)) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+      flash("Prompt copied to clipboard");
+    }
   }, [text, flash]);
 
   const source = prompt.sourceTemplateSlug ? getTemplate(prompt.sourceTemplateSlug) : undefined;
@@ -65,7 +70,8 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
 
         <div className="pd-actions">
           <button className="btn btn-primary" onClick={() => void copy()}>
-            <Icon name="copy" size={15} strokeWidth={2} /> Copy prompt
+            <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
+            {copied ? "Copied!" : "Copy prompt"}
           </button>
           <button className="btn btn-ink" onClick={() => setModal(true)}>
             <Icon name="wrench" size={15} /> Customize

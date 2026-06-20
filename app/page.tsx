@@ -46,8 +46,9 @@ export default function LandingPage() {
             Paste<span className="accent">.</span>
           </h1>
           <p className="sub">
-            A prompt builder for everyone. Pick a template, fill out a short form,
-            get a perfectly crafted prompt to paste into ChatGPT, Claude, or Gemini.
+            A prompt builder for everyone. Fill in a <strong>template</strong> to generate a
+            perfect prompt, or grab a ready-to-use <strong>prompt</strong> and paste it straight
+            into ChatGPT, Claude, or Gemini.
           </p>
           <div className="ctas">
             <Link className="btn btn-primary btn-lg" href="/templates">
@@ -227,6 +228,47 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ============ TWO WAYS TO START ============ */}
+      <section className="two-ways">
+        <div className="tw-head">
+          <h2 className="h2">Two ways to start.</h2>
+          <p>Build from a template, or grab a finished prompt. Both land you in seconds.</p>
+        </div>
+        <div className="tw-grid">
+          <Link className="tw-card tw-template" href="/templates">
+            <span className="tw-ic">
+              <Icon name="list" size={22} />
+            </span>
+            <h3>Templates</h3>
+            <p>
+              Fill in a short form and get a polished, structured prompt. {TEMPLATES.length} free
+              templates, designed for real tasks.
+            </p>
+            <span className="tw-go">
+              Browse templates <Icon name="arrow-right" size={14} />
+            </span>
+          </Link>
+          <Link className="tw-card tw-prompt" href="/prompts">
+            <span className="tw-filebar">
+              <span className="tw-pips" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+              <span className="tw-fname">~/prompts</span>
+            </span>
+            <span className="tw-ic">
+              <Icon name="code" size={22} />
+            </span>
+            <h3>Prompts</h3>
+            <p>Copy a ready-to-use prompt as-is, or customize it to fit. Nothing to fill in.</p>
+            <span className="tw-go">
+              Browse prompts <Icon name="arrow-right" size={14} />
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* ============ TEMPLATES ============ */}
       <section className="templates-strip">
         <div className="ts-head">
@@ -235,11 +277,6 @@ export default function LandingPage() {
             <h2 className="h2" style={{ marginTop: 14 }}>
               A starting point for whatever you need.
             </h2>
-            <p className="ts-sub">
-              Want something you can paste right now? Browse our{" "}
-              <Link href="/prompts">ready-to-use prompts</Link> — finished examples you can copy or
-              tweak.
-            </p>
           </div>
           <Link className="btn btn-ghost btn-sm" href="/templates">
             Browse all →

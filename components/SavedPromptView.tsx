@@ -33,11 +33,14 @@ export function SavedPromptView({
   source?: { label: string; href: string };
 }) {
   const [toast, setToast] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const copy = useCallback(async () => {
     if (await copyText(text)) {
       setToast(true);
+      setCopied(true);
       window.setTimeout(() => setToast(false), 2200);
+      window.setTimeout(() => setCopied(false), 1600);
     }
   }, [text]);
 
@@ -64,7 +67,8 @@ export function SavedPromptView({
 
         <div className="sv-actions">
           <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
-            <Icon name="copy" size={15} strokeWidth={2} /> Copy prompt
+            <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
+            {copied ? "Copied!" : "Copy prompt"}
           </button>
           <Link className="btn btn-ghost" href={editHref}>
             <Icon name="list" size={15} /> Edit answers
