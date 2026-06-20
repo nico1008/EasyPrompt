@@ -60,10 +60,14 @@ export default function LandingPage() {
           </div>
           {/* live mini demo */}
           <div className="demo">
+            <span className="sr-only">
+              A preview of a filled template and the prompt it produces. Fill your own on the
+              next screen.
+            </span>
             <CrosshairCard className="form-side">
               <div className="demo-head">
                 <span className="title">Weekly meal planner</span>
-                <span className="pip">3 questions</span>
+                <span className="pip">Preview · 3 questions</span>
               </div>
               <div className="field">
                 <label>

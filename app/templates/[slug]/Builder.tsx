@@ -25,6 +25,7 @@ import { useDraft } from "@/lib/drafts/useDraft";
 import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
 import { notebookDraftKey, serializeNotebookDraft } from "@/lib/drafts/notebookDraft";
 import { config } from "@/config";
+import { useEscape } from "@/lib/useEscape";
 
 type RelatedLite = { slug: string; title: string; category: string; questions: number };
 
@@ -222,17 +223,22 @@ export function Builder({
     }
   }, [template, answers]);
 
-  // Esc steps back. Enter no longer auto-submits: on a multi-field, mostly
-  // optional form it was too easy to finalize by reflex while mid-edit. The
-  // explicit "Get my prompt" button is the one way to advance.
+  // Enter no longer auto-submits: on a multi-field, mostly optional form it was
+  // too easy to finalize by reflex while mid-edit. The explicit "Get my prompt"
+  // button is the one way to advance.
+  //
+  // Esc follows the app-wide convention ("close the current view"): on the payoff
+  // it returns to the form (useEscape below); on the form there's no overlay to
+  // close, so it just blurs the active field — it must NOT navigate the page away,
+  // which would silently drop the user's context.
   const onFormKeyDown = useCallback((e: KeyboardEvent<HTMLElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      if (typeof window !== "undefined" && window.history.length > 1) {
-        window.history.back();
-      }
+      (document.activeElement as HTMLElement | null)?.blur?.();
     }
   }, []);
+  const backToForm = useCallback(() => setStep("form"), []);
+  useEscape(step === "payoff", backToForm);
 
   /* ---- pair consecutive pill fields into a .field-row (mirrors the mockup) ---- */
   const rows: Template["fields"][] = [];
@@ -629,17 +635,13 @@ export function Builder({
             </div>
           </CrosshairCard>
 
-          <p className="hint">
-            Press <kbd>Esc</kbd> to go back
-            {isCatalog && (
-              <>
-                {" · "}
-                <Link href={`/build/template?from=${template.slug}`} onClick={openInBuilder}>
-                  Make it your own template — keeps your answers →
-                </Link>
-              </>
-            )}
-          </p>
+          {isCatalog && (
+            <p className="hint">
+              <Link href={`/build/template?from=${template.slug}`} onClick={openInBuilder}>
+                Make it your own template — keeps your answers →
+              </Link>
+            </p>
+          )}
         </div>
       </div>
 

@@ -61,9 +61,13 @@ export function AccountForms({
             className="input"
             defaultValue={displayName}
             placeholder="Your name"
+            aria-invalid={profileState.fieldErrors?.display_name ? true : undefined}
+            aria-describedby={profileState.fieldErrors?.display_name ? "a-name-err" : undefined}
           />
           {profileState.fieldErrors?.display_name && (
-            <span className="account-err">{profileState.fieldErrors.display_name[0]}</span>
+            <span id="a-name-err" className="account-err" role="alert">
+              {profileState.fieldErrors.display_name[0]}
+            </span>
           )}
         </div>
         <div className="field">
@@ -74,9 +78,13 @@ export function AccountForms({
             className="input"
             defaultValue={username}
             placeholder="username"
+            aria-invalid={profileState.fieldErrors?.username ? true : undefined}
+            aria-describedby={profileState.fieldErrors?.username ? "a-user-err" : undefined}
           />
           {profileState.fieldErrors?.username && (
-            <span className="account-err">{profileState.fieldErrors.username[0]}</span>
+            <span id="a-user-err" className="account-err" role="alert">
+              {profileState.fieldErrors.username[0]}
+            </span>
           )}
         </div>
         <Feedback state={profileState} />
@@ -96,9 +104,13 @@ export function AccountForms({
             className="input"
             autoComplete="new-password"
             placeholder="At least 8 characters"
+            aria-invalid={pwState.fieldErrors?.password ? true : undefined}
+            aria-describedby={pwState.fieldErrors?.password ? "a-pw-err" : undefined}
           />
           {pwState.fieldErrors?.password && (
-            <span className="account-err">{pwState.fieldErrors.password[0]}</span>
+            <span id="a-pw-err" className="account-err" role="alert">
+              {pwState.fieldErrors.password[0]}
+            </span>
           )}
         </div>
         <Feedback state={pwState} />

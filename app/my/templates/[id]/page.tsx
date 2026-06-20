@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect, notFound } from "next/navigation";
 import "@/app/templates/[slug]/builder.css";
 import { Builder } from "@/app/templates/[slug]/Builder";
+import { FlashToast } from "@/components/FlashToast";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getUserTemplate } from "@/lib/userTemplates/repo";
@@ -24,12 +26,17 @@ export default async function RunUserTemplatePage({
 
   const template = rowToTemplate(row);
   return (
-    <Builder
-      template={template}
-      related={[]}
-      source={{ kind: "user", userTemplateId: row.id }}
-      crumbs={[{ href: "/my", label: "My Library" }, { label: template.seo_title }]}
-      backHref="/my"
-    />
+    <>
+      <Suspense fallback={null}>
+        <FlashToast />
+      </Suspense>
+      <Builder
+        template={template}
+        related={[]}
+        source={{ kind: "user", userTemplateId: row.id }}
+        crumbs={[{ href: "/my", label: "My Library" }, { label: template.seo_title }]}
+        backHref="/my"
+      />
+    </>
   );
 }

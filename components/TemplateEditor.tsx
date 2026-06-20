@@ -6,7 +6,7 @@
  * re-validates with the same validateUserTemplate the preview/tests use). */
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { CATEGORIES } from "@/data/templates";
@@ -80,6 +80,12 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
     editing ? updateUserTemplateAction : createUserTemplateAction,
     {} as EditorState
   );
+  // Move focus to the error summary when it appears so keyboard/AT users land on
+  // what needs fixing — the form is long and the summary can be off-screen.
+  const errRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (state.errors?.length) errRef.current?.focus();
+  }, [state.errors]);
 
   const [meta, setMeta] = useState({
     title: initial?.title ?? "",
@@ -399,11 +405,20 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
           </button>
 
           {state.errors?.length ? (
-            <ul className="editor-errors" role="alert">
-              {state.errors.map((e, i) => (
-                <li key={i}>{e}</li>
-              ))}
-            </ul>
+            <div
+              ref={errRef}
+              tabIndex={-1}
+              className="editor-errors"
+              role="alert"
+              aria-labelledby="editor-errors-title"
+            >
+              <strong id="editor-errors-title">Please fix the following:</strong>
+              <ul>
+                {state.errors.map((e, i) => (
+                  <li key={i}>{e}</li>
+                ))}
+              </ul>
+            </div>
           ) : null}
 
           <SubmitRow editing={editing} />

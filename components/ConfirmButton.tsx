@@ -30,8 +30,8 @@ export function ConfirmButton({
   }
 
   return (
-    <span className="confirm-row">
-      <button type="submit" className="btn btn-sm danger-solid" disabled={pending}>
+    <span className="confirm-row" role="alert">
+      <button type="submit" autoFocus className="btn btn-sm danger-solid" disabled={pending}>
         {pending ? "Deleting…" : confirmLabel}
       </button>
       <button

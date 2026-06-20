@@ -86,7 +86,7 @@ export async function createUserTemplateAction(
   }
 
   revalidatePath("/my");
-  redirect(`/my/templates/${insert.data.id}`);
+  redirect(`/my/templates/${insert.data.id}?flash=created`);
 }
 
 /* --------------------------------- update --------------------------------- */
@@ -131,7 +131,7 @@ export async function updateUserTemplateAction(
 
   revalidatePath("/my");
   revalidatePath(`/my/templates/${id}`);
-  redirect(`/my/templates/${id}`);
+  redirect(`/my/templates/${id}?flash=updated`);
 }
 
 /* --------------------------------- delete --------------------------------- */

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { UserMenu } from "./UserMenu";
 import { config } from "@/config";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useSupabaseUser } from "@/lib/supabase/useUser";
+import { useEscape } from "@/lib/useEscape";
 
 // Core content-model nav. Marketing links (Home / How it works / Pricing) live in
 // the footer; Home is reachable via the brand logo.
@@ -24,6 +25,14 @@ function isActive(pathname: string, href: string): boolean {
 export function Nav() {
   const pathname = usePathname() || "/";
   const [open, setOpen] = useState(false);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+
+  // Esc closes the open mobile menu and returns focus to the burger (the app-wide
+  // Esc convention — see lib/useEscape).
+  useEscape(open, () => {
+    setOpen(false);
+    burgerRef.current?.focus();
+  });
 
   // Auth state is resolved client-side (see useSupabaseUser) so the shared
   // layout stays free of cookies() and the marketing/catalog pages stay static.
@@ -73,6 +82,7 @@ export function Nav() {
           </Link>
         )}
         <button
+          ref={burgerRef}
           className="nav-burger"
           aria-label="Toggle menu"
           aria-expanded={open}

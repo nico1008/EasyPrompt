@@ -539,3 +539,24 @@ button { font-family: inherit; cursor: pointer; }
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ===== Touch ergonomics — guarantee ≥44px hit targets on coarse pointers =====
+   Gated to (pointer: coarse) so desktop keeps its compact density (WCAG 2.5.5). */
+@media (pointer: coarse) {
+  .btn-sm { min-height: 44px; }
+  .bookmark-btn { min-height: 44px; }
+  .nav .links a { padding-block: 12px; }
+}
+
+/* ===== Screen-reader-only utility ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

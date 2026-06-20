@@ -63,12 +63,25 @@
 }
 .editor-errors {
   margin: 0;
-  padding: 12px 12px 12px 28px;
+  padding: 12px 14px;
   background: #fdecea;
   border: 1px solid #f5c6c0;
   border-radius: var(--r-2);
   color: #b23b30;
   font-size: 13px;
+}
+.editor-errors:focus {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+.editor-errors strong {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.editor-errors ul {
+  margin: 0;
+  padding-left: 18px;
 }
 .editor-actions {
   display: flex;

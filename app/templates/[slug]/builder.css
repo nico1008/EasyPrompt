@@ -244,3 +244,8 @@
   .builder-page .foot .actions { display: none; }
   .builder-page .mobile-copybar { display: block; }
 }
+
+/* Touch ergonomics — ≥44px pill hit target on coarse pointers (desktop stays 36px). */
+@media (pointer: coarse) {
+  .builder-page .pill { min-height: 44px; }
+}

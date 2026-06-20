@@ -36,7 +36,7 @@ export function UnlockForm({ compact = false }: { compact?: boolean }) {
   if (status === "unlocked") {
     return (
       <div className={`unlock unlock-done${compact ? " compact" : ""}`}>
-        <p className="unlock-ok">
+        <p className="unlock-ok" role="status">
           Pro unlocked{plan ? ` · ${plan}` : ""} ✓
         </p>
         <button type="button" className="btn btn-ghost btn-sm" onClick={lock}>
@@ -58,12 +58,18 @@ export function UnlockForm({ compact = false }: { compact?: boolean }) {
           placeholder="Paste your code"
           autoComplete="off"
           spellCheck={false}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "access-code-err" : undefined}
         />
         <button className="btn btn-primary" type="submit" disabled={busy || !code.trim()}>
           {busy ? "Checking…" : "Unlock"}
         </button>
       </div>
-      {error && <p className="unlock-err">{error}</p>}
+      {error && (
+        <p id="access-code-err" className="unlock-err" role="alert">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

@@ -26,10 +26,10 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
   );
 }
 
-function FieldErr({ errs }: { errs?: string[] }) {
+function FieldErr({ id, errs }: { id: string; errs?: string[] }) {
   if (!errs?.length) return null;
   return (
-    <span className="auth-field-err" role="alert">
+    <span id={id} className="auth-field-err" role="alert">
       {errs[0]}
     </span>
   );
@@ -62,8 +62,17 @@ export function LoginForm({ next }: { next?: string }) {
       <input type="hidden" name="next" value={next ?? "/my"} />
       <div className="field">
         <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" className="input" autoComplete="email" required />
-        <FieldErr errs={state.fieldErrors?.email} />
+        <input
+          id="email"
+          name="email"
+          type="email"
+          className="input"
+          autoComplete="email"
+          required
+          aria-invalid={state.fieldErrors?.email ? true : undefined}
+          aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}
+        />
+        <FieldErr id="email-err" errs={state.fieldErrors?.email} />
       </div>
       <div className="field">
         <label htmlFor="password">Password</label>
@@ -74,8 +83,10 @@ export function LoginForm({ next }: { next?: string }) {
           className="input"
           autoComplete="current-password"
           required
+          aria-invalid={state.fieldErrors?.password ? true : undefined}
+          aria-describedby={state.fieldErrors?.password ? "password-err" : undefined}
         />
-        <FieldErr errs={state.fieldErrors?.password} />
+        <FieldErr id="password-err" errs={state.fieldErrors?.password} />
       </div>
       <SubmitButton>Log in</SubmitButton>
       <div className="auth-links">
@@ -100,8 +111,17 @@ export function SignupForm({ next }: { next?: string }) {
       <input type="hidden" name="next" value={next ?? "/my"} />
       <div className="field">
         <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" className="input" autoComplete="email" required />
-        <FieldErr errs={state.fieldErrors?.email} />
+        <input
+          id="email"
+          name="email"
+          type="email"
+          className="input"
+          autoComplete="email"
+          required
+          aria-invalid={state.fieldErrors?.email ? true : undefined}
+          aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}
+        />
+        <FieldErr id="email-err" errs={state.fieldErrors?.email} />
       </div>
       <div className="field">
         <label htmlFor="password">Password</label>
@@ -112,9 +132,13 @@ export function SignupForm({ next }: { next?: string }) {
           className="input"
           autoComplete="new-password"
           required
+          aria-invalid={state.fieldErrors?.password ? true : undefined}
+          aria-describedby={
+            state.fieldErrors?.password ? "password-err password-help" : "password-help"
+          }
         />
-        <span className="helper">At least 8 characters.</span>
-        <FieldErr errs={state.fieldErrors?.password} />
+        <span id="password-help" className="helper">At least 8 characters.</span>
+        <FieldErr id="password-err" errs={state.fieldErrors?.password} />
       </div>
       <SubmitButton>Create account</SubmitButton>
       <div className="auth-links">
@@ -137,8 +161,17 @@ export function ForgotForm() {
       <TopError error={state.error} />
       <div className="field">
         <label htmlFor="email">Email</label>
-        <input id="email" name="email" type="email" className="input" autoComplete="email" required />
-        <FieldErr errs={state.fieldErrors?.email} />
+        <input
+          id="email"
+          name="email"
+          type="email"
+          className="input"
+          autoComplete="email"
+          required
+          aria-invalid={state.fieldErrors?.email ? true : undefined}
+          aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}
+        />
+        <FieldErr id="email-err" errs={state.fieldErrors?.email} />
       </div>
       <SubmitButton>Send reset link</SubmitButton>
       <div className="auth-links">
@@ -174,9 +207,13 @@ export function ResetForm() {
           className="input"
           autoComplete="new-password"
           required
+          aria-invalid={state.fieldErrors?.password ? true : undefined}
+          aria-describedby={
+            state.fieldErrors?.password ? "password-err password-help" : "password-help"
+          }
         />
-        <span className="helper">At least 8 characters.</span>
-        <FieldErr errs={state.fieldErrors?.password} />
+        <span id="password-help" className="helper">At least 8 characters.</span>
+        <FieldErr id="password-err" errs={state.fieldErrors?.password} />
       </div>
       <SubmitButton>Update password</SubmitButton>
     </form>

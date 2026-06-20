@@ -12,6 +12,7 @@ import "./UserMenu.css";
 export function UserMenu({ email }: { email: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
   const initial = (email.trim()[0] ?? "?").toUpperCase();
 
   useEffect(() => {
@@ -20,7 +21,12 @@ export function UserMenu({ email }: { email: string }) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      // Esc closes the menu and returns focus to the trigger (avoids dropping the
+      // keyboard user at the top of the tab order).
+      if (e.key === "Escape") {
+        setOpen(false);
+        btnRef.current?.focus();
+      }
     }
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -33,6 +39,7 @@ export function UserMenu({ email }: { email: string }) {
   return (
     <div className="user-menu" ref={ref}>
       <button
+        ref={btnRef}
         type="button"
         className="user-avatar"
         aria-haspopup="menu"
