@@ -15,6 +15,7 @@ import { useFormStatus } from "react-dom";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/client";
 import {
+  createManualPromptAction,
   createSavedPromptAction,
   updateSavedPromptAnswersAction,
   type SaveState,
@@ -28,11 +29,11 @@ export type SaveSource =
 
 const EMPTY: SaveState = {};
 
-function SaveSubmit({ editing }: { editing: boolean }) {
+function SaveSubmit({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
     <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>
-      {pending ? "Saving…" : editing ? "Update" : "Save"}
+      {pending ? "Saving…" : label}
     </button>
   );
 }
@@ -42,20 +43,31 @@ export function SavePromptButton({
   answers,
   defaultName,
   savedPromptId,
+  customBody,
   onSaved,
 }: {
   source: SaveSource;
   answers: Answers;
   defaultName: string;
   savedPromptId?: string;
+  /** When set, the prompt has been hand-edited away from the form: save the exact
+   *  markdown as a standalone (manual) Prompt instead of the template answers.
+   *  In edit mode this means "Save as new prompt" (the original row is untouched). */
+  customBody?: string;
   /** Fired once when a save succeeds — lets the Builder clear its local draft. */
   onSaved?: () => void;
 }) {
   const editing = Boolean(savedPromptId);
-  const [state, formAction] = useActionState(
-    editing ? updateSavedPromptAnswersAction : createSavedPromptAction,
-    EMPTY
-  );
+  const custom = customBody !== undefined;
+  // Custom (hand-edited) text always forks to a new manual prompt; otherwise the
+  // form's answers are saved (update in edit mode, create from the template fresh).
+  const action = custom
+    ? createManualPromptAction
+    : editing
+    ? updateSavedPromptAnswersAction
+    : createSavedPromptAction;
+  const [state, formAction] = useActionState(action, EMPTY);
+  const saveLabel = custom ? (editing ? "Save as new prompt" : "Save") : editing ? "Update" : "Save";
   const [auth, setAuth] = useState<"checking" | "anon" | "ready">("checking");
   const [name, setName] = useState(defaultName);
 
@@ -107,18 +119,25 @@ export function SavePromptButton({
 
   return (
     <form action={formAction} className="save-prompt">
-      <input type="hidden" name="answers" value={JSON.stringify(answers)} />
-      {editing ? (
-        <input type="hidden" name="id" value={savedPromptId} />
-      ) : source.kind === "catalog" ? (
-        <>
-          <input type="hidden" name="source_kind" value="catalog" />
-          <input type="hidden" name="catalog_slug" value={source.slug} />
-        </>
+      {custom ? (
+        // Manual save: the exact markdown body, no answers/source/id (forks a new row).
+        <input type="hidden" name="body" value={customBody} />
       ) : (
         <>
-          <input type="hidden" name="source_kind" value="user" />
-          <input type="hidden" name="user_template_id" value={source.userTemplateId} />
+          <input type="hidden" name="answers" value={JSON.stringify(answers)} />
+          {editing ? (
+            <input type="hidden" name="id" value={savedPromptId} />
+          ) : source.kind === "catalog" ? (
+            <>
+              <input type="hidden" name="source_kind" value="catalog" />
+              <input type="hidden" name="catalog_slug" value={source.slug} />
+            </>
+          ) : (
+            <>
+              <input type="hidden" name="source_kind" value="user" />
+              <input type="hidden" name="user_template_id" value={source.userTemplateId} />
+            </>
+          )}
         </>
       )}
       <input
@@ -130,7 +149,7 @@ export function SavePromptButton({
         aria-label="Name this prompt"
         maxLength={120}
       />
-      <SaveSubmit editing={editing} />
+      <SaveSubmit label={saveLabel} />
       {state.error && (
         <p className="save-err" role="alert">
           {state.error}

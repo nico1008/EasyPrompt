@@ -48,7 +48,9 @@ function byteLength(s: string): number {
   return unescape(encodeURIComponent(s)).length;
 }
 
-/** Default answers for a template — prefills selects/pills and default-on checks. */
+/** Default answers for a template — prefills selects/pills and default-on checks.
+ *  Used by the catalog-integrity test and as the authored-suggestion reference;
+ *  the fill-in UI seeds from `blankAnswers` so nothing is pre-selected. */
 export function defaultAnswers(t: Template): Answers {
   const fields: Record<string, string> = {};
   for (const f of t.fields) {
@@ -58,6 +60,18 @@ export function defaultAnswers(t: Template): Answers {
   for (const c of t.checkboxes) {
     checks[c.id] = Boolean(c.default);
   }
+  return { fields, checks };
+}
+
+/** Empty answers for a template — every field blank, every checkbox off. This is
+ *  the fill-in form's starting point: nothing is pre-selected, so the user chooses
+ *  everything (honest "fill only what matters"). Authored `default`s are ignored
+ *  here on purpose; they remain a suggestion reference via `defaultAnswers`. */
+export function blankAnswers(t: Template): Answers {
+  const fields: Record<string, string> = {};
+  for (const f of t.fields) fields[f.id] = "";
+  const checks: Record<string, boolean> = {};
+  for (const c of t.checkboxes) checks[c.id] = false;
   return { fields, checks };
 }
 

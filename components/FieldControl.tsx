@@ -78,12 +78,16 @@ export function FieldControl({
         {label}
         <select
           id={field.id}
-          className="select"
+          className={`select${value ? "" : " is-empty"}`}
           value={value}
           aria-invalid={invalid}
           aria-describedby={describedBy}
           onChange={(e) => onText(field.id, e.target.value)}
         >
+          {/* Empty-state placeholder: without it a native select shows option 1 as
+              "chosen" even when the value is "", so a skipped field looks answered.
+              Selectable (not disabled) so the choice can be cleared back to skip. */}
+          <option value="">Choose…</option>
           {field.options.map((o) => (
             <option key={o} value={o}>
               {o}

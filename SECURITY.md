@@ -1,68 +1,48 @@
 # Security
 
-EasyPrompt enforces authorization in the database with **Row-Level Security** (every row is
-owner-scoped to `auth.uid()`), keeps all secrets server-side, and ships with security headers on
-every route. This file is the **production hardening checklist** plus a record of reviewed,
-accepted exceptions.
+EasyPrompt follows a defense-in-depth approach:
 
-## Production hardening checklist (one-time, per Supabase project)
+* Row-Level Security (RLS) on all user data
+* Owner-scoped access using `auth.uid()`
+* Server-side secrets only
+* Zod validation on all inputs
+* Server Actions and authenticated API routes for mutations
+* Strict security headers on every route
+* No service-role key required in production
 
-These four steps close the gaps a fresh project ships with. Do them before going live.
+## Security Controls
 
-1. **Apply migrations through `0004`.** Run every file in
-   [`supabase/migrations/`](supabase/migrations/) in order (`0001` → `0004`) via the SQL Editor, or
-   `supabase db push`. `0004_security_hardening.sql` revokes the default PUBLIC execute grant on the
-   `handle_new_user()` trigger helper, drops all anon table privileges (no anonymous feature needs
-   them), and parks the `is_public` public-read seam.
-2. **Authentication → Policies → enable "Leaked password protection".** Blocks known-breached
-   passwords (HaveIBeenPwned). Off by default.
-3. **Authentication → Providers → Email → "Confirm email" = ON** (production). Without it, anyone can
-   register an address they don't control and get an immediate session.
-4. **Authentication → enable "Prevent user existence errors".** Pairs with the app's neutral signup
-   response so signup/login can't be used to enumerate which emails have accounts.
+### Database Security
 
-After applying `0004`, re-run the Supabase **Security Advisor**. The two
-`*_security_definer_function_executable` warnings for `handle_new_user` should clear. The one for
-`delete_current_user` is expected — see below.
+* RLS enabled on all tables
+* Access restricted to resource owners
+* Authorization enforced at both the database and application layers
 
-## Reviewed & accepted exceptions
+### Authentication
 
-- **`public.delete_current_user()` is `SECURITY DEFINER`, executable by `authenticated`** (Advisor
-  lint 0029). This is **intentional and safe**. It is the self-serve account-deletion RPC: `SECURITY
-  DEFINER` is required because the `authenticated` role cannot delete from `auth.users`, and the body
-  is guarded to `where id = auth.uid()`, so a caller can only ever delete **their own** account. It
-  must stay in the exposed schema so the client `.rpc("delete_current_user")` can reach it. Keeping it
-  is the reason the app needs **no service-role key**. Do not "fix" it to `SECURITY INVOKER` (that
-  breaks deletion).
-- **Residual `postcss < 8.5.10` (moderate) in `npm audit`.** Pulled in transitively by
-  `next` → `@vercel/analytics`; it is a **build-time** dependency that only stringifies the app's own
-  first-party CSS. The vulnerable path (stringifying *untrusted* CSS) is never reached at runtime. Do
-  **not** run `npm audit fix --force` — its "fix" downgrades `next` to 9.3.3, a catastrophic breaking
-  change. Clear it by upgrading `next` once it ships a build depending on `postcss ≥ 8.5.10`.
+* Supabase Authentication
+* Email verification support
+* Leaked password protection
+* User enumeration protection
 
-## Controls in place (don't regress these)
+### Application Security
 
-- **RLS on every table**, owner-scoped to `auth.uid()`; server reads/writes go through RLS-scoped
-  repos and every mutation re-checks `getUser()` (JWT-revalidated, never `getSession()`).
-- **All mutations are Server Actions** (Origin-checked by Next = CSRF defense) or bearer-token API
-  routes; inputs are Zod-validated.
-- **No service-role key** anywhere; **secrets are server-only** (`process.env`, never `NEXT_PUBLIC_*`).
-- **Security headers** on every route (`next.config.mjs`): enforced CSP, `X-Frame-Options: DENY`,
-  `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'`.
-- **Rate limiting** on `/api/entitlement` (10/min/IP) and `/api/premium` (60/min/IP) — see
-  [`lib/rateLimit.ts`](lib/rateLimit.ts). Note: best-effort in-memory/per-instance; for a durable
-  cross-instance quota, swap in Upstash Ratelimit behind the same `checkRateLimit` signature.
+* Input validation with Zod
+* CSRF protection through Next.js Server Actions
+* Rate limiting on sensitive endpoints
+* Content Security Policy (CSP)
+* X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy headers
 
-## Known limitation — Pro code sharing (needs a product decision)
+## Known Limitation
 
-Pro access codes are verified offline (stateless HMAC) and the resulting session token carries no
-user/device binding, so a single purchased code (or a copied token) can be shared to unlimited
-people — pure revenue leakage, **no data exposure or account compromise**. Enforcing a per-code
-redemption cap requires adding state to the deliberately stateless path (a `redeemed_codes` table +
-a `SECURITY DEFINER` claim function callable by `anon`, gated on `isSupabaseConfigured()` so
-Supabase-less deployments still work). It is **not built** pending a product call on the
-cost/anti-sharing tradeoff. The `entitlements.code_hash` column already exists as the seam for it.
+Pro access codes are currently verified using a stateless model and are not bound to a specific user or device. As a result, a purchased code may be shared between multiple users.
 
-## Reporting
+This does **not** expose user data or compromise accounts, but it may result in unauthorized access to paid features. A redemption-tracking system may be introduced in a future release.
 
-Found a vulnerability? Email security@easyprompt.app rather than opening a public issue.
+## Reporting Vulnerabilities
+
+If you discover a security vulnerability, please report it privately:
+
+**[security@easyprompt.app](mailto:security@easyprompt.app)**
+
+Please do not open public issues for security reports.

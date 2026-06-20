@@ -11,7 +11,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useCallback, useEffect, useMemo, useState } from "react";
+import { useActionState, useCallback, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
@@ -19,7 +19,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/client";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl } from "@/lib/buildPrompt";
-import { highlightMarkdown } from "@/lib/markdown/highlight";
+import { MarkdownEditorSurface } from "@/components/builder/MarkdownEditorSurface";
 import { useLocalDraft } from "@/lib/drafts/useLocalDraft";
 import {
   createManualPromptAction,
@@ -121,10 +121,6 @@ export function PromptEditor({
     }
   }, [state.ok, state.savedId, editing, clear, router]);
 
-  const segments = useMemo(() => highlightMarkdown(body), [body]);
-  // Trailing-line guard: a <pre> drops the height of a final empty line, so add a
-  // phantom newline to the mirror when the body is empty or ends in a newline.
-  const needsGuard = body === "" || body.endsWith("\n");
   const tokens = Math.max(1, Math.ceil(body.length / 4));
   const kb = (new TextEncoder().encode(body).length / 1024).toFixed(1);
   const hasBody = body.trim().length > 0;
@@ -205,34 +201,14 @@ export function PromptEditor({
           </a>
         </div>
 
-        <div className="md-editor">
-          <div className="md-bar">
-            <span className="md-dot" aria-hidden="true" />
-            <span className="md-file">{fileName}</span>
-            <span className="md-meta">
-              {tokens} tokens · {kb} KB
-            </span>
-          </div>
-
-          <div className="md-surface">
-            <pre className="md-mirror" aria-hidden="true">
-              {segments.map((s, i) => (
-                <span key={i} className={`hl-${s.kind}`}>
-                  {s.text}
-                </span>
-              ))}
-              {needsGuard && "\n"}
-            </pre>
-            <textarea
-              className="md-input"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={"Write your prompt in markdown…\n\n# Role\nYou are a…\n\n# Task\n…"}
-              aria-label="Prompt body (markdown)"
-              spellCheck
-            />
-          </div>
-        </div>
+        <MarkdownEditorSurface
+          value={body}
+          onChange={setBody}
+          fileName={fileName}
+          tokens={tokens}
+          kb={kb}
+          placeholder={"Write your prompt in markdown…\n\n# Role\nYou are a…\n\n# Task\n…"}
+        />
 
         <p className="pe-hint">
           Markdown is highlighted live — <code>#</code> headings, <code>- </code> lists,{" "}

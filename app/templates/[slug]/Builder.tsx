@@ -1,31 +1,42 @@
 "use client";
 
-import { Fragment, useMemo, useState, useCallback, useEffect, type KeyboardEvent } from "react";
+/* Template fill-in — a single dual-column working page. LEFT: the form (Template
+ * identity, light). RIGHT: the live prompt as an editable markdown editor (Prompt
+ * identity, dark) that mirrors the standalone PromptEditor. The two are linked by a
+ * sync model:
+ *   - "Synced"  → the editor shows the generated prompt and re-renders live as the
+ *                 form/boosters change. Editing the editor detaches it.
+ *   - "Custom"  → the user hand-edited the prompt; form changes no longer apply
+ *                 ("Reset to form" re-syncs). Saving a Custom prompt forks it to a
+ *                 standalone (manual) Prompt; a Synced one saves the template answers.
+ * Nothing is pre-selected (state seeds from `blankAnswers`). Anon-safe (Copy /
+ * Open-in / Download work logged out; Save prompts sign-in). */
+
+import { Fragment, useMemo, useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
 import Link from "next/link";
 import type { Template } from "@/data/types";
 import { displayTitle, categoryLabel } from "@/data/templates";
 import {
   buildPrompt,
-  defaultAnswers,
+  blankAnswers,
   openInUrl,
   type Answers,
 } from "@/lib/buildPrompt";
 import { CrosshairCard } from "@/components/CrosshairCard";
-import { Eyebrow } from "@/components/Eyebrow";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { FieldControl } from "@/components/FieldControl";
-import { SegmentedCode } from "@/components/CodeWell";
+import { MarkdownEditorSurface } from "@/components/builder/MarkdownEditorSurface";
 import { RatingStars } from "@/components/RatingStars";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { UnlockForm } from "@/components/UnlockForm";
 import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
 import { SavePromptButton, type SaveSource } from "@/components/SavePromptButton";
 import { useDraft } from "@/lib/drafts/useDraft";
+import { useLocalDraft } from "@/lib/drafts/useLocalDraft";
 import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
 import { notebookDraftKey, serializeNotebookDraft } from "@/lib/drafts/notebookDraft";
 import { config } from "@/config";
-import { useEscape } from "@/lib/useEscape";
 
 type RelatedLite = { slug: string; title: string; category: string; questions: number };
 
@@ -64,40 +75,48 @@ export function Builder({
 }: {
   template: Template;
   related: RelatedLite[];
-  /** Pre-fill the form (e.g. reopening a saved prompt). Defaults to template defaults. */
+  /** Pre-fill the form (e.g. reopening a saved prompt). Defaults to a blank set. */
   initialAnswers?: Answers;
   /** Where a "Save" writes to. Defaults to this catalog template. */
   source?: SaveSource;
   /** When set, the Save button re-saves this existing saved_prompts row. */
   savedPromptId?: string;
-  /** Override the breadcrumb trail (user templates use "My prompts / Title"). */
+  /** Override the breadcrumb trail (user templates use "My Library / Title"). */
   crumbs?: { href?: string; label: string }[];
-  /** Back-link target for the form's "← Back" button. */
+  /** Back-link target for the topbar's "← Back" button. */
   backHref?: string;
 }) {
+  // Nothing is pre-selected: the fill-in starts blank (authored defaults are a
+  // suggestion reference only — see lib/buildPrompt.blankAnswers).
   const [answers, setAnswers] = useState<Answers>(
-    () => initialAnswers ?? defaultAnswers(template)
+    () => initialAnswers ?? blankAnswers(template)
   );
+  /** null → editor is Synced to the form; a string → user hand-edited (Custom). */
+  const [customBody, setCustomBody] = useState<string | null>(null);
+  const custom = customBody !== null;
+
   const saveSource: SaveSource = source ?? { kind: "catalog", slug: template.slug };
-  // Ratings/bookmarks target the public catalog only (the is_public sharing seam
-  // is parked); user templates aren't rateable/bookmarkable yet.
+  // Ratings/bookmarks target the public catalog only; user templates aren't
+  // rateable/bookmarkable yet.
   const isCatalog = saveSource.kind === "catalog";
   const trail = crumbs ?? [
     { href: "/templates", label: "Templates" },
     { href: `/templates?category=${template.category}`, label: categoryLabel(template.category) },
     { label: displayTitle(template) },
   ];
-  const [step, setStep] = useState<"form" | "payoff">("form");
+
+  const [view, setView] = useState<"form" | "prompt">("form"); // mobile segmented view
   const [toast, setToast] = useState(false);
-  const [copiedAgain, setCopiedAgain] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   /** fieldId → has an unmet required-field error (cleared as the user types). */
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const built = useMemo(() => buildPrompt(template, answers), [template, answers]);
 
-  /* ---- Draft autosave: keep an in-progress fresh build (no account needed) so
-     a refresh/navigation doesn't lose work. Off when reopening a saved prompt
-     (initialAnswers set) — that row is the source of truth. Cleared on save. ---- */
+  /* ---- Draft autosave (anon, no account): persist both the in-progress answers
+     and any Custom edit so a refresh never loses work. Off when reopening a saved
+     prompt (initialAnswers set) — that row is the source of truth. ---- */
   const { clear: clearDraft } = useDraft({
     templateId: template.id,
     enabled: initialAnswers === undefined,
@@ -105,9 +124,23 @@ export function Builder({
     hasContent: built.answered > 0,
     onRestore: setAnswers,
   });
+  const { clear: clearCustomDraft } = useLocalDraft<string>({
+    key: `easyprompt.promptcustom.${template.id}`,
+    enabled: initialAnswers === undefined,
+    value: customBody ?? "",
+    hasContent: customBody !== null && customBody.trim().length > 0,
+    serialize: (v) => (v.length > 24_000 ? null : v),
+    parse: (raw) => (typeof raw === "string" && raw ? raw : null),
+    onRestore: (v) => setCustomBody(v),
+  });
+  const handleSaved = useCallback(() => {
+    clearDraft();
+    clearCustomDraft();
+  }, [clearDraft, clearCustomDraft]);
 
-  /* ---- Pro Boosters (premium): server-held enhancement blocks appended to
-     the built prompt. Free prompt is `built.text`; pro adds `boosterText`. ---- */
+  /* ---- Pro Boosters (premium): server-held enhancement blocks appended to the
+     built prompt. They feed the Synced prompt; in Custom mode they're already baked
+     into the snapshot and further toggles don't apply. ---- */
   const { status: premium } = usePremium();
   const [boosters, setBoosters] = useState<Booster[]>([]);
   const [picked, setPicked] = useState<Record<string, boolean>>({});
@@ -134,11 +167,11 @@ export function Builder({
     [boosters, picked]
   );
   const finalText = built.text + boosterText;
-  const finalTokens = Math.max(1, Math.ceil(finalText.length / 4));
-  const finalKb = (new TextEncoder().encode(finalText).length / 1024).toFixed(1);
-  const displaySegments = boosterText
-    ? [...built.segments, { text: boosterText, kind: "acc" as const }]
-    : built.segments;
+  /** What every action (Copy/Download/Open-in/Save) and the editor operate on. */
+  const effectiveText = customBody ?? finalText;
+  const tokens = Math.max(1, Math.ceil(effectiveText.length / 4));
+  const kb = (new TextEncoder().encode(effectiveText).length / 1024).toFixed(1);
+  const fileName = `${template.slug}.md`;
 
   const toggleBooster = useCallback((id: string) => {
     setPicked((p) => ({ ...p, [id]: !p[id] }));
@@ -154,66 +187,61 @@ export function Builder({
 
   const flashToast = useCallback(() => {
     setToast(true);
-    window.setTimeout(() => setToast(false), 3000);
+    window.setTimeout(() => setToast(false), 2600);
   }, []);
 
-  const submit = useCallback(async () => {
-    // Honour required fields (the * FieldControl shows): block until they're
-    // filled, flag them, and jump to the first one — rather than silently
-    // producing a prompt that's missing inputs the template marked required.
+  // Required fields keep the template author's intent. Gated only in Synced mode
+  // (in Custom mode the user's text is authoritative). Returns false + flags the
+  // first missing field when something required is blank.
+  const validateRequired = useCallback(() => {
     const missing = template.fields.filter(
       (f) => f.required && (answers.fields[f.id] ?? "").trim().length === 0
     );
-    if (missing.length > 0) {
-      setErrors(Object.fromEntries(missing.map((f) => [f.id, true])));
-      const el = typeof document !== "undefined" ? document.getElementById(missing[0].id) : null;
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-      el?.focus?.();
-      return;
-    }
-    await copyText(finalText);
-    setStep("payoff");
-    flashToast();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [template.fields, answers.fields, finalText, flashToast]);
+    if (missing.length === 0) return true;
+    setErrors(Object.fromEntries(missing.map((f) => [f.id, true])));
+    setView("form");
+    const el = typeof document !== "undefined" ? document.getElementById(missing[0].id) : null;
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    el?.focus?.();
+    return false;
+  }, [template.fields, answers.fields]);
 
-  const copyAgain = useCallback(async () => {
-    const ok = await copyText(finalText);
-    if (ok) {
-      setCopiedAgain(true);
+  const copy = useCallback(async () => {
+    if (!custom && !validateRequired()) return;
+    if (await copyText(effectiveText)) {
+      setCopied(true);
       flashToast();
-      window.setTimeout(() => setCopiedAgain(false), 2200);
+      window.setTimeout(() => setCopied(false), 1600);
     }
-  }, [finalText, flashToast]);
+  }, [custom, validateRequired, effectiveText, flashToast]);
 
   const download = useCallback(() => {
-    const blob = new Blob([finalText], { type: "text/markdown" });
+    const blob = new Blob([effectiveText], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${template.slug}.md`;
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
-  }, [finalText, template.slug]);
+  }, [effectiveText, fileName]);
 
-  const share = useCallback(async () => {
-    const data = { title: `${displayTitle(template)} prompt`, text: finalText };
-    if (navigator.share) {
-      try {
-        await navigator.share(data);
-        return;
-      } catch {
-        /* user cancelled or unsupported — fall back */
+  // Reset Custom → Synced. Two-step (guards accidental loss of manual edits).
+  const resetTimer = useRef<number | undefined>(undefined);
+  const resetToForm = useCallback(() => {
+    setConfirmReset((c) => {
+      if (c) {
+        window.clearTimeout(resetTimer.current);
+        setCustomBody(null);
+        return false;
       }
-    }
-    const ok = await copyText(finalText);
-    if (ok) flashToast();
-  }, [finalText, template, flashToast]);
+      resetTimer.current = window.setTimeout(() => setConfirmReset(false), 3000);
+      return true;
+    });
+  }, []);
+  useEffect(() => () => window.clearTimeout(resetTimer.current), []);
 
-  // Bridge to the block builder. Stash the in-progress answers as the builder's
-  // anonymous draft (keyed to match /build/template?from=<slug>), so crossing keeps
-  // the user's work instead of reseeding from template defaults. The builder
-  // restores this draft after mount (no hydration mismatch).
+  // Bridge to the block builder — stash the in-progress answers as the builder's
+  // anonymous draft so crossing keeps the user's work.
   const openInBuilder = useCallback(() => {
     try {
       const json = serializeNotebookDraft(blockDocFromTemplate(template, answers));
@@ -223,24 +251,16 @@ export function Builder({
     }
   }, [template, answers]);
 
-  // Enter no longer auto-submits: on a multi-field, mostly optional form it was
-  // too easy to finalize by reflex while mid-edit. The explicit "Get my prompt"
-  // button is the one way to advance.
-  //
-  // Esc follows the app-wide convention ("close the current view"): on the payoff
-  // it returns to the form (useEscape below); on the form there's no overlay to
-  // close, so it just blurs the active field — it must NOT navigate the page away,
-  // which would silently drop the user's context.
+  // Esc just blurs the active field (the app-wide "close current view" convention;
+  // there's no overlay to close here, and it must never navigate the page away).
   const onFormKeyDown = useCallback((e: KeyboardEvent<HTMLElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
       (document.activeElement as HTMLElement | null)?.blur?.();
     }
   }, []);
-  const backToForm = useCallback(() => setStep("form"), []);
-  useEscape(step === "payoff", backToForm);
 
-  /* ---- pair consecutive pill fields into a .field-row (mirrors the mockup) ---- */
+  /* ---- pair consecutive pill fields into a .field-row ---- */
   const rows: Template["fields"][] = [];
   for (let i = 0; i < template.fields.length; i++) {
     const f = template.fields[i];
@@ -253,153 +273,159 @@ export function Builder({
     }
   }
 
-  if (step === "payoff") {
-    return (
-      <main className="builder-page">
-        <div className="payoff">
-          <Toast show={toast} message="Prompt copied to clipboard" />
+  const remaining = built.total - built.answered;
+  const minutesLeft = remaining > 0 ? Math.max(1, Math.ceil(remaining / 3)) : 0;
+  const proBoosters = config.premiumFeatures.proBoosters;
 
-          <div className="receipt-head">
-            <div className="check-disc">
-              <Icon name="check" size={28} strokeWidth={2.5} />
+  const openIn = (
+    <div className="tpl-openin" aria-label="Open this prompt in">
+      <a className="tpl-open" href={openInUrl("chatgpt", effectiveText)} target="_blank" rel="noopener noreferrer">ChatGPT</a>
+      <a className="tpl-open" href={openInUrl("claude", effectiveText)} target="_blank" rel="noopener noreferrer">Claude</a>
+      <a className="tpl-open" href={openInUrl("gemini", effectiveText)} target="_blank" rel="noopener noreferrer">Gemini</a>
+    </div>
+  );
+
+  return (
+    <main className="builder-page tpl-dual">
+      <Toast show={toast} message="Prompt copied to clipboard" />
+
+      {/* ---- Topbar: breadcrumbs + back + progress ---- */}
+      <div className="tpl-topbar">
+        <div className="tpl-topbar-left">
+          <Link className="btn btn-ghost btn-sm tpl-back" href={backHref}>
+            ← Back
+          </Link>
+          <nav className="crumbs" aria-label="Breadcrumb">
+            {trail.map((c, i) => (
+              <Fragment key={i}>
+                {i > 0 && <span className="sep">/</span>}
+                {c.href ? <Link href={c.href}>{c.label}</Link> : <span className="here">{c.label}</span>}
+              </Fragment>
+            ))}
+          </nav>
+        </div>
+        <span className="tpl-answered">
+          <b>{built.answered}</b> / {built.total} answered
+        </span>
+      </div>
+
+      {/* ---- Mobile segmented view switch (desktop shows both columns) ---- */}
+      <div className="tpl-seg" role="tablist" aria-label="Switch view">
+        <button
+          role="tab"
+          aria-selected={view === "form"}
+          className={`tpl-seg-btn${view === "form" ? " on" : ""}`}
+          onClick={() => setView("form")}
+        >
+          Form
+        </button>
+        <button
+          role="tab"
+          aria-selected={view === "prompt"}
+          className={`tpl-seg-btn${view === "prompt" ? " on" : ""}`}
+          onClick={() => setView("prompt")}
+        >
+          Prompt
+        </button>
+      </div>
+
+      <div className="tpl-grid" data-view={view}>
+        {/* ===================== LEFT: form ===================== */}
+        <CrosshairCard as="section" className="tpl-col-form" onKeyDown={onFormKeyDown}>
+          <header className="tpl-head">
+            <div className="icon-tile">
+              <Icon name={template.icon} size={22} />
             </div>
-            <Eyebrow>Step 03 · Copied</Eyebrow>
-            <h1>
-              You&apos;re all set<span className="accent">.</span> Now paste it
-              <span className="accent">.</span>
-            </h1>
-            <p>
-              Your prompt is on the clipboard. Open the AI you like best, paste, and
-              let it cook.
-            </p>
+            <div>
+              <h1>{displayTitle(template)}</h1>
+              <p>{template.intro}</p>
+            </div>
+          </header>
+
+          <div className="progress-block">
+            <div className="progress" aria-hidden="true">
+              {Array.from({ length: built.total }).map((_, i) => (
+                <div key={i} className={`bar${i < built.answered ? " on" : ""}`} />
+              ))}
+            </div>
+            <div className="progress-meta">
+              <span>
+                <b>{built.answered} of {built.total}</b> answered
+              </span>
+              <span>{minutesLeft > 0 ? `~ ${minutesLeft} min left` : "ready to copy"}</span>
+            </div>
           </div>
 
-          <div className="layout">
-            {/* Output */}
-            <CrosshairCard className="output code-well dark">
-              <div className="code-bar">
-                <span className="pip" />
-                <span>prompt.md · {displayTitle(template)}</span>
-                <span className="tag">
-                  {finalTokens} tokens · {finalKb} KB
-                </span>
+          <div className="blocks">
+            {rows.map((group, gi) => (
+              <div className="block" key={gi}>
+                {group.length === 2 ? (
+                  <div className="field-row">
+                    {group.map((f) => (
+                      <FieldControl
+                        key={f.id}
+                        field={f}
+                        value={answers.fields[f.id] ?? ""}
+                        onText={setField}
+                        error={errors[f.id] ? "Required — add a value." : undefined}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <FieldControl
+                    field={group[0]}
+                    value={answers.fields[group[0].id] ?? ""}
+                    onText={setField}
+                    error={errors[group[0].id] ? "Required — add a value." : undefined}
+                  />
+                )}
               </div>
-              <div className="code-body">
-                <SegmentedCode segments={displaySegments} />
-              </div>
-              <div className="footbar">
-                <span className="label">prompt.md</span>
-                <span className="spacer" />
-                <button className="btn btn-on-dark btn-sm" onClick={download}>
-                  <Icon name="download" size={13} strokeWidth={2} />
-                  Download
-                </button>
-                <button className="btn btn-on-dark btn-sm" onClick={share}>
-                  <Icon name="share" size={13} strokeWidth={2} />
-                  Share
-                </button>
-                <button className="btn btn-on-dark-primary btn-sm" onClick={copyAgain}>
-                  <Icon name="copy" size={13} strokeWidth={2} />
-                  {copiedAgain ? "Copied!" : "Copy again"}
-                </button>
-              </div>
-            </CrosshairCard>
+            ))}
 
-            {/* Sidebar */}
-            <div className="side-stack">
-              <CrosshairCard className="side-card">
-                <h3>Receipt</h3>
-                <div className="rows">
-                  <div className="row">
-                    <span className="k">Template</span>
-                    <span className="v">{displayTitle(template)}</span>
-                  </div>
-                  <div className="row">
-                    <span className="k">Answered</span>
-                    <span className="v">
-                      {built.answered} of {built.total}
-                    </span>
-                  </div>
-                  <div className="row">
-                    <span className="k">Skipped</span>
-                    <span className="v">{built.skipped}</span>
-                  </div>
-                  <div className="row">
-                    <span className="k">Size</span>
-                    <span className="v">{finalKb} KB</span>
-                  </div>
-                  <div className="row total">
-                    <span className="k">Tokens</span>
-                    <span className="v">{finalTokens}</span>
+            {template.checkboxes.length > 0 && (
+              <div className="block">
+                <div className="field">
+                  <label>Should the prompt also ask for…</label>
+                  <div className="check-grid">
+                    {template.checkboxes.map((c) => (
+                      <div
+                        key={c.id}
+                        className={`check${answers.checks[c.id] ? " on" : ""}`}
+                        role="checkbox"
+                        aria-checked={answers.checks[c.id]}
+                        tabIndex={0}
+                        onClick={() => toggleCheck(c.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === " " || e.key === "Enter") {
+                            e.preventDefault();
+                            toggleCheck(c.id);
+                          }
+                        }}
+                      >
+                        <span className="box" />
+                        <div>
+                          <div className="label">{c.label}</div>
+                          {c.sub && <div className="sub">{c.sub}</div>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </CrosshairCard>
-
-              <CrosshairCard className="side-card">
-                <h3>Open in</h3>
-                <div className="open-in">
-                  <a
-                    href={openInUrl("chatgpt", finalText)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="lg gpt">G</span>ChatGPT
-                    <span className="arrow">→</span>
-                  </a>
-                  <a
-                    href={openInUrl("claude", finalText)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="lg cl">C</span>Claude
-                    <span className="arrow">→</span>
-                  </a>
-                  <a
-                    href={openInUrl("gemini", finalText)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="lg gem">★</span>Gemini
-                    <span className="arrow">→</span>
-                  </a>
-                </div>
-              </CrosshairCard>
-
-              <CrosshairCard className="side-card">
-                <h3>Save</h3>
-                <SavePromptButton
-                  source={saveSource}
-                  answers={answers}
-                  defaultName={displayTitle(template)}
-                  savedPromptId={savedPromptId}
-                  onSaved={clearDraft}
-                />
-              </CrosshairCard>
-
-              {isCatalog && (
-                <CrosshairCard className="side-card">
-                  <h3>Rate &amp; keep</h3>
-                  <RatingStars target={{ kind: "catalog", key: template.slug }} />
-                  <div className="side-bookmark">
-                    <BookmarkButton target={{ kind: "catalog", key: template.slug }} />
-                  </div>
-                </CrosshairCard>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Pro Boosters (premium) */}
-          {config.premiumFeatures.proBoosters && (
-            <CrosshairCard className="pro-boosters">
-              <div className="pro-head">
-                <Eyebrow>Pro Boosters</Eyebrow>
-                <h3>
-                  Sharpen this prompt<span className="accent">.</span>
-                </h3>
+          {proBoosters && (
+            <section className="tpl-boosters" aria-label="Pro Boosters">
+              <div className="tpl-boosters-head">
+                <h2>
+                  Pro Boosters<span className="accent">.</span>
+                </h2>
                 <p>
-                  Expert enhancement blocks — role priming, a strict output format,
-                  a quality self-check, per-model tuning — appended to your prompt.
-                  The free prompt already works; these make it sharper.
+                  Expert enhancement blocks — role priming, a strict output format, a quality
+                  self-check — appended to your prompt. The free prompt already works; these
+                  make it sharper.
                 </p>
               </div>
 
@@ -437,7 +463,7 @@ export function Builder({
                   <ul className="pro-perks">
                     <li>
                       <Icon name="check" size={15} strokeWidth={2.4} />
-                      Expert role priming & a quality self-check
+                      Expert role priming &amp; a quality self-check
                     </li>
                     <li>
                       <Icon name="check" size={15} strokeWidth={2.4} />
@@ -445,210 +471,132 @@ export function Builder({
                     </li>
                     <li>
                       <Icon name="check" size={15} strokeWidth={2.4} />
-                      Per-model tuning for ChatGPT, Claude & Gemini
+                      Per-model tuning for ChatGPT, Claude &amp; Gemini
                     </li>
                   </ul>
                   <div className="pro-cta">
-                    <a
-                      className="btn btn-primary"
-                      href={config.checkoutUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <a className="btn btn-primary" href={config.checkoutUrl} target="_blank" rel="noopener noreferrer">
                       Get a code on Telegram →
                     </a>
-                    <span className="pro-price">
-                      {config.pricing.lifetime}
-                    </span>
+                    <span className="pro-price">{config.pricing.lifetime}</span>
                   </div>
                   <UnlockForm compact />
                 </div>
               )}
-            </CrosshairCard>
+            </section>
           )}
-
-          {/* Keep going */}
-          {related.length > 0 && (
-          <CrosshairCard className="next">
-            <div className="next-head">
-              <div>
-                <Eyebrow>Keep going</Eyebrow>
-                <h3>One down. Try a related template?</h3>
-                <p>
-                  Your answers carry over where they make sense — no need to start
-                  from scratch.
-                </p>
-              </div>
-              <Link className="more" href="/templates">
-                Browse all →
-              </Link>
-            </div>
-            <div className="related">
-              {related.map((r) => (
-                <Link key={r.slug} href={`/templates/${r.slug}`}>
-                  <span className="t">{r.title}</span>
-                  <span className="s">
-                    {categoryLabel(r.category)} · {r.questions} questions
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </CrosshairCard>
-          )}
-
-          <div style={{ textAlign: "center", marginTop: 8 }}>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setStep("form")}
-            >
-              ← Edit answers
-            </button>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  /* ---------------------------- FORM STEP ---------------------------- */
-  const remaining = built.total - built.answered;
-  const minutesLeft = remaining > 0 ? Math.max(1, Math.ceil(remaining / 3)) : 0;
-
-  return (
-    <main className="builder-page">
-      <Toast show={toast} message="Prompt copied to clipboard" />
-      <div className="page">
-        <div className="page-col">
-          <div className="above">
-            <div className="crumbs">
-              {trail.map((c, i) => (
-                <Fragment key={i}>
-                  {i > 0 && <span className="sep">/</span>}
-                  {c.href ? (
-                    <Link href={c.href}>{c.label}</Link>
-                  ) : (
-                    <span className="here">{c.label}</span>
-                  )}
-                </Fragment>
-              ))}
-            </div>
-            <span className="step-tag">
-              <b>02</b> · Fill
-            </span>
-          </div>
-
-          <CrosshairCard as="section" className="card" onKeyDown={onFormKeyDown}>
-            <header className="head">
-              <div className="icon-tile">
-                <Icon name={template.icon} size={22} />
-              </div>
-              <div>
-                <h1>{displayTitle(template)}.</h1>
-                <p>{template.intro}</p>
-              </div>
-            </header>
-
-            <div className="progress-block">
-              <div className="progress" aria-hidden="true">
-                {Array.from({ length: built.total }).map((_, i) => (
-                  <div key={i} className={`bar${i < built.answered ? " on" : ""}`} />
-                ))}
-              </div>
-              <div className="progress-meta">
-                <span>
-                  <b>
-                    {built.answered} of {built.total}
-                  </b>{" "}
-                  answered
-                </span>
-                <span>{minutesLeft > 0 ? `~ ${minutesLeft} min left` : "ready to copy"}</span>
-              </div>
-            </div>
-
-            <div className="stack">
-              {rows.map((group, gi) =>
-                group.length === 2 ? (
-                  <div className="field-row" key={gi}>
-                    {group.map((f) => (
-                      <FieldControl
-                        key={f.id}
-                        field={f}
-                        value={answers.fields[f.id] ?? ""}
-                        onText={setField}
-                        error={errors[f.id] ? "Required — add a value." : undefined}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <FieldControl
-                    key={group[0].id}
-                    field={group[0]}
-                    value={answers.fields[group[0].id] ?? ""}
-                    onText={setField}
-                    error={errors[group[0].id] ? "Required — add a value." : undefined}
-                  />
-                )
-              )}
-
-              {template.checkboxes.length > 0 && (
-                <div className="field">
-                  <label>Should the prompt also ask for…</label>
-                  <div className="check-grid">
-                    {template.checkboxes.map((c) => (
-                      <div
-                        key={c.id}
-                        className={`check${answers.checks[c.id] ? " on" : ""}`}
-                        role="checkbox"
-                        aria-checked={answers.checks[c.id]}
-                        tabIndex={0}
-                        onClick={() => toggleCheck(c.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === " " || e.key === "Enter") {
-                            e.preventDefault();
-                            toggleCheck(c.id);
-                          }
-                        }}
-                      >
-                        <span className="box" />
-                        <div>
-                          <div className="label">{c.label}</div>
-                          {c.sub && <div className="sub">{c.sub}</div>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="foot">
-              <span className="meta">
-                Blanks are skipped automatically — fill only what matters.
-              </span>
-              <div className="actions">
-                <Link className="btn btn-ghost btn-sm btn-back" href={backHref}>
-                  ← Back
-                </Link>
-                <button className="btn btn-primary" onClick={() => void submit()}>
-                  Get my prompt →
-                </button>
-              </div>
-            </div>
-          </CrosshairCard>
 
           {isCatalog && (
-            <p className="hint">
+            <p className="tpl-hint">
               <Link href={`/build/template?from=${template.slug}`} onClick={openInBuilder}>
                 Make it your own template — keeps your answers →
               </Link>
             </p>
           )}
-        </div>
+        </CrosshairCard>
+
+        {/* ===================== RIGHT: live prompt ===================== */}
+        <aside className="tpl-col-prompt" aria-label="Generated prompt">
+          <div className="tpl-prompt-actions">
+            {custom ? (
+              <span className="tpl-mode is-custom">
+                <span className="tpl-mode-dot" aria-hidden="true" />
+                Custom — edited
+                <button type="button" className="tpl-reset" onClick={resetToForm}>
+                  {confirmReset ? "Discard edits?" : "Reset to form"}
+                </button>
+              </span>
+            ) : (
+              <span className="tpl-mode is-synced">
+                <span className="tpl-mode-dot" aria-hidden="true" />
+                Synced with form
+              </span>
+            )}
+            <div className="tpl-prompt-buttons">
+              {openIn}
+              <button className="btn btn-ghost btn-sm" onClick={download} aria-label="Download as .md">
+                <Icon name="download" size={14} strokeWidth={2} />
+                <span className="tpl-btn-label">Download</span>
+              </button>
+              <button className={`btn btn-primary btn-sm${copied ? " is-copied" : ""}`} onClick={() => void copy()}>
+                <Icon name={copied ? "check" : "copy"} size={14} strokeWidth={2} />
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          </div>
+
+          <div className="tpl-prompt-scroll">
+            <MarkdownEditorSurface
+              value={effectiveText}
+              onChange={setCustomBody}
+              fileName={fileName}
+              tokens={tokens}
+              kb={kb}
+              placeholder={"Your prompt builds here as you fill the form — or write it yourself."}
+              ariaLabel="Generated prompt (editable markdown)"
+              className="tpl-md"
+            />
+          </div>
+
+          <div className="tpl-save">
+            <SavePromptButton
+              source={saveSource}
+              answers={answers}
+              defaultName={displayTitle(template)}
+              savedPromptId={savedPromptId}
+              customBody={custom ? effectiveText : undefined}
+              onSaved={handleSaved}
+            />
+          </div>
+        </aside>
       </div>
 
-      {/* Sticky mobile copy bar */}
-      <div className="mobile-copybar">
-        <button className="btn btn-primary" onClick={() => void submit()}>
-          Get my prompt →
+      {/* ===================== FOOTER ===================== */}
+      {(isCatalog || related.length > 0) && (
+        <footer className="tpl-footer">
+          {isCatalog && (
+            <CrosshairCard className="tpl-rate">
+              <h3>Rate &amp; keep</h3>
+              <RatingStars target={{ kind: "catalog", key: template.slug }} />
+              <div className="tpl-rate-bookmark">
+                <BookmarkButton target={{ kind: "catalog", key: template.slug }} />
+              </div>
+            </CrosshairCard>
+          )}
+          {related.length > 0 && (
+            <CrosshairCard className="tpl-next">
+              <div className="tpl-next-head">
+                <div>
+                  <h3>Keep going — try a related template</h3>
+                  <p>Your answers carry over where they make sense.</p>
+                </div>
+                <Link className="more" href="/templates">
+                  Browse all →
+                </Link>
+              </div>
+              <div className="related">
+                {related.map((r) => (
+                  <Link key={r.slug} href={`/templates/${r.slug}`}>
+                    <span className="t">{r.title}</span>
+                    <span className="s">
+                      {categoryLabel(r.category)} · {r.questions} questions
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </CrosshairCard>
+          )}
+        </footer>
+      )}
+
+      {/* ---- Sticky mobile action bar ---- */}
+      <div className="tpl-mobilebar">
+        <button className="btn btn-ghost btn-sm" onClick={() => setView(view === "form" ? "prompt" : "form")}>
+          {view === "form" ? "View prompt" : "View form"}
+        </button>
+        <button className={`btn btn-primary${copied ? " is-copied" : ""}`} onClick={() => void copy()}>
+          <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />
+          {copied ? "Copied!" : "Copy prompt"}
         </button>
       </div>
     </main>
