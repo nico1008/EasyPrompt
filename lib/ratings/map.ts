@@ -24,3 +24,22 @@ export function rowToAggregate(raw: {
   const count = Math.max(0, Math.trunc(toNumber(raw.count)));
   return { avg, count };
 }
+
+/* Repositioned rating display (audit Phase 1): ratings are a secondary, low-volume
+ * signal, so a headline average is gated behind a minimum number of ratings and
+ * Bayesian-shrunk toward a prior mean — a single 5★ no longer reads as "5.0", and
+ * the displayed number is robust to small samples. Pure (no query): the shrink is
+ * computed from avg + count we already have. Returns the 1-dp number to show, or
+ * null when there aren't enough ratings yet. */
+export function displayRating(
+  agg: Aggregate,
+  opts: { minCount?: number; priorMean?: number; priorWeight?: number } = {}
+): number | null {
+  const minCount = opts.minCount ?? 3;
+  const priorMean = opts.priorMean ?? 4;
+  const priorWeight = opts.priorWeight ?? 3;
+  if (agg.count < minCount) return null;
+  const shrunk =
+    (priorWeight * priorMean + agg.avg * agg.count) / (priorWeight + agg.count);
+  return Math.round(shrunk * 10) / 10;
+}

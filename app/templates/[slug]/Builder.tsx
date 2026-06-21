@@ -29,6 +29,8 @@ import { FieldControl } from "@/components/FieldControl";
 import { MarkdownEditorSurface } from "@/components/builder/MarkdownEditorSurface";
 import { RatingStars } from "@/components/RatingStars";
 import { BookmarkButton } from "@/components/BookmarkButton";
+import { UsesBadge } from "@/components/UsesBadge";
+import { trackUse, trackView } from "@/lib/metrics/track";
 import { UnlockForm } from "@/components/UnlockForm";
 import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
 import { SavePromptButton, type SaveSource } from "@/components/SavePromptButton";
@@ -99,6 +101,12 @@ export function Builder({
   // Ratings/bookmarks target the public catalog only; user templates aren't
   // rateable/bookmarkable yet.
   const isCatalog = saveSource.kind === "catalog";
+  // Usage tracking targets the public catalog only (user templates have no public
+  // Uses surface yet). A view is the copy-through denominator.
+  const metricsTarget = { kind: "catalog" as const, key: template.slug };
+  useEffect(() => {
+    if (isCatalog) trackView({ kind: "catalog", key: template.slug });
+  }, [isCatalog, template.slug]);
   const trail = crumbs ?? [
     { href: "/templates", label: "Templates" },
     { href: `/templates?category=${template.category}`, label: categoryLabel(template.category) },
@@ -218,12 +226,13 @@ export function Builder({
   const copy = useCallback(async () => {
     if (!custom && !validateRequired()) return;
     if (await copyText(effectiveText)) {
+      if (isCatalog) trackUse({ kind: "catalog", key: template.slug }, "copy");
       setCopied(true);
       setEverCopied(true);
       flashToast();
       window.setTimeout(() => setCopied(false), 1600);
     }
-  }, [custom, validateRequired, effectiveText, flashToast]);
+  }, [custom, validateRequired, effectiveText, flashToast, isCatalog, template.slug]);
 
   const download = useCallback(() => {
     const blob = new Blob([effectiveText], { type: "text/markdown" });
@@ -289,9 +298,9 @@ export function Builder({
 
   const openIn = (
     <div className="tpl-openin" aria-label="Open this prompt in">
-      <a className="tpl-open" href={openInUrl("chatgpt", effectiveText)} target="_blank" rel="noopener noreferrer">ChatGPT</a>
-      <a className="tpl-open" href={openInUrl("claude", effectiveText)} target="_blank" rel="noopener noreferrer">Claude</a>
-      <a className="tpl-open" href={openInUrl("gemini", effectiveText)} target="_blank" rel="noopener noreferrer">Gemini</a>
+      <a className="tpl-open" href={openInUrl("chatgpt", effectiveText)} target="_blank" rel="noopener noreferrer" onClick={() => isCatalog && trackUse(metricsTarget, "open_chatgpt")}>ChatGPT</a>
+      <a className="tpl-open" href={openInUrl("claude", effectiveText)} target="_blank" rel="noopener noreferrer" onClick={() => isCatalog && trackUse(metricsTarget, "open_claude")}>Claude</a>
+      <a className="tpl-open" href={openInUrl("gemini", effectiveText)} target="_blank" rel="noopener noreferrer" onClick={() => isCatalog && trackUse(metricsTarget, "open_gemini")}>Gemini</a>
     </div>
   );
 
@@ -593,6 +602,7 @@ export function Builder({
               <div className="tpl-rate-actions">
                 <RatingStars target={{ kind: "catalog", key: template.slug }} />
                 <BookmarkButton target={{ kind: "catalog", key: template.slug }} />
+                <UsesBadge target={{ kind: "catalog", key: template.slug }} />
               </div>
             </CrosshairCard>
           )}

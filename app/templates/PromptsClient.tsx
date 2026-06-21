@@ -11,6 +11,8 @@ import {
 import type { Template } from "@/data/types";
 import { TemplateCard } from "@/components/TemplateCard";
 import { Icon, type IconName } from "@/components/Icon";
+import { fetchCountsBatch } from "@/lib/metrics/client";
+import type { Counts } from "@/lib/metrics/map";
 
 type Sort = "popular" | "new" | "az";
 type Filter = "none" | "top" | "small" | "fresh";
@@ -40,7 +42,22 @@ export function PromptsClient() {
   const [sort, setSort] = useState<Sort>("popular");
   const [filter, setFilter] = useState<Filter>("none");
   const [isMac, setIsMac] = useState(false);
+  const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Real "Uses" counts for every template, in one batch RPC (no per-card N+1).
+  useEffect(() => {
+    let active = true;
+    void fetchCountsBatch(
+      "catalog",
+      TEMPLATES.map((t) => t.slug)
+    ).then((m) => {
+      if (active) setCounts(m);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Show the platform-correct shortcut hint (⌘K on Mac, Ctrl K elsewhere).
   // Defaults to the non-Mac label so SSR and first client render agree.
@@ -220,7 +237,9 @@ export function PromptsClient() {
                   .
                 </div>
               ) : (
-                results.map((t) => <TemplateCard key={t.id} t={t} />)
+                results.map((t) => (
+                  <TemplateCard key={t.id} t={t} uses={counts.get(t.slug)?.uses} />
+                ))
               )}
             </div>
           </div>

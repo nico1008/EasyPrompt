@@ -15,7 +15,7 @@ import { useSupabaseUser } from "@/lib/supabase/useUser";
 import { fetchAggregate, fetchMyRating } from "@/lib/ratings/client";
 import { rateAction } from "@/lib/ratings/actions";
 import type { RatingTarget } from "@/lib/ratings/schema";
-import type { Aggregate } from "@/lib/ratings/map";
+import { displayRating, type Aggregate } from "@/lib/ratings/map";
 
 export function RatingStars({
   target,
@@ -74,18 +74,23 @@ export function RatingStars({
   if (!isSupabaseConfigured()) return null;
 
   if (compact) {
-    if (!agg || agg.count === 0) return null;
+    // Secondary signal: only show once there are enough ratings to be meaningful,
+    // and show the Bayesian-shrunk value (so a lone 5★ doesn't read as "5.0").
+    const shown = agg ? displayRating(agg) : null;
+    if (!agg || shown === null) return null;
     return (
       <span
         className="rating-compact"
-        aria-label={`Rated ${agg.avg} out of 5 from ${agg.count} ratings`}
+        aria-label={`Rated ${shown} out of 5 from ${agg.count} ratings`}
       >
         <Icon name="star" size={13} />
-        {agg.avg.toFixed(1)}
+        {shown.toFixed(1)}
         <span className="rating-count">({agg.count})</span>
       </span>
     );
   }
+
+  const headline = agg ? displayRating(agg) : null;
 
   const display = hover || mine || 0;
   return (
@@ -110,9 +115,13 @@ export function RatingStars({
         ))}
       </div>
       <div className="rating-meta">
-        {agg && agg.count > 0 ? (
+        {agg && headline !== null ? (
           <span>
-            {agg.avg.toFixed(1)} from {agg.count} {agg.count === 1 ? "rating" : "ratings"}
+            {headline.toFixed(1)} from {agg.count} {agg.count === 1 ? "rating" : "ratings"}
+          </span>
+        ) : agg && agg.count > 0 ? (
+          <span>
+            {agg.count} {agg.count === 1 ? "rating" : "ratings"} so far
           </span>
         ) : (
           <span>No ratings yet</span>

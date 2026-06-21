@@ -10,6 +10,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "./Icon";
 import { copyText } from "@/lib/clipboard";
+import { trackUse } from "@/lib/metrics/track";
 import { getTemplate } from "@/data/templates";
 import type { ExamplePrompt } from "@/data/prompts";
 
@@ -95,7 +96,10 @@ export function CustomizeModal({
             type="button"
             className="cd-option"
             onClick={async () => {
-              if (await copyText(prompt.body)) onCopied();
+              if (await copyText(prompt.body)) {
+                trackUse({ kind: "example_prompt", key: prompt.slug }, "copy");
+                onCopied();
+              }
               onClose();
             }}
           >

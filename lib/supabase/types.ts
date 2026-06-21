@@ -278,6 +278,61 @@ export interface Database {
         };
         Relationships: [];
       };
+      // Usage metrics (migration 0009). RLS-on with no policies + no grants — only
+      // the security-definer RPCs below touch these; the app never reads them direct.
+      interaction_events: {
+        Row: {
+          id: string;
+          target_kind: string;
+          target_key: string;
+          action: string;
+          actor_hash: string;
+          ip_hash: string | null;
+          bucket: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          target_kind: string;
+          target_key: string;
+          action: string;
+          actor_hash: string;
+          ip_hash?: string | null;
+          bucket: string;
+          created_at?: string;
+        };
+        Update: {
+          target_kind?: string;
+          target_key?: string;
+          action?: string;
+        };
+        Relationships: [];
+      };
+      content_stats: {
+        Row: {
+          target_kind: string;
+          target_key: string;
+          copies: number;
+          opens: number;
+          views: number;
+          updated_at: string;
+        };
+        Insert: {
+          target_kind: string;
+          target_key: string;
+          copies?: number;
+          opens?: number;
+          views?: number;
+          updated_at?: string;
+        };
+        Update: {
+          copies?: number;
+          opens?: number;
+          views?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -307,6 +362,24 @@ export interface Database {
           catalog_slug: string | null;
           user_template_id: string | null;
         }[];
+      };
+      record_interaction: {
+        Args: {
+          p_kind: string;
+          p_key: string;
+          p_action: string;
+          p_actor_hash: string;
+          p_ip_hash?: string | null;
+        };
+        Returns: undefined;
+      };
+      content_stats_get: {
+        Args: { p_kind: string; p_key: string };
+        Returns: { uses: number; views: number }[];
+      };
+      content_stats_batch: {
+        Args: { p_kind: string; p_keys: string[] };
+        Returns: { target_key: string; uses: number; views: number }[];
       };
     };
     Enums: { content_visibility: ContentVisibility };

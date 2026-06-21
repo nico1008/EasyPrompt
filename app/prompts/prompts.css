@@ -53,6 +53,13 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .pt-tag { font: 600 11px var(--font-mono); letter-spacing: 0.02em; color: rgba(255, 255, 255, 0.45); }
+.pt-meta { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+/* Uses badge on the dark Prompt tile — lift the color off the base light theme. */
+.prompt-tile .uses-badge { color: rgba(255, 255, 255, 0.5); min-width: 2.25rem; }
+.prompt-tile .uses-badge--loading {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.13) 37%, rgba(255, 255, 255, 0.06) 63%);
+  background-size: 400% 100%;
+}
 .pt-copy {
   display: inline-flex; align-items: center; gap: 6px;
   height: 28px; padding: 0 12px;
@@ -108,6 +115,7 @@
 .pd-head p { font-size: 15px; line-height: 1.55; color: var(--fg-2); margin: 10px 0 0; max-width: 60ch; }
 .pd-source { font-size: 13px !important; color: var(--fg-3) !important; }
 .pd-source a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+.pd-stats { margin-top: 10px; }
 
 .prompt-detail .code-well { margin: 0; }
 .prompt-detail .code-body { min-height: 220px; max-height: 60vh; overflow: auto; }

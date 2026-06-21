@@ -6,6 +6,8 @@ import { CATEGORIES } from "@/data/templates";
 import { EXAMPLE_PROMPTS, promptCountFor, type ExamplePrompt } from "@/data/prompts";
 import { PromptCard } from "@/components/PromptCard";
 import { Icon, type IconName } from "@/components/Icon";
+import { fetchCountsBatch } from "@/lib/metrics/client";
+import type { Counts } from "@/lib/metrics/map";
 
 type Sort = "popular" | "new" | "az";
 
@@ -27,10 +29,25 @@ export function PromptsLibraryClient() {
   const [category, setCategory] = useState<string>("all");
   const [sort, setSort] = useState<Sort>("popular");
   const [isMac, setIsMac] = useState(false);
+  const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsMac(/mac|iphone|ipad/i.test(navigator.userAgent));
+  }, []);
+
+  // Real "Uses" counts for every example prompt, in one batch RPC.
+  useEffect(() => {
+    let active = true;
+    void fetchCountsBatch(
+      "example_prompt",
+      EXAMPLE_PROMPTS.map((p) => p.slug)
+    ).then((m) => {
+      if (active) setCounts(m);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Seed state from the URL (landing links, category deep-links).
@@ -171,7 +188,9 @@ export function PromptsLibraryClient() {
                   .
                 </div>
               ) : (
-                results.map((p) => <PromptCard key={p.id} p={p} />)
+                results.map((p) => (
+                  <PromptCard key={p.id} p={p} uses={counts.get(p.slug)?.uses} />
+                ))
               )}
             </div>
           </div>
