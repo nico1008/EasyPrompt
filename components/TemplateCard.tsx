@@ -4,36 +4,45 @@ import { displayTitle, questionCount } from "@/data/templates";
 import { Icon } from "./Icon";
 import { RatingStars } from "./RatingStars";
 import { BookmarkButton } from "./BookmarkButton";
+import { objectMeta } from "@/lib/library/objectMeta";
 
-/* Picker grid card. A plain panel (the crosshair signature is reserved for
-   focal hero/payoff moments). The "popular" variant adds an indigo top edge
-   + star. The whole card is a link to the builder; the Favorite toggle lives on
-   top of it and stops propagation so a tap saves without navigating. */
+/* Picker grid card — a light tile that mirrors the dark Prompt tile's architecture
+   (header bar -> body -> footer) so the two catalogs read as one family, while
+   keeping the Templates identity: indigo, a sans title, and the Template object
+   glyph. The title lives in the header bar; the footer carries the template meta
+   (rating + question count) — the analog of the Prompt card's Copy action. The
+   "popular" variant adds an indigo top edge + a star in the bar. The whole card
+   links to the builder; the Favorite toggle stops propagation so a tap saves
+   without navigating. */
 export function TemplateCard({ t }: { t: Template }) {
   return (
-    <Link className={`card panel${t.popular ? " popular" : ""}`} href={`/templates/${t.slug}`}>
-      <div className="top">
-        <h3>{displayTitle(t)}</h3>
-        <span className="card-fav">
+    <Link
+      className={`tpl-tile${t.popular ? " popular" : ""}`}
+      href={`/templates/${t.slug}`}
+      aria-label={displayTitle(t)}
+    >
+      <div className="tt-bar">
+        <span className="tt-glyph" aria-hidden="true">
+          <Icon name={objectMeta("template").icon} size={14} />
+        </span>
+        <h3 className="tt-name">{displayTitle(t)}</h3>
+        {t.popular && (
+          <span className="tt-pop" title="Most popular" aria-label="Most popular">
+            <Icon name="star" size={12} />
+          </span>
+        )}
+        <span className="tt-fav">
           <BookmarkButton compact target={{ kind: "catalog", key: t.slug }} />
         </span>
-        <div className="icon">
-          <Icon name={t.icon} size={18} />
-        </div>
       </div>
-      <p>{t.blurb}</p>
-      <div className="foot">
-        {t.popular ? (
-          <span className="star">
-            <Icon name="star" size={11} />
-            Most popular
-          </span>
-        ) : (
-          <span className="tag">{t.tag}</span>
-        )}
-        <span className="foot-right">
+      <div className="tt-body">
+        <p className="tt-blurb">{t.blurb}</p>
+      </div>
+      <div className="tt-foot">
+        <span className="tt-tag">{t.tag}</span>
+        <span className="tt-meta">
           <RatingStars target={{ kind: "catalog", key: t.slug }} compact />
-          <span className="uses">{questionCount(t)} questions</span>
+          <span className="tt-q">{questionCount(t)} questions</span>
         </span>
       </div>
     </Link>

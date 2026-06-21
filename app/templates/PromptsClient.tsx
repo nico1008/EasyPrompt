@@ -10,7 +10,6 @@ import {
 } from "@/data/templates";
 import type { Template } from "@/data/types";
 import { TemplateCard } from "@/components/TemplateCard";
-import { Eyebrow } from "@/components/Eyebrow";
 import { Icon, type IconName } from "@/components/Icon";
 
 type Sort = "popular" | "new" | "az";
@@ -103,12 +102,11 @@ export function PromptsClient() {
     <main className="picker-page">
       <div className="wrap">
         <div className="page-head">
-          <Eyebrow>Template library</Eyebrow>
+          <span className="lib-tag">~/templates</span>
           <h1>Pick a starting point.</h1>
           <p>
-            Browse our library of ready-made templates. Pick one, answer a few
-            short questions, and get a polished prompt for ChatGPT, Claude, or
-            Gemini — in seconds.
+            Pick a ready-made template, answer a few short questions, and get a
+            polished prompt for ChatGPT, Claude, or Gemini.
           </p>
         </div>
 

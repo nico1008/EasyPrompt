@@ -6,8 +6,23 @@
 .picker-page .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 28px 60px; }
 
 .picker-page .page-head { margin-bottom: 24px; }
+/* Terminal-flavored page tag — one shared pill for both libraries. Indigo by
+   default (Templates); Prompts overrides the color only (see prompts.css) so the
+   box metrics stay identical and the header never shifts between the two pages. */
+.picker-page .lib-tag {
+  display: inline-block;
+  font: 600 12px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
 .picker-page .page-head h1 { font: 600 38px/1.05 var(--font-sans); letter-spacing: -0.03em; margin: 14px 0 0; }
-.picker-page .page-head p { color: var(--fg-2); margin: 10px 0 0; max-width: 560px; font-size: 15px; line-height: 1.55; }
+/* min-height reserves exactly 2 lines so the toolbar starts at the same Y on both
+   libraries regardless of copy length. */
+.picker-page .page-head p { color: var(--fg-2); margin: 10px 0 0; max-width: 560px; font-size: 15px; line-height: 1.55; min-height: calc(2 * 1.55em); }
 
 .picker-page .toolbar { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 24px; }
 .picker-page .search {
@@ -63,52 +78,64 @@
 .picker-page .side a .ct, .picker-page .side button .ct { margin-left: auto; font: 500 12px var(--font-mono); color: var(--fg-3); }
 .picker-page .side a.on .ct, .picker-page .side button.on .ct { color: var(--accent); }
 
-/* Cards */
-.picker-page .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+/* Cards — light Template tile. Mirrors the dark .prompt-tile architecture
+   (header bar -> body -> footer) so the two catalogs read as one family, in the
+   Templates' indigo identity: object glyph + sans title in the bar, description in
+   the body, category + template meta (rating + question count) in the footer. */
+.picker-page .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
-.picker-page .card {
-  padding: 20px;
-  display: flex; flex-direction: column; gap: 10px;
-  min-height: 184px;
-  cursor: pointer; transition: all 140ms cubic-bezier(0.16,1,0.3,1);
-  color: inherit;
+.picker-page .tpl-tile {
+  display: flex; flex-direction: column;
+  border-radius: var(--r-3);
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  min-height: 190px;
+  overflow: hidden;
+  color: inherit; cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms, border-color 160ms;
 }
-.picker-page .card:hover { transform: translateY(-2px); border-color: var(--line-3); }
+.picker-page .tpl-tile:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-2);
+}
 
-.picker-page .card .top {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+/* Header bar: Template object glyph (indigo) + the title + favorite. */
+.picker-page .tpl-tile .tt-bar {
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 13px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line-1);
 }
-.picker-page .card h3 { font: 600 16px/1.25 var(--font-sans); letter-spacing: -0.01em; margin: 0; flex: 1; }
-.picker-page .card .icon {
-  width: 32px; height: 32px; border-radius: var(--r-2);
-  background: var(--accent-soft); color: var(--accent);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+.picker-page .tpl-tile .tt-glyph { display: inline-flex; flex-shrink: 0; color: var(--accent); }
+.picker-page .tpl-tile .tt-name {
+  flex: 1; min-width: 0; margin: 0;
+  font: 600 14px var(--font-sans); letter-spacing: -0.01em; color: var(--fg-1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* Favorite toggle sits between the title and the category icon (only renders for
-   signed-in users). Compact icon button; no layout shift when absent. */
-.picker-page .card .card-fav { display: inline-flex; flex-shrink: 0; }
-.picker-page .card .card-fav .bookmark-btn { padding: 4px; border-radius: var(--r-2); }
-.picker-page .card p { font: 400 13px/1.45 var(--font-sans); color: var(--fg-2); margin: 0; flex: 1; }
-.picker-page .card .foot {
-  display: flex; align-items: center; justify-content: space-between;
-  font: 500 12px var(--font-mono); color: var(--fg-3); letter-spacing: 0.04em;
-}
-.picker-page .card .tag {
-  display: inline-flex; height: 22px; padding: 0 8px; align-items: center;
-  background: var(--bg-2); color: var(--fg-2);
-  border-radius: var(--r-1);
-  font: 600 11px var(--font-sans); letter-spacing: 0.04em; text-transform: uppercase;
-}
-.picker-page .card .uses { color: var(--accent); }
-.picker-page .card .foot-right { display: inline-flex; align-items: center; gap: 10px; }
+.picker-page .tpl-tile .tt-pop { display: inline-flex; flex-shrink: 0; color: var(--accent); }
+.picker-page .tpl-tile .tt-fav { display: inline-flex; flex-shrink: 0; }
+.picker-page .tpl-tile .tt-fav .bookmark-btn { padding: 4px; border-radius: var(--r-2); }
 
-.picker-page .card.popular { box-shadow: inset 0 2px 0 var(--accent), var(--shadow-1); }
-.picker-page .card.popular .star {
-  display: inline-flex; align-items: center; gap: 4px;
-  color: var(--accent);
-  font: 600 11px var(--font-mono); letter-spacing: 0.04em;
+/* Body: description only (the title lives in the bar). */
+.picker-page .tpl-tile .tt-body {
+  flex: 1; padding: 16px 16px 14px;
+  display: flex; flex-direction: column; justify-content: center;
 }
-.picker-page .card.popular .star svg { width: 11px; height: 11px; }
+.picker-page .tpl-tile .tt-blurb { font: 400 14px/1.55 var(--font-sans); color: var(--fg-2); margin: 0; }
+
+/* Footer: category (always shown) + template meta (rating + question count). */
+.picker-page .tpl-tile .tt-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-1);
+}
+.picker-page .tpl-tile .tt-tag { font: 600 11px var(--font-mono); letter-spacing: 0.02em; color: var(--fg-3); }
+.picker-page .tpl-tile .tt-meta { display: inline-flex; align-items: center; gap: 10px; }
+.picker-page .tpl-tile .tt-q { font: 500 12px var(--font-mono); color: var(--accent); }
+
+.picker-page .tpl-tile.popular { box-shadow: inset 0 2px 0 var(--accent); }
+.picker-page .tpl-tile.popular:hover { box-shadow: inset 0 2px 0 var(--accent), var(--shadow-2); }
 
 /* Empty state */
 .picker-page .empty {

@@ -79,7 +79,7 @@ export function PromptsLibraryClient() {
     <main className="picker-page prompts-theme">
       <div className="wrap">
         <div className="page-head">
-          <span className="prompts-eyebrow">~/prompts</span>
+          <span className="lib-tag">~/prompts</span>
           <h1>Ready to paste, right now.</h1>
           <p>
             Finished prompts you can copy as-is — or customize one to fit your situation.
