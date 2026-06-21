@@ -6,6 +6,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import Link from "next/link";
 import { CrosshairCard } from "@/components/CrosshairCard";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import {
@@ -118,6 +119,11 @@ export function AccountForms({
             Lists your published Prompts &amp; Templates at{" "}
             {username ? <code>/u/{username}</code> : "/u/your-username"} with your name. Off by default.
           </span>
+          {isPublic && username && (
+            <Link className="account-profile-link" href={`/u/${username}`}>
+              View public profile →
+            </Link>
+          )}
         </div>
         <Feedback state={profileState} />
         <div>

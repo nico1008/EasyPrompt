@@ -4,10 +4,12 @@
  * RatingStars: hydrates client-side off the security-definer RPC so SSG pages stay
  * static, and renders nothing when accounts are off.
  *
- * Anti-CLS: when Supabase is on it ALWAYS renders a min-width-reserved slot (a
- * skeleton while loading, the number when > 0, an empty-but-reserved slot at 0) so
- * the grid never reflows as counts arrive. Pass `managed` + `count` from a grid
- * that batch-fetches; omit both to self-hydrate (detail pages). */
+ * Contract: `count` is a NUMBER once loaded (0 included) and `undefined` while a
+ * parent grid is still batch-loading. The badge renders nothing while loading and
+ * nothing at zero — only a real, non-zero count appears (with a small fade-in), so
+ * a fresh catalog stays clean instead of showing empty slots or a stuck skeleton.
+ * Pass `managed` + `count` from a grid that batch-fetches; omit both to self-hydrate
+ * (detail pages). */
 
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
@@ -22,7 +24,8 @@ export function UsesBadge({
   managed = false,
 }: {
   target: MetricTarget;
-  /** Grid-distributed count (with `managed`). Undefined = still loading. */
+  /** Grid-distributed count: a number when the batch has loaded (0 allowed),
+   *  undefined while still loading. */
   count?: number;
   /** When true, never self-fetch — the count is supplied by a parent grid. */
   managed?: boolean;
@@ -46,22 +49,13 @@ export function UsesBadge({
     };
   }, [managed, count, target.kind, target.key]);
 
-  if (!isSupabaseConfigured()) return null;
+  // Nothing to show while loading (null) or when there are no uses yet.
+  if (!isSupabaseConfigured() || uses === null || uses <= 0) return null;
 
-  const loading = uses === null;
   return (
-    <span
-      className={`uses-badge${loading ? " uses-badge--loading" : ""}`}
-      aria-hidden={loading || uses === 0 ? true : undefined}
-      aria-label={!loading && uses > 0 ? `${uses} uses` : undefined}
-      title={!loading && uses > 0 ? `${uses} ${uses === 1 ? "use" : "uses"}` : undefined}
-    >
-      {!loading && uses > 0 && (
-        <>
-          <Icon name="zap" size={13} />
-          {compactNumber(uses)}
-        </>
-      )}
+    <span className="uses-badge" aria-label={`${uses} uses`} title={`${uses} ${uses === 1 ? "use" : "uses"}`}>
+      <Icon name="zap" size={13} />
+      {compactNumber(uses)}
     </span>
   );
 }

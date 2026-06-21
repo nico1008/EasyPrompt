@@ -33,14 +33,15 @@ export function PromptsLibraryClient() {
   const [sort, setSort] = useState<Sort>("popular");
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
+  const [countsLoaded, setCountsLoaded] = useState(false);
+  const [community, setCommunity] = useState<CommunityCardModel[]>([]);
+  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(new Map());
+  const [communityLoaded, setCommunityLoaded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsMac(/mac|iphone|ipad/i.test(navigator.userAgent));
   }, []);
-
-  const [community, setCommunity] = useState<CommunityCardModel[]>([]);
-  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(new Map());
 
   // Real "Uses" counts for every example prompt, in one batch RPC.
   useEffect(() => {
@@ -49,7 +50,10 @@ export function PromptsLibraryClient() {
       "example_prompt",
       EXAMPLE_PROMPTS.map((p) => p.slug)
     ).then((m) => {
-      if (active) setCounts(m);
+      if (active) {
+        setCounts(m);
+        setCountsLoaded(true);
+      }
     });
     return () => {
       active = false;
@@ -70,6 +74,7 @@ export function PromptsLibraryClient() {
         );
         if (active) setCommunityUses(m);
       }
+      if (active) setCommunityLoaded(true);
     });
     return () => {
       active = false;
@@ -215,7 +220,11 @@ export function PromptsLibraryClient() {
                 </div>
               ) : (
                 results.map((p) => (
-                  <PromptCard key={p.id} p={p} uses={counts.get(p.slug)?.uses} />
+                  <PromptCard
+                    key={p.id}
+                    p={p}
+                    uses={countsLoaded ? counts.get(p.slug)?.uses ?? 0 : undefined}
+                  />
                 ))
               )}
             </div>
@@ -226,7 +235,11 @@ export function PromptsLibraryClient() {
                 <p className="community-sub">Prompts published by other people.</p>
                 <div className="grid">
                   {community.map((c) => (
-                    <CommunityCard key={c.slug} card={c} uses={communityUses.get(c.slug)?.uses} />
+                    <CommunityCard
+                      key={c.slug}
+                      card={c}
+                      uses={communityLoaded ? communityUses.get(c.slug)?.uses ?? 0 : undefined}
+                    />
                   ))}
                 </div>
               </section>

@@ -48,8 +48,10 @@ export function PromptsClient() {
   const [filter, setFilter] = useState<Filter>("none");
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
+  const [countsLoaded, setCountsLoaded] = useState(false);
   const [community, setCommunity] = useState<CommunityCardModel[]>([]);
   const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(new Map());
+  const [communityLoaded, setCommunityLoaded] = useState(false);
   const [affinity, setAffinity] = useState<Map<string, number>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,7 +73,10 @@ export function PromptsClient() {
       "catalog",
       TEMPLATES.map((t) => t.slug)
     ).then((m) => {
-      if (active) setCounts(m);
+      if (active) {
+        setCounts(m);
+        setCountsLoaded(true);
+      }
     });
     return () => {
       active = false;
@@ -91,6 +96,7 @@ export function PromptsClient() {
         );
         if (active) setCommunityUses(m);
       }
+      if (active) setCommunityLoaded(true);
     });
     return () => {
       active = false;
@@ -291,7 +297,11 @@ export function PromptsClient() {
                 </div>
               ) : (
                 results.map((t) => (
-                  <TemplateCard key={t.id} t={t} uses={counts.get(t.slug)?.uses} />
+                  <TemplateCard
+                    key={t.id}
+                    t={t}
+                    uses={countsLoaded ? counts.get(t.slug)?.uses ?? 0 : undefined}
+                  />
                 ))
               )}
             </div>
@@ -302,7 +312,11 @@ export function PromptsClient() {
                 <p className="community-sub">Templates published by other people.</p>
                 <div className="grid">
                   {community.map((c) => (
-                    <CommunityCard key={c.slug} card={c} uses={communityUses.get(c.slug)?.uses} />
+                    <CommunityCard
+                      key={c.slug}
+                      card={c}
+                      uses={communityLoaded ? communityUses.get(c.slug)?.uses ?? 0 : undefined}
+                    />
                   ))}
                 </div>
               </section>

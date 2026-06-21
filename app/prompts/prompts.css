@@ -55,11 +55,7 @@
 .pt-tag { font: 600 11px var(--font-mono); letter-spacing: 0.02em; color: rgba(255, 255, 255, 0.45); }
 .pt-meta { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
 /* Uses badge on the dark Prompt tile — lift the color off the base light theme. */
-.prompt-tile .uses-badge { color: rgba(255, 255, 255, 0.5); min-width: 2.25rem; }
-.prompt-tile .uses-badge--loading {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.13) 37%, rgba(255, 255, 255, 0.06) 63%);
-  background-size: 400% 100%;
-}
+.prompt-tile .uses-badge { color: rgba(255, 255, 255, 0.5); }
 .pt-copy {
   display: inline-flex; align-items: center; gap: 6px;
   height: 28px; padding: 0 12px;
