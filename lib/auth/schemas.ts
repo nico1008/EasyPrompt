@@ -45,6 +45,8 @@ export const profileSchema = z.object({
     .max(30, "Keep your username under 30 characters.")
     .regex(/^[a-z0-9_]+$/, "Letters, numbers, and underscores only.")
     .optional(),
+  bio: z.string().trim().max(200, "Keep your bio under 200 characters.").optional(),
+  is_public: z.boolean().optional(),
 });
 
 export type SignUpInput = z.infer<typeof signUpSchema>;

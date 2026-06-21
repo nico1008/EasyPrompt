@@ -1,12 +1,18 @@
 /* Validation for usage metrics ("Uses" = copies + open-ins; plus views as a
  * denominator). Pure — shared by the /api/track route, the client helpers, and
- * unit tests. Phase 1 targets the public catalog (kind 'catalog', key = slug) and
- * curated example Prompts (kind 'example_prompt', key = slug); the enum reserves
- * the extension path for user content when community discovery ships. */
+ * unit tests. Targets: the public catalog ('catalog'), curated example Prompts
+ * ('example_prompt'), and — since community discovery (Phase 2) — published user
+ * Prompts ('user_prompt') and Templates ('user_template'), both keyed by share_slug.
+ * Reputation aggregates the user_* kinds. */
 
 import { z } from "zod";
 
-export const metricKindSchema = z.enum(["catalog", "example_prompt"]);
+export const metricKindSchema = z.enum([
+  "catalog",
+  "example_prompt",
+  "user_prompt",
+  "user_template",
+]);
 export type MetricKind = z.infer<typeof metricKindSchema>;
 
 export const metricTargetSchema = z.object({

@@ -21,7 +21,7 @@ export default async function AccountPage() {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name")
+    .select("username, display_name, bio, is_public")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -36,6 +36,8 @@ export default async function AccountPage() {
           email={user.email ?? ""}
           displayName={profile?.display_name ?? ""}
           username={profile?.username ?? ""}
+          bio={profile?.bio ?? ""}
+          isPublic={profile?.is_public ?? false}
         />
         <ProSection
           currentPlan={entitlement?.plan ?? null}

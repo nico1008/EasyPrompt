@@ -5,19 +5,21 @@ import "../prompts.css";
 import { TEMPLATES } from "@/data/templates";
 import { EXAMPLE_PROMPTS, getExamplePrompt } from "@/data/prompts";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { getSharedPrompt } from "@/lib/savedPrompts/repo";
+import { getCommunityPrompt } from "@/lib/community/repo";
+import { blurbFromBody } from "@/lib/community/map";
 import { shareSlugSchema } from "@/lib/notebooks/share";
 import { PromptDetail } from "@/components/PromptDetail";
-import { SharedPrompt } from "@/components/SharedPrompt";
+import { CommunityPrompt } from "@/components/CommunityPrompt";
 
 /* `/prompts/[slug]` resolves, in order:
  *   1. a legacy catalog slug → 308 to its new home /templates/[slug] (the path
  *      used to be the SEO'd Template detail; the static catalog is the single
  *      source of truth, so a Prompt can never claim a legacy slug);
  *   2. a curated example Prompt (static data) → the indexable detail view;
- *   3. a *published* user Prompt by share slug → the read-only shared view.
+ *   3. a published/unlisted user Prompt by share slug → the community detail view
+ *      (published = indexable; unlisted = noindex private link).
  * Example slugs are prerendered (generateStaticParams); unknown slugs fall
- * through to the dynamic shared-prompt lookup (dynamicParams). */
+ * through to the dynamic community-prompt lookup (dynamicParams). */
 const LEGACY_TEMPLATE_SLUGS = new Set(TEMPLATES.map((t) => t.slug));
 
 export const dynamicParams = true;
@@ -40,7 +42,18 @@ export async function generateMetadata({
       alternates: { canonical: `/prompts/${example.slug}` },
     };
   }
-  // User-shared prompts are private links — never index them.
+
+  // A published community Prompt is indexable; an unlisted one (private link) is not.
+  if (isSupabaseConfigured() && shareSlugSchema.safeParse(slug).success) {
+    const community = await getCommunityPrompt(slug);
+    if (community && community.visibility === "published") {
+      return {
+        title: `${community.name || "Community prompt"} — community prompt`,
+        description: blurbFromBody(community.text, "A community prompt on EasyPrompt."),
+        alternates: { canonical: `/prompts/${slug}` },
+      };
+    }
+  }
   return { robots: { index: false, follow: false } };
 }
 
@@ -56,24 +69,20 @@ export default async function PromptDetailPage({
   const example = getExamplePrompt(slug);
   if (example) return <PromptDetail prompt={example} />;
 
-  // Otherwise it can only be a published/unlisted user Prompt by share slug.
+  // Otherwise it can only be a published/unlisted community Prompt by share slug.
   if (!isSupabaseConfigured()) notFound();
   if (!shareSlugSchema.safeParse(slug).success) notFound();
 
-  const shared = await getSharedPrompt(slug);
-  if (!shared) notFound();
-
-  const text = shared.text;
-  const tokens = Math.max(1, Math.ceil(text.length / 4));
-  const kb = (new TextEncoder().encode(text).length / 1024).toFixed(1);
+  const community = await getCommunityPrompt(slug);
+  if (!community) notFound();
 
   return (
-    <SharedPrompt
-      name={shared.name}
-      segments={[{ text, kind: "normal" as const }]}
-      tokens={tokens}
-      kb={kb}
-      text={text}
+    <CommunityPrompt
+      slug={slug}
+      name={community.name}
+      text={community.text}
+      sourceSlug={community.sourceSlug}
+      author={community.author}
     />
   );
 }

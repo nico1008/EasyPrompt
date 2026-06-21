@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getCommunityPrompt } from "@/lib/community/repo";
 import { nameSchema, parseAnswers, bodySchema, type AnswersInput } from "./schema";
 
 export type SaveState = { ok?: boolean; error?: string; savedId?: string };
@@ -237,4 +238,41 @@ export async function duplicateSavedPromptAction(formData: FormData): Promise<vo
     answers: src.answers,
   });
   revalidatePath("/my");
+}
+
+/* --------------------- "Use as starting point" (remix) ---------------------
+ * Seed a NEW manual Prompt in the caller's library from a *published* community
+ * Prompt's text, recording a structured `remixed_from` pointer for attribution.
+ * Form action → opens the new prompt in the editor. */
+export async function remixPublishedPromptAction(formData: FormData): Promise<void> {
+  if (!isSupabaseConfigured()) redirect("/prompts");
+  const slug = formData.get("share_slug");
+  if (typeof slug !== "string" || !slug) redirect("/prompts");
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`/login?next=/prompts/${slug}`);
+
+  const detail = await getCommunityPrompt(slug);
+  if (!detail) redirect("/prompts");
+
+  const { data: created } = await supabase
+    .from("saved_prompts")
+    .insert({
+      owner_id: user.id,
+      name: `${detail.name} (remix)`,
+      source_kind: "manual",
+      catalog_slug: null,
+      user_template_id: null,
+      answers: { fields: {}, checks: {} },
+      body: detail.text || `# ${detail.name}\n`,
+      remixed_from: detail.id,
+    })
+    .select("id")
+    .single();
+
+  revalidatePath("/my");
+  redirect(created?.id ? `/my/prompts/${created.id}` : "/my");
 }

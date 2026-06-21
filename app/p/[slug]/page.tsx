@@ -1,20 +1,38 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import "@/app/prompts/prompts.css";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { getSharedNotebook } from "@/lib/notebooks/repo";
+import { getCommunityTemplate } from "@/lib/community/repo";
+import { blurbFromBody } from "@/lib/community/map";
 import { shareSlugSchema } from "@/lib/notebooks/share";
-import { buildPromptFromBlocks } from "@/lib/buildPrompt";
-import { SharedPrompt } from "@/components/SharedPrompt";
+import { CommunityTemplate } from "@/components/CommunityTemplate";
 
-/* A publicly shared prompt. Read-only, no auth: the data comes from the
- * security-definer shared_notebook(slug) RPC (exact-slug only, no enumeration).
- * noindex — user content shouldn't be crawled. Dynamic by nature (per-slug). */
-export const metadata: Metadata = {
-  title: "Shared prompt",
-  robots: { index: false, follow: false },
-};
+/* A community Template by share slug. Data comes from the security-definer
+ * community_template(slug) RPC (exact-slug, visibility-gated, author-gated). A
+ * *published* template is indexable; an *unlisted* one (private share link) is not.
+ * Dynamic by nature (per-slug). */
+export const dynamicParams = true;
 
-export default async function SharedPromptPage({
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  if (isSupabaseConfigured() && shareSlugSchema.safeParse(slug).success) {
+    const tpl = await getCommunityTemplate(slug);
+    if (tpl && tpl.visibility === "published") {
+      return {
+        title: `${tpl.title || "Community template"} — community template`,
+        description: blurbFromBody(tpl.text, "A community template on EasyPrompt."),
+        alternates: { canonical: `/p/${slug}` },
+      };
+    }
+  }
+  return { robots: { index: false, follow: false } };
+}
+
+export default async function CommunityTemplatePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -24,17 +42,10 @@ export default async function SharedPromptPage({
   const { slug } = await params;
   if (!shareSlugSchema.safeParse(slug).success) notFound();
 
-  const shared = await getSharedNotebook(slug);
-  if (!shared) notFound();
+  const tpl = await getCommunityTemplate(slug);
+  if (!tpl) notFound();
 
-  const built = buildPromptFromBlocks(shared.doc);
   return (
-    <SharedPrompt
-      name={shared.name}
-      segments={built.segments}
-      tokens={built.tokens}
-      kb={built.kb}
-      text={built.text}
-    />
+    <CommunityTemplate slug={slug} title={tpl.title} text={tpl.text} author={tpl.author} />
   );
 }

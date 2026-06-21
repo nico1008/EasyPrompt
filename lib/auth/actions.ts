@@ -203,14 +203,23 @@ export async function updateProfileAction(
   // Coerce empty strings to undefined so blanks clear instead of failing rules.
   const rawName = (formData.get("display_name") as string | null)?.trim() || undefined;
   const rawUser = (formData.get("username") as string | null)?.trim() || undefined;
+  const rawBio = (formData.get("bio") as string | null)?.trim() || undefined;
+  const isPublic = formData.get("is_public") === "on";
 
   const parsed = profileSchema.safeParse({
     display_name: rawName,
     username: rawUser,
+    bio: rawBio,
+    is_public: isPublic,
   });
   if (!parsed.success) {
     const { fieldErrors } = z.flattenError(parsed.error);
     return { fieldErrors };
+  }
+
+  // A public profile needs a username to live at /u/<username>.
+  if (parsed.data.is_public && !parsed.data.username) {
+    return { fieldErrors: { username: ["Pick a username to make your profile public."] } };
   }
 
   const supabase = await createClient();
@@ -224,6 +233,8 @@ export async function updateProfileAction(
     .update({
       display_name: parsed.data.display_name ?? null,
       username: parsed.data.username ?? null,
+      bio: parsed.data.bio ?? null,
+      is_public: parsed.data.is_public ?? false,
     })
     .eq("id", user.id);
 
@@ -235,6 +246,7 @@ export async function updateProfileAction(
 
   revalidatePath("/", "layout");
   revalidatePath("/account");
+  if (parsed.data.username) revalidatePath(`/u/${parsed.data.username}`);
   return { ok: true, message: "Profile saved." };
 }
 

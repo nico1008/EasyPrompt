@@ -593,3 +593,50 @@ button { font-family: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .uses-badge--loading { animation: none; }
 }
+
+/* ===== Community (user-published) cards + attribution ===== */
+.community-section { margin-top: 44px; }
+.community-section .community-h { margin: 0 0 2px; font: 700 18px var(--font-sans); color: var(--fg-1); }
+.community-section .community-sub { margin: 0 0 16px; font: 400 13px var(--font-sans); color: var(--fg-3); }
+
+.community-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+  padding: 14px 16px;
+  background: var(--bg-0);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  transition: border-color 140ms, box-shadow 140ms, transform 140ms;
+}
+.community-card:hover { border-color: var(--line-3); box-shadow: var(--shadow-2); }
+.community-card .cc-bar { display: flex; align-items: center; gap: 8px; }
+.community-card .cc-glyph { display: inline-flex; color: var(--fg-3); }
+.community-card.cc-prompt .cc-glyph { color: var(--prompt-accent); }
+.community-card.cc-template .cc-glyph { color: var(--accent); }
+.community-card .cc-title { margin: 0; font: 600 15px var(--font-sans); color: var(--fg-1); }
+.community-card .cc-titlelink { color: inherit; text-decoration: none; }
+/* Stretched link — the whole card is clickable while chip/badge stay interactive. */
+.community-card .cc-titlelink::after { content: ""; position: absolute; inset: 0; }
+.community-card .cc-blurb { margin: 0; font: 400 13px/1.5 var(--font-sans); color: var(--fg-2); }
+.community-card .cc-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: auto;
+}
+.community-card .cc-tag { font: 600 11px var(--font-mono); letter-spacing: 0.02em; color: var(--fg-3); }
+.community-card .cc-meta { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px; }
+
+.author-chip {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 4px;
+  font: 600 11px var(--font-mono); color: var(--fg-3); text-decoration: none;
+}
+.author-chip:hover { color: var(--accent); }
+
+.reputation-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  font: 600 11px var(--font-sans); color: var(--accent); background: var(--accent-soft);
+}

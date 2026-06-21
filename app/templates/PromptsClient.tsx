@@ -10,11 +10,16 @@ import {
 } from "@/data/templates";
 import type { Template } from "@/data/types";
 import { TemplateCard } from "@/components/TemplateCard";
+import { CommunityCard } from "@/components/CommunityCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
 import type { Counts } from "@/lib/metrics/map";
+import { fetchCommunityTemplates } from "@/lib/community/client";
+import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
+import { fetchCategoryAffinity } from "@/lib/personalization/client";
+import { affinityScore } from "@/lib/personalization/affinity";
 
-type Sort = "popular" | "new" | "az";
+type Sort = "foryou" | "popular" | "new" | "az";
 type Filter = "none" | "top" | "small" | "fresh";
 
 /* Sidebar icon per category — keeps the picker on the Icon system instead of
@@ -43,7 +48,21 @@ export function PromptsClient() {
   const [filter, setFilter] = useState<Filter>("none");
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
+  const [community, setCommunity] = useState<CommunityCardModel[]>([]);
+  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(new Map());
+  const [affinity, setAffinity] = useState<Map<string, number>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Category affinity from the signed-in user's own library (empty when logged out).
+  useEffect(() => {
+    let active = true;
+    void fetchCategoryAffinity().then((m) => {
+      if (active) setAffinity(m);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Real "Uses" counts for every template, in one batch RPC (no per-card N+1).
   useEffect(() => {
@@ -53,6 +72,25 @@ export function PromptsClient() {
       TEMPLATES.map((t) => t.slug)
     ).then((m) => {
       if (active) setCounts(m);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Published community Templates (+ their Uses), hydrated client-side. Empty-safe.
+  useEffect(() => {
+    let active = true;
+    void fetchCommunityTemplates(24, 0).then(async (cards) => {
+      if (!active) return;
+      setCommunity(cards);
+      if (cards.length) {
+        const m = await fetchCountsBatch(
+          "user_template",
+          cards.map((c) => c.slug)
+        );
+        if (active) setCommunityUses(m);
+      }
     });
     return () => {
       active = false;
@@ -106,6 +144,12 @@ export function PromptsClient() {
     });
 
     list = [...list].sort((a, b) => {
+      if (sort === "foryou") {
+        // Highest category affinity first, then popularity as the tiebreaker.
+        const d = affinityScore(affinity, b.category) - affinityScore(affinity, a.category);
+        if (d !== 0) return d;
+        return usesToNumber(b.uses) - usesToNumber(a.uses);
+      }
       if (sort === "az") return displayTitle(a).localeCompare(displayTitle(b));
       if (sort === "new") return (b.added ?? 0) - (a.added ?? 0);
       // popular: popular flag first, then uses desc
@@ -113,7 +157,7 @@ export function PromptsClient() {
       return usesToNumber(b.uses) - usesToNumber(a.uses);
     });
     return list;
-  }, [query, category, sort, filter]);
+  }, [query, category, sort, filter, affinity]);
 
   return (
     <main className="picker-page">
@@ -140,6 +184,15 @@ export function PromptsClient() {
             <span className="k">{isMac ? "⌘K" : "Ctrl K"}</span>
           </div>
           <div className="sort" role="group" aria-label="Sort">
+            {affinity.size > 0 && (
+              <button
+                className={sort === "foryou" ? "on" : undefined}
+                aria-pressed={sort === "foryou"}
+                onClick={() => setSort("foryou")}
+              >
+                For you
+              </button>
+            )}
             <button
               className={sort === "popular" ? "on" : undefined}
               aria-pressed={sort === "popular"}
@@ -242,6 +295,18 @@ export function PromptsClient() {
                 ))
               )}
             </div>
+
+            {community.length > 0 && (
+              <section className="community-section">
+                <h2 className="community-h">From the community</h2>
+                <p className="community-sub">Templates published by other people.</p>
+                <div className="grid">
+                  {community.map((c) => (
+                    <CommunityCard key={c.slug} card={c} uses={communityUses.get(c.slug)?.uses} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       </div>

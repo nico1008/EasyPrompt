@@ -288,6 +288,19 @@
 .account-danger {
   border-color: #f0c8c4;
 }
+.account-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 14px var(--font-sans);
+  color: var(--fg-1);
+  cursor: pointer;
+}
+.account-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
 
 @media (max-width: 640px) {
   .my-head {

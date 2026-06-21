@@ -33,6 +33,8 @@ export interface Database {
           id: string;
           username: string | null;
           display_name: string | null;
+          bio: string | null;
+          is_public: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -40,12 +42,16 @@ export interface Database {
           id: string;
           username?: string | null;
           display_name?: string | null;
+          bio?: string | null;
+          is_public?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           username?: string | null;
           display_name?: string | null;
+          bio?: string | null;
+          is_public?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -119,6 +125,7 @@ export interface Database {
           body: string | null;
           visibility: ContentVisibility;
           share_slug: string | null;
+          remixed_from: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -133,6 +140,7 @@ export interface Database {
           body?: string | null;
           visibility?: ContentVisibility;
           share_slug?: string | null;
+          remixed_from?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -142,6 +150,7 @@ export interface Database {
           body?: string | null;
           visibility?: ContentVisibility;
           share_slug?: string | null;
+          remixed_from?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -380,6 +389,80 @@ export interface Database {
       content_stats_batch: {
         Args: { p_kind: string; p_keys: string[] };
         Returns: { target_key: string; uses: number; views: number }[];
+      };
+      published_prompts: {
+        Args: { p_limit: number; p_offset: number };
+        Returns: {
+          share_slug: string;
+          name: string;
+          body: string | null;
+          updated_at: string;
+          author_username: string | null;
+          author_display_name: string | null;
+        }[];
+      };
+      published_templates: {
+        Args: { p_limit: number; p_offset: number; p_category?: string | null };
+        Returns: {
+          share_slug: string;
+          title: string;
+          category: string | null;
+          icon: string | null;
+          tag: string | null;
+          blurb: string | null;
+          updated_at: string;
+          author_username: string | null;
+          author_display_name: string | null;
+        }[];
+      };
+      community_prompt: {
+        Args: { p_slug: string };
+        Returns: {
+          id: string;
+          name: string;
+          body: string | null;
+          answers: Json;
+          source_kind: string;
+          catalog_slug: string | null;
+          user_template_id: string | null;
+          visibility: string;
+          author_username: string | null;
+          author_display_name: string | null;
+        }[];
+      };
+      community_template: {
+        Args: { p_slug: string };
+        Returns: {
+          kind: "notebook" | "user_template";
+          title: string;
+          payload: Json;
+          visibility: string;
+          author_username: string | null;
+          author_display_name: string | null;
+        }[];
+      };
+      public_profile: {
+        Args: { p_username: string };
+        Returns: {
+          id: string;
+          username: string | null;
+          display_name: string | null;
+          bio: string | null;
+          created_at: string;
+          reputation: number;
+        }[];
+      };
+      public_profile_content: {
+        Args: { p_username: string };
+        Returns: {
+          object_type: "prompt" | "template";
+          share_slug: string;
+          title: string;
+          category: string | null;
+          icon: string | null;
+          updated_at: string;
+          uses: number;
+        }[];
       };
     };
     Enums: { content_visibility: ContentVisibility };

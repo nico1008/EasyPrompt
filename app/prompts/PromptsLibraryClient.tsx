@@ -5,9 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { CATEGORIES } from "@/data/templates";
 import { EXAMPLE_PROMPTS, promptCountFor, type ExamplePrompt } from "@/data/prompts";
 import { PromptCard } from "@/components/PromptCard";
+import { CommunityCard } from "@/components/CommunityCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
 import type { Counts } from "@/lib/metrics/map";
+import { fetchCommunityPrompts } from "@/lib/community/client";
+import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 
 type Sort = "popular" | "new" | "az";
 
@@ -36,6 +39,9 @@ export function PromptsLibraryClient() {
     setIsMac(/mac|iphone|ipad/i.test(navigator.userAgent));
   }, []);
 
+  const [community, setCommunity] = useState<CommunityCardModel[]>([]);
+  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(new Map());
+
   // Real "Uses" counts for every example prompt, in one batch RPC.
   useEffect(() => {
     let active = true;
@@ -44,6 +50,26 @@ export function PromptsLibraryClient() {
       EXAMPLE_PROMPTS.map((p) => p.slug)
     ).then((m) => {
       if (active) setCounts(m);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Published community Prompts (+ their Uses), hydrated client-side so the page
+  // stays static. Empty-safe when nobody has published yet.
+  useEffect(() => {
+    let active = true;
+    void fetchCommunityPrompts(24, 0).then(async (cards) => {
+      if (!active) return;
+      setCommunity(cards);
+      if (cards.length) {
+        const m = await fetchCountsBatch(
+          "user_prompt",
+          cards.map((c) => c.slug)
+        );
+        if (active) setCommunityUses(m);
+      }
     });
     return () => {
       active = false;
@@ -193,6 +219,18 @@ export function PromptsLibraryClient() {
                 ))
               )}
             </div>
+
+            {community.length > 0 && (
+              <section className="community-section">
+                <h2 className="community-h">From the community</h2>
+                <p className="community-sub">Prompts published by other people.</p>
+                <div className="grid">
+                  {community.map((c) => (
+                    <CommunityCard key={c.slug} card={c} uses={communityUses.get(c.slug)?.uses} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       </div>

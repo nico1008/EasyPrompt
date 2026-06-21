@@ -1,0 +1,83 @@
+/* Public author profile (/u/[username]). Light, editorial layout; reuses the
+   shared .community-card grid for the contributions list (see globals.css). */
+
+.profile-page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+.profile-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.profile-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 24px;
+}
+.profile-avatar {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font: 700 26px var(--font-sans);
+  color: #fff;
+  background: var(--accent);
+}
+.profile-id {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.profile-id h1 {
+  margin: 0;
+  font: 700 24px var(--font-sans);
+  color: var(--fg-1);
+}
+.profile-handle {
+  margin: 0;
+  font: 500 13px var(--font-mono);
+  color: var(--fg-3);
+}
+.profile-bio {
+  margin: 6px 0 0;
+  max-width: 60ch;
+  font: 400 14px/1.5 var(--font-sans);
+  color: var(--fg-2);
+}
+.profile-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font: 500 13px var(--font-sans);
+  color: var(--fg-2);
+}
+.profile-stats strong { color: var(--fg-1); }
+
+.profile-empty {
+  color: var(--fg-3);
+  font: 400 14px var(--font-sans);
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .profile-head { flex-direction: column; }
+}

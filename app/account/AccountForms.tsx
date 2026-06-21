@@ -36,10 +36,14 @@ export function AccountForms({
   email,
   displayName,
   username,
+  bio,
+  isPublic,
 }: {
   email: string;
   displayName: string;
   username: string;
+  bio: string;
+  isPublic: boolean;
 }) {
   const [profileState, profileAction] = useActionState(updateProfileAction, EMPTY);
   const [pwState, pwAction] = useActionState(updatePasswordAction, EMPTY);
@@ -86,6 +90,34 @@ export function AccountForms({
               {profileState.fieldErrors.username[0]}
             </span>
           )}
+        </div>
+        <div className="field">
+          <label htmlFor="a-bio">Bio</label>
+          <textarea
+            id="a-bio"
+            name="bio"
+            className="input"
+            rows={3}
+            defaultValue={bio}
+            placeholder="A short line about you (shown on your public profile)."
+            aria-invalid={profileState.fieldErrors?.bio ? true : undefined}
+            aria-describedby={profileState.fieldErrors?.bio ? "a-bio-err" : undefined}
+          />
+          {profileState.fieldErrors?.bio && (
+            <span id="a-bio-err" className="account-err" role="alert">
+              {profileState.fieldErrors.bio[0]}
+            </span>
+          )}
+        </div>
+        <div className="field account-toggle">
+          <label htmlFor="a-public">
+            <input id="a-public" name="is_public" type="checkbox" defaultChecked={isPublic} />
+            Make my profile public
+          </label>
+          <span className="helper">
+            Lists your published Prompts &amp; Templates at{" "}
+            {username ? <code>/u/{username}</code> : "/u/your-username"} with your name. Off by default.
+          </span>
         </div>
         <Feedback state={profileState} />
         <div>

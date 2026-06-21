@@ -1,0 +1,94 @@
+/* Pure mapping for community (user-published) content → a unified card model.
+ * Shared by the client listing helpers and unit tests. A published Prompt's blurb
+ * is derived from the first prose line of its frozen body (published prompts always
+ * have `body`); Templates carry their own blurb/category/icon. */
+
+import type { IconName } from "@/components/iconNames";
+
+export type CommunityAuthor = { username: string; displayName: string | null };
+
+export type CommunityCard = {
+  objectType: "prompt" | "template";
+  /** share_slug — the public URL segment. */
+  slug: string;
+  title: string;
+  blurb: string;
+  icon: IconName;
+  tag: string;
+  category: string | null;
+  href: string;
+  author: CommunityAuthor | null;
+};
+
+const MAX_BLURB = 120;
+
+/** First meaningful line of a markdown body (skips headings/blank lines), trimmed. */
+export function blurbFromBody(body: string | null | undefined, fallback = "A community prompt."): string {
+  if (!body) return fallback;
+  const lines = body.split(/\r?\n/);
+  let pick = "";
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith("#")) continue; // markdown heading
+    pick = line.replace(/^[-*>]\s+/, ""); // strip a leading bullet/quote marker
+    break;
+  }
+  if (!pick) {
+    // body was only headings — fall back to the first non-empty line, sans '#'.
+    pick = (lines.find((l) => l.trim()) ?? "").replace(/^#+\s*/, "").trim();
+  }
+  if (!pick) return fallback;
+  return pick.length > MAX_BLURB ? `${pick.slice(0, MAX_BLURB - 1).trimEnd()}…` : pick;
+}
+
+function authorOf(username: string | null, displayName: string | null): CommunityAuthor | null {
+  return username ? { username, displayName } : null;
+}
+
+export type PublishedPromptRow = {
+  share_slug: string;
+  name: string;
+  body: string | null;
+  author_username: string | null;
+  author_display_name: string | null;
+};
+
+export function promptRowToCard(row: PublishedPromptRow): CommunityCard {
+  return {
+    objectType: "prompt",
+    slug: row.share_slug,
+    title: row.name || "Untitled prompt",
+    blurb: blurbFromBody(row.body),
+    icon: "letter",
+    tag: "Community",
+    category: null,
+    href: `/prompts/${row.share_slug}`,
+    author: authorOf(row.author_username, row.author_display_name),
+  };
+}
+
+export type PublishedTemplateRow = {
+  share_slug: string;
+  title: string;
+  category: string | null;
+  icon: string | null;
+  tag: string | null;
+  blurb: string | null;
+  author_username: string | null;
+  author_display_name: string | null;
+};
+
+export function templateRowToCard(row: PublishedTemplateRow): CommunityCard {
+  return {
+    objectType: "template",
+    slug: row.share_slug,
+    title: row.title || "Untitled template",
+    blurb: row.blurb?.trim() || "A community template.",
+    icon: (row.icon as IconName) || "list",
+    tag: row.tag?.trim() || "Community",
+    category: row.category,
+    href: `/p/${row.share_slug}`,
+    author: authorOf(row.author_username, row.author_display_name),
+  };
+}
