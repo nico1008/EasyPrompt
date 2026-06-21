@@ -11,7 +11,7 @@
  * alignment contract) — every layout-affecting property is set on BOTH via the
  * shared selector in MarkdownEditorSurface.css. */
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { highlightMarkdown } from "@/lib/markdown/highlight";
 import "./MarkdownEditorSurface.css";
 
@@ -24,6 +24,7 @@ export function MarkdownEditorSurface({
   placeholder,
   ariaLabel = "Prompt body (markdown)",
   className,
+  tag,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -34,6 +35,8 @@ export function MarkdownEditorSurface({
   ariaLabel?: string;
   /** Extra class on the .md-editor root for per-page layout overrides. */
   className?: string;
+  /** Optional affordance shown in the bar (e.g. an "editable" cue). */
+  tag?: ReactNode;
 }) {
   const segments = useMemo(() => highlightMarkdown(value), [value]);
   // Trailing-line guard: a <pre> drops the height of a final empty line, so add a
@@ -45,6 +48,7 @@ export function MarkdownEditorSurface({
       <div className="md-bar">
         <span className="md-dot" aria-hidden="true" />
         <span className="md-file">{fileName}</span>
+        {tag && <span className="md-tag">{tag}</span>}
         <span className="md-meta">
           {tokens} tokens · {kb} KB
         </span>

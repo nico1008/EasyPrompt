@@ -109,6 +109,10 @@ export function Builder({
   const [toast, setToast] = useState(false);
   const [copied, setCopied] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  /** Pro Boosters affordance open/closed (post-value upsell; opens for premium). */
+  const [boostersOpen, setBoostersOpen] = useState(false);
+  /** True after the first successful Copy — gates the post-value "keep this" panel. */
+  const [everCopied, setEverCopied] = useState(false);
   /** fieldId → has an unmet required-field error (cleared as the user types). */
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
@@ -162,6 +166,11 @@ export function Builder({
     };
   }, [premium, template.id]);
 
+  // Premium users have active toggles worth seeing; open the panel for them.
+  useEffect(() => {
+    if (premium === "unlocked") setBoostersOpen(true);
+  }, [premium]);
+
   const boosterText = useMemo(
     () => boosters.filter((b) => picked[b.id]).map((b) => b.text).join(""),
     [boosters, picked]
@@ -210,6 +219,7 @@ export function Builder({
     if (!custom && !validateRequired()) return;
     if (await copyText(effectiveText)) {
       setCopied(true);
+      setEverCopied(true);
       flashToast();
       window.setTimeout(() => setCopied(false), 1600);
     }
@@ -285,6 +295,93 @@ export function Builder({
     </div>
   );
 
+  // Pro Boosters — a collapsed affordance under the prompt (no longer wedged into
+  // the form). Locked: a one-line "sharpen" pitch that expands to perks + unlock.
+  // Unlocked: the live toggle list (opened by the premium effect above).
+  const activeBoosters = boosters.filter((b) => picked[b.id]).length;
+  const boostersNode = proBoosters ? (
+    <section className={`tpl-boost${boostersOpen ? " open" : ""}`} aria-label="Pro Boosters">
+      <button
+        type="button"
+        className="tpl-boost-toggle"
+        aria-expanded={boostersOpen}
+        onClick={() => setBoostersOpen((o) => !o)}
+      >
+        <span className="tpl-boost-spark" aria-hidden="true">
+          <Icon name="zap" size={14} strokeWidth={2} />
+        </span>
+        <span className="tpl-boost-title">
+          {premium === "unlocked" ? "Pro Boosters" : "Sharpen with Pro Boosters"}
+        </span>
+        <span className="tpl-boost-sub">
+          {premium === "unlocked"
+            ? `${activeBoosters} on`
+            : "role priming · output format · self-check"}
+        </span>
+        <Icon name={boostersOpen ? "minus" : "plus"} size={15} strokeWidth={2} />
+      </button>
+
+      {boostersOpen && (
+        <div className="tpl-boost-body">
+          {premium === "unlocked" ? (
+            boosters.length === 0 ? (
+              <p className="pro-loading">Loading your boosters…</p>
+            ) : (
+              <div className="pro-grid" data-premium="unlocked">
+                {boosters.map((b) => (
+                  <div
+                    key={b.id}
+                    className={`check${picked[b.id] ? " on" : ""}`}
+                    role="checkbox"
+                    aria-checked={Boolean(picked[b.id])}
+                    tabIndex={0}
+                    onClick={() => toggleBooster(b.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === " " || e.key === "Enter") {
+                        e.preventDefault();
+                        toggleBooster(b.id);
+                      }
+                    }}
+                  >
+                    <span className="box" />
+                    <div>
+                      <div className="label">{b.label}</div>
+                      {b.note && <div className="sub">{b.note}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+            <div className="pro-locked" data-premium="locked">
+              <ul className="pro-perks">
+                <li>
+                  <Icon name="check" size={15} strokeWidth={2.4} />
+                  Expert role priming &amp; a quality self-check
+                </li>
+                <li>
+                  <Icon name="check" size={15} strokeWidth={2.4} />
+                  A strict output format tailored to this template
+                </li>
+                <li>
+                  <Icon name="check" size={15} strokeWidth={2.4} />
+                  Per-model tuning for ChatGPT, Claude &amp; Gemini
+                </li>
+              </ul>
+              <div className="pro-cta">
+                <a className="btn btn-primary btn-sm" href={config.checkoutUrl} target="_blank" rel="noopener noreferrer">
+                  Get a code on Telegram →
+                </a>
+                <span className="pro-price">{config.pricing.lifetime}</span>
+              </div>
+              <UnlockForm compact />
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  ) : null;
+
   return (
     <main className="builder-page tpl-dual">
       <Toast show={toast} message="Prompt copied to clipboard" />
@@ -304,9 +401,6 @@ export function Builder({
             ))}
           </nav>
         </div>
-        <span className="tpl-answered">
-          <b>{built.answered}</b> / {built.total} answered
-        </span>
       </div>
 
       {/* ---- Mobile segmented view switch (desktop shows both columns) ---- */}
@@ -415,103 +509,30 @@ export function Builder({
             )}
           </div>
 
-          {/* Pro Boosters (premium) */}
-          {proBoosters && (
-            <section className="tpl-boosters" aria-label="Pro Boosters">
-              <div className="tpl-boosters-head">
-                <h2>
-                  Pro Boosters<span className="accent">.</span>
-                </h2>
-                <p>
-                  Expert enhancement blocks — role priming, a strict output format, a quality
-                  self-check — appended to your prompt. The free prompt already works; these
-                  make it sharper.
-                </p>
-              </div>
-
-              {premium === "unlocked" ? (
-                <div className="pro-grid" data-premium="unlocked">
-                  {boosters.length === 0 ? (
-                    <p className="pro-loading">Loading your boosters…</p>
-                  ) : (
-                    boosters.map((b) => (
-                      <div
-                        key={b.id}
-                        className={`check${picked[b.id] ? " on" : ""}`}
-                        role="checkbox"
-                        aria-checked={Boolean(picked[b.id])}
-                        tabIndex={0}
-                        onClick={() => toggleBooster(b.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === " " || e.key === "Enter") {
-                            e.preventDefault();
-                            toggleBooster(b.id);
-                          }
-                        }}
-                      >
-                        <span className="box" />
-                        <div>
-                          <div className="label">{b.label}</div>
-                          {b.note && <div className="sub">{b.note}</div>}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              ) : (
-                <div className="pro-locked" data-premium="locked">
-                  <ul className="pro-perks">
-                    <li>
-                      <Icon name="check" size={15} strokeWidth={2.4} />
-                      Expert role priming &amp; a quality self-check
-                    </li>
-                    <li>
-                      <Icon name="check" size={15} strokeWidth={2.4} />
-                      A strict output format tailored to this template
-                    </li>
-                    <li>
-                      <Icon name="check" size={15} strokeWidth={2.4} />
-                      Per-model tuning for ChatGPT, Claude &amp; Gemini
-                    </li>
-                  </ul>
-                  <div className="pro-cta">
-                    <a className="btn btn-primary" href={config.checkoutUrl} target="_blank" rel="noopener noreferrer">
-                      Get a code on Telegram →
-                    </a>
-                    <span className="pro-price">{config.pricing.lifetime}</span>
-                  </div>
-                  <UnlockForm compact />
-                </div>
-              )}
-            </section>
-          )}
-
-          {isCatalog && (
-            <p className="tpl-hint">
-              <Link href={`/build/template?from=${template.slug}`} onClick={openInBuilder}>
-                Make it your own template — keeps your answers →
-              </Link>
-            </p>
-          )}
         </CrosshairCard>
 
         {/* ===================== RIGHT: live prompt ===================== */}
         <aside className="tpl-col-prompt" aria-label="Generated prompt">
           <div className="tpl-prompt-actions">
-            {custom ? (
-              <span className="tpl-mode is-custom">
-                <span className="tpl-mode-dot" aria-hidden="true" />
-                Custom — edited
-                <button type="button" className="tpl-reset" onClick={resetToForm}>
-                  {confirmReset ? "Discard edits?" : "Reset to form"}
-                </button>
+            <div className="tpl-prompt-state">
+              <span className="tpl-prog-mini" aria-hidden="true">
+                <b>{built.answered}</b>/{built.total}
               </span>
-            ) : (
-              <span className="tpl-mode is-synced">
-                <span className="tpl-mode-dot" aria-hidden="true" />
-                Synced with form
-              </span>
-            )}
+              {custom ? (
+                <span className="tpl-mode is-custom">
+                  <span className="tpl-mode-dot" aria-hidden="true" />
+                  Edited · form changes paused
+                  <button type="button" className="tpl-reset" onClick={resetToForm}>
+                    {confirmReset ? "Discard edits?" : "Reset to form"}
+                  </button>
+                </span>
+              ) : (
+                <span className="tpl-mode is-synced">
+                  <span className="tpl-mode-dot" aria-hidden="true" />
+                  Synced with form
+                </span>
+              )}
+            </div>
             <div className="tpl-prompt-buttons">
               {openIn}
               <button className="btn btn-ghost btn-sm" onClick={download} aria-label="Download as .md">
@@ -532,11 +553,14 @@ export function Builder({
               fileName={fileName}
               tokens={tokens}
               kb={kb}
+              tag="✎ editable"
               placeholder={"Your prompt builds here as you fill the form — or write it yourself."}
               ariaLabel="Generated prompt (editable markdown)"
               className="tpl-md"
             />
           </div>
+
+          {boostersNode}
 
           <div className="tpl-save">
             <SavePromptButton
@@ -546,19 +570,28 @@ export function Builder({
               savedPromptId={savedPromptId}
               customBody={custom ? effectiveText : undefined}
               onSaved={handleSaved}
+              variant="outline"
             />
+            {isCatalog && (
+              <Link className="tpl-fork" href={`/build/template?from=${template.slug}`} onClick={openInBuilder}>
+                Make it your own template →
+              </Link>
+            )}
           </div>
         </aside>
       </div>
 
       {/* ===================== FOOTER ===================== */}
-      {(isCatalog || related.length > 0) && (
+      {((isCatalog && everCopied) || related.length > 0) && (
         <footer className="tpl-footer">
-          {isCatalog && (
+          {isCatalog && everCopied && (
             <CrosshairCard className="tpl-rate">
-              <h3>Rate &amp; keep</h3>
-              <RatingStars target={{ kind: "catalog", key: template.slug }} />
-              <div className="tpl-rate-bookmark">
+              <div>
+                <h3>Keep this prompt?</h3>
+                <p>Rate the template and bookmark it for later.</p>
+              </div>
+              <div className="tpl-rate-actions">
+                <RatingStars target={{ kind: "catalog", key: template.slug }} />
                 <BookmarkButton target={{ kind: "catalog", key: template.slug }} />
               </div>
             </CrosshairCard>

@@ -29,10 +29,11 @@ export type SaveSource =
 
 const EMPTY: SaveState = {};
 
-function SaveSubmit({ label }: { label: string }) {
+function SaveSubmit({ label, variant }: { label: string; variant: "primary" | "outline" }) {
   const { pending } = useFormStatus();
+  const cls = variant === "outline" ? "btn btn-ghost btn-sm" : "btn btn-primary btn-sm";
   return (
-    <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>
+    <button className={cls} type="submit" disabled={pending}>
       {pending ? "Saving…" : label}
     </button>
   );
@@ -45,6 +46,7 @@ export function SavePromptButton({
   savedPromptId,
   customBody,
   onSaved,
+  variant = "primary",
 }: {
   source: SaveSource;
   answers: Answers;
@@ -56,6 +58,8 @@ export function SavePromptButton({
   customBody?: string;
   /** Fired once when a save succeeds — lets the Builder clear its local draft. */
   onSaved?: () => void;
+  /** Visual weight of the submit button. "outline" demotes it below a primary Copy. */
+  variant?: "primary" | "outline";
 }) {
   const editing = Boolean(savedPromptId);
   const custom = customBody !== undefined;
@@ -149,7 +153,7 @@ export function SavePromptButton({
         aria-label="Name this prompt"
         maxLength={120}
       />
-      <SaveSubmit label={saveLabel} />
+      <SaveSubmit label={saveLabel} variant={variant} />
       {state.error && (
         <p className="save-err" role="alert">
           {state.error}

@@ -19,7 +19,13 @@
 }
 .md-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--prompt-accent-on-dark); flex-shrink: 0; box-shadow: 0 0 0 3px rgba(70, 214, 166, 0.16); }
 .md-file { font: 500 12.5px var(--font-mono); color: rgba(255, 255, 255, 0.72); }
-.md-meta { font: 400 11px var(--font-mono); color: rgba(255, 255, 255, 0.4); margin-left: auto; }
+.md-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font: 500 10.5px var(--font-mono); letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 2px 8px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 999px;
+}
+.md-meta { font: 400 11px var(--font-mono); color: rgba(255, 255, 255, 0.55); margin-left: auto; }
 
 /* ---- The stacked mirror + input (metric parity contract) ---- */
 .md-surface { position: relative; }
