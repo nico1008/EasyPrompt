@@ -112,6 +112,7 @@
 .pd-source { font-size: 13px !important; color: var(--fg-3) !important; }
 .pd-source a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
 .pd-stats { margin-top: 10px; }
+.pd-tpl-note { font: 400 13px/1.5 var(--font-sans); color: var(--fg-3); margin: 4px 0 0; }
 
 .prompt-detail .code-well { margin: 0; }
 .prompt-detail .code-body { min-height: 220px; max-height: 60vh; overflow: auto; }

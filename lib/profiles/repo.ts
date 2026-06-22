@@ -6,6 +6,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import type { IconName } from "@/components/iconNames";
+import { blurbFromBody } from "@/lib/community/map";
 
 export type PublicProfile = {
   id: string;
@@ -20,6 +21,7 @@ export type PublicProfileItem = {
   objectType: "prompt" | "template";
   slug: string;
   title: string;
+  blurb: string;
   category: string | null;
   icon: IconName;
   updatedAt: string;
@@ -53,6 +55,10 @@ export async function getPublicProfileContent(username: string): Promise<PublicP
     objectType: r.object_type,
     slug: r.share_slug,
     title: r.title,
+    blurb:
+      r.object_type === "prompt"
+        ? blurbFromBody(r.preview)
+        : r.preview?.trim() || "A community template.",
     category: r.category,
     icon: (r.icon as IconName) ?? "letter",
     updatedAt: r.updated_at,

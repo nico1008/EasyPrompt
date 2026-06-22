@@ -69,6 +69,9 @@ export function CommunityTemplate({
           <div className="pd-head-main">
             <span className="pd-tag">Community template</span>
             <h1>{title || "Untitled template"}</h1>
+            <p className="pd-tpl-note">
+              A reusable template — copy it, then fill in the [bracketed] parts.
+            </p>
             {author && (
               <p className="pd-source">
                 by <AuthorChip author={author} />
@@ -85,7 +88,7 @@ export function CommunityTemplate({
         <div className="pd-actions">
           <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
             <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-            {copied ? "Copied!" : "Copy prompt"}
+            {copied ? "Copied!" : "Copy template"}
           </button>
           <div className="pd-openin">
             <a

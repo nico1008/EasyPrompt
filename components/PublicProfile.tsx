@@ -1,8 +1,6 @@
-import Link from "next/link";
-import { Icon } from "./Icon";
-import { UsesBadge } from "./UsesBadge";
+import { CommunityCard } from "./CommunityCard";
 import { ReputationBadge } from "./ReputationBadge";
-import { objectMeta } from "@/lib/library/objectMeta";
+import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import type { PublicProfile as Profile, PublicProfileItem } from "@/lib/profiles/repo";
 
 /* Public, indexable profile (/u/<username>). Shows contributions + helpfulness —
@@ -12,6 +10,22 @@ import type { PublicProfile as Profile, PublicProfileItem } from "@/lib/profiles
 
 function initial(name: string): string {
   return (name.trim()[0] || "?").toUpperCase();
+}
+
+/* Profile items render with the SAME CommunityCard as the catalog community
+   sections. author is null — no self-link chip on your own profile. */
+function toCard(it: PublicProfileItem): CommunityCardModel {
+  return {
+    objectType: it.objectType,
+    slug: it.slug,
+    title: it.title || "Untitled",
+    blurb: it.blurb,
+    icon: it.icon,
+    tag: it.objectType === "prompt" ? "Prompt" : "Template",
+    category: it.category,
+    href: it.objectType === "prompt" ? `/prompts/${it.slug}` : `/p/${it.slug}`,
+    author: null,
+  };
 }
 
 export function PublicProfile({
@@ -60,36 +74,9 @@ export function PublicProfile({
           <p className="profile-empty">No published Prompts or Templates yet.</p>
         ) : (
           <div className="profile-grid">
-            {items.map((it) => {
-              const href = it.objectType === "prompt" ? `/prompts/${it.slug}` : `/p/${it.slug}`;
-              const metricKind = it.objectType === "prompt" ? "user_prompt" : "user_template";
-              return (
-                <article key={it.slug} className={`community-card cc-${it.objectType}`}>
-                  <div className="cc-bar">
-                    <span className="cc-glyph" aria-hidden="true">
-                      <Icon name={objectMeta(it.objectType).icon} size={14} />
-                    </span>
-                    <h3 className="cc-title">
-                      <Link className="cc-titlelink" href={href}>
-                        {it.title || "Untitled"}
-                      </Link>
-                    </h3>
-                  </div>
-                  <div className="cc-foot">
-                    <span className="cc-tag">
-                      {it.objectType === "prompt" ? "Prompt" : "Template"}
-                    </span>
-                    <span className="cc-meta">
-                      <UsesBadge
-                        target={{ kind: metricKind, key: it.slug }}
-                        count={it.uses}
-                        managed
-                      />
-                    </span>
-                  </div>
-                </article>
-              );
-            })}
+            {items.map((it) => (
+              <CommunityCard key={it.slug} card={toCard(it)} uses={it.uses} />
+            ))}
           </div>
         )}
       </div>

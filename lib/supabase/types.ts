@@ -460,6 +460,7 @@ export interface Database {
           title: string;
           category: string | null;
           icon: string | null;
+          preview: string | null;
           updated_at: string;
           uses: number;
         }[];
