@@ -665,6 +665,15 @@ button { font-family: inherit; cursor: pointer; }
 }
 .author-chip:hover { color: var(--accent); }
 
+/* House creator label ("EasyPrompt") — same metrics as .author-chip, non-link.
+   The community variant simply reuses .author-chip. */
+.creator-chip.creator-house {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 4px;
+  font: 600 11px var(--font-mono); color: var(--fg-3);
+}
+.creator-chip.creator-house svg { color: var(--accent); }
+
 .reputation-badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 8px; border-radius: 999px;

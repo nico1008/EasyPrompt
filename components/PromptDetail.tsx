@@ -12,6 +12,7 @@ import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { UsesBadge } from "@/components/UsesBadge";
+import { CreatorChip } from "@/components/CreatorChip";
 import { CustomizeModal } from "@/components/CustomizeModal";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
@@ -75,6 +76,7 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
               </p>
             )}
             <div className="pd-stats">
+              <CreatorChip creator={{ kind: "house" }} />
               <UsesBadge target={target} />
             </div>
           </div>

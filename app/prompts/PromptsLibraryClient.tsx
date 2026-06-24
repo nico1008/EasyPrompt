@@ -3,16 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CATEGORIES } from "@/data/templates";
-import { EXAMPLE_PROMPTS, promptCountFor, type ExamplePrompt } from "@/data/prompts";
+import { EXAMPLE_PROMPTS, promptCountFor } from "@/data/prompts";
 import { PromptCard } from "@/components/PromptCard";
-import { CommunityCard } from "@/components/CommunityCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
 import type { Counts } from "@/lib/metrics/map";
 import { fetchCommunityPrompts } from "@/lib/community/client";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
+import { examplePromptToItem, communityPromptToItem, byOriginThenRecency } from "@/lib/browse/map";
 
 type Sort = "popular" | "new" | "az";
+type Source = "all" | "official" | "community";
 
 /* Sidebar icon per category — same vocabulary as the Templates picker so the two
    libraries read as one system. */
@@ -31,6 +32,7 @@ export function PromptsLibraryClient() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [sort, setSort] = useState<Sort>("popular");
+  const [source, setSource] = useState<Source>("all");
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
   const [countsLoaded, setCountsLoaded] = useState(false);
@@ -101,26 +103,47 @@ export function PromptsLibraryClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // One unified list: curated (house) + published (community) prompts on par.
   const results = useMemo(() => {
+    const house = EXAMPLE_PROMPTS.map(examplePromptToItem);
+    const comm = community.map(communityPromptToItem);
+    let list = [...house, ...comm];
+
+    if (source !== "all") {
+      const want = source === "official" ? "house" : "community";
+      list = list.filter((i) => i.origin === want);
+    }
+    if (category !== "all") list = list.filter((i) => i.category === category);
+
     const q = query.trim().toLowerCase();
-    let list: ExamplePrompt[] = EXAMPLE_PROMPTS.filter((p) => {
-      if (category !== "all" && p.category !== category) return false;
-      if (!q) return true;
-      const hay = [p.title, p.blurb, p.tag, p.category].join(" ").toLowerCase();
-      return hay.includes(q);
-    });
+    if (q) {
+      list = list.filter((i) =>
+        [i.title, i.blurb, i.tag, i.category ?? ""].join(" ").toLowerCase().includes(q)
+      );
+    }
 
-    list = [...list].sort((a, b) => {
+    return [...list].sort((a, b) => {
       if (sort === "az") return a.title.localeCompare(b.title);
-      if (sort === "new") return (b.added ?? 0) - (a.added ?? 0);
-      // popular: popular flag first, then newest
-      if (Boolean(a.popular) !== Boolean(b.popular)) return a.popular ? -1 : 1;
-      return (b.added ?? 0) - (a.added ?? 0);
+      if (sort === "new") return byOriginThenRecency(a, b);
+      // popular: house first, then the popular flag, then true recency
+      if (a.origin !== b.origin) return a.origin === "house" ? -1 : 1;
+      if (a.popular !== b.popular) return a.popular ? -1 : 1;
+      return b.recency - a.recency;
     });
-    return list;
-  }, [query, category, sort]);
+  }, [community, source, category, query, sort]);
 
-  // Only show categories that actually contain example prompts.
+  function usesFor(origin: "house" | "community", slug: string): number | undefined {
+    if (origin === "house") return countsLoaded ? counts.get(slug)?.uses ?? 0 : undefined;
+    return communityLoaded ? communityUses.get(slug)?.uses ?? 0 : undefined;
+  }
+
+  function clearFilters() {
+    setQuery("");
+    setCategory("all");
+    setSource("all");
+  }
+
+  // Only show categories that actually contain curated prompts.
   const cats = CATEGORIES.filter((c) => promptCountFor(c.id) > 0);
 
   return (
@@ -193,60 +216,71 @@ export function PromptsLibraryClient() {
                 <span className="ct">{promptCountFor(c.id)}</span>
               </button>
             ))}
+            <div className="group">Source</div>
+            {(["all", "official", "community"] as const).map((s) => (
+              <button
+                key={s}
+                className={source === s ? "on" : undefined}
+                aria-pressed={source === s}
+                onClick={() => setSource(s)}
+              >
+                <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
+                <span>{s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}</span>
+              </button>
+            ))}
           </aside>
 
           <div>
             <div className="grid">
               {results.length === 0 ? (
-                <div className="empty">
-                  No prompts match <b>“{query}”</b>. Try a different search or{" "}
-                  <button
-                    onClick={() => {
-                      setQuery("");
-                      setCategory("all");
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--accent)",
-                      font: "inherit",
-                      cursor: "pointer",
-                      padding: 0,
-                    }}
-                  >
-                    clear filters
-                  </button>
-                  .
-                </div>
+                <EmptyPrompts query={query} source={source} onClear={clearFilters} />
               ) : (
-                results.map((p) => (
-                  <PromptCard
-                    key={p.id}
-                    p={p}
-                    uses={countsLoaded ? counts.get(p.slug)?.uses ?? 0 : undefined}
-                  />
+                results.map((item) => (
+                  <PromptCard key={item.key} item={item} uses={usesFor(item.origin, item.slug)} />
                 ))
               )}
             </div>
-
-            {community.length > 0 && (
-              <section className="community-section">
-                <h2 className="community-h">From the community</h2>
-                <p className="community-sub">Prompts published by other people.</p>
-                <div className="grid">
-                  {community.map((c) => (
-                    <CommunityCard
-                      key={c.slug}
-                      card={c}
-                      uses={communityLoaded ? communityUses.get(c.slug)?.uses ?? 0 : undefined}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+/* Filter-aware empty state — never a bare grid. */
+function EmptyPrompts({
+  query,
+  source,
+  onClear,
+}: {
+  query: string;
+  source: Source;
+  onClear: () => void;
+}) {
+  const msg = query.trim()
+    ? `No prompts match “${query.trim()}”.`
+    : source === "community"
+      ? "No community prompts have been published yet."
+      : source === "official"
+        ? "No official prompts here — try All sources."
+        : "Nothing matches these filters.";
+  return (
+    <div className="empty">
+      {msg}{" "}
+      <button
+        onClick={onClear}
+        style={{
+          background: "none",
+          border: "none",
+          color: "var(--accent)",
+          font: "inherit",
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        clear filters
+      </button>
+      .
+    </div>
   );
 }

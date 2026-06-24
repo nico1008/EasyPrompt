@@ -18,6 +18,8 @@ export type CommunityCard = {
   category: string | null;
   href: string;
   author: CommunityAuthor | null;
+  /** ISO timestamp — the item's true recency for sorting. */
+  createdAt: string;
 };
 
 const MAX_BLURB = 120;
@@ -49,7 +51,10 @@ function authorOf(username: string | null, displayName: string | null): Communit
 export type PublishedPromptRow = {
   share_slug: string;
   name: string;
-  body: string | null;
+  /** First ~300 chars of the frozen body (full body is fetched lazily on Copy). */
+  preview: string | null;
+  category: string | null;
+  created_at: string;
   author_username: string | null;
   author_display_name: string | null;
 };
@@ -59,12 +64,13 @@ export function promptRowToCard(row: PublishedPromptRow): CommunityCard {
     objectType: "prompt",
     slug: row.share_slug,
     title: row.name || "Untitled prompt",
-    blurb: blurbFromBody(row.body),
+    blurb: blurbFromBody(row.preview),
     icon: "letter",
     tag: "Community",
-    category: null,
+    category: row.category,
     href: `/prompts/${row.share_slug}`,
     author: authorOf(row.author_username, row.author_display_name),
+    createdAt: row.created_at,
   };
 }
 
@@ -75,6 +81,7 @@ export type PublishedTemplateRow = {
   icon: string | null;
   tag: string | null;
   blurb: string | null;
+  created_at: string;
   author_username: string | null;
   author_display_name: string | null;
 };
@@ -90,5 +97,6 @@ export function templateRowToCard(row: PublishedTemplateRow): CommunityCard {
     category: row.category,
     href: `/p/${row.share_slug}`,
     author: authorOf(row.author_username, row.author_display_name),
+    createdAt: row.created_at,
   };
 }

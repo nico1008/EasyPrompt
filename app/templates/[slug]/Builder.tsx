@@ -30,6 +30,7 @@ import { MarkdownEditorSurface } from "@/components/builder/MarkdownEditorSurfac
 import { RatingStars } from "@/components/RatingStars";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { UsesBadge } from "@/components/UsesBadge";
+import { CreatorChip } from "@/components/CreatorChip";
 import { trackUse, trackView } from "@/lib/metrics/track";
 import { UnlockForm } from "@/components/UnlockForm";
 import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
@@ -442,6 +443,9 @@ export function Builder({
             <div>
               <h1>{displayTitle(template)}</h1>
               <p>{template.intro}</p>
+              <div className="tpl-creator">
+                <CreatorChip creator={{ kind: "house" }} />
+              </div>
             </div>
           </header>
 

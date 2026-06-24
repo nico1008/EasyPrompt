@@ -6,7 +6,7 @@
  * (keyed user_prompt:<slug>), and a "Use as starting point" remix. Reuses the
  * curated-prompt detail styles (.prompt-detail / .pd-*) for visual parity. */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
@@ -16,7 +16,6 @@ import { AuthorChip } from "@/components/AuthorChip";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
 import { trackUse, trackView } from "@/lib/metrics/track";
-import { remixPublishedPromptAction } from "@/lib/savedPrompts/actions";
 import { displayTitle, getTemplate } from "@/data/templates";
 import type { CommunityAuthor } from "@/lib/community/map";
 
@@ -26,12 +25,16 @@ export function CommunityPrompt({
   text,
   sourceSlug,
   author,
+  remixSlot,
 }: {
   slug: string;
   name: string;
   text: string;
   sourceSlug: string | null;
   author: CommunityAuthor | null;
+  /** Server-rendered "Use as starting point" form (RemixStarter), kept out of this
+   *  client component's module graph. */
+  remixSlot?: ReactNode;
 }) {
   const [toast, setToast] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -98,12 +101,7 @@ export function CommunityPrompt({
             <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
             {copied ? "Copied!" : "Copy prompt"}
           </button>
-          <form action={remixPublishedPromptAction}>
-            <input type="hidden" name="share_slug" value={slug} />
-            <button type="submit" className="btn btn-ink">
-              <Icon name="wrench" size={15} /> Use as starting point
-            </button>
-          </form>
+          {remixSlot}
           <div className="pd-openin">
             <a
               className="btn btn-ghost"

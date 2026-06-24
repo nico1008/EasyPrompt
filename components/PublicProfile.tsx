@@ -25,6 +25,7 @@ function toCard(it: PublicProfileItem): CommunityCardModel {
     category: it.category,
     href: it.objectType === "prompt" ? `/prompts/${it.slug}` : `/p/${it.slug}`,
     author: null,
+    createdAt: it.updatedAt,
   };
 }
 

@@ -85,6 +85,7 @@
 .picker-page .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
 .picker-page .tpl-tile {
+  position: relative;
   display: flex; flex-direction: column;
   border-radius: var(--r-3);
   background: var(--bg-1);
@@ -99,6 +100,14 @@
   border-color: var(--accent);
   box-shadow: var(--shadow-2);
 }
+.picker-page .tpl-tile:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+/* The title is the stretched link — the whole tile navigates. */
+.picker-page .tpl-tile .tt-namelink { color: inherit; text-decoration: none; }
+.picker-page .tpl-tile .tt-namelink:focus-visible { outline: none; }
+.picker-page .tpl-tile .tt-namelink::after { content: ""; position: absolute; inset: 0; }
 
 /* Header bar: Template object glyph (indigo) + the title + favorite. */
 .picker-page .tpl-tile .tt-bar {
@@ -114,7 +123,7 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .picker-page .tpl-tile .tt-pop { display: inline-flex; flex-shrink: 0; color: var(--accent); }
-.picker-page .tpl-tile .tt-fav { display: inline-flex; flex-shrink: 0; }
+.picker-page .tpl-tile .tt-fav { position: relative; z-index: 1; display: inline-flex; flex-shrink: 0; }
 .picker-page .tpl-tile .tt-fav .bookmark-btn { padding: 4px; border-radius: var(--r-2); }
 
 /* Body: description only (the title lives in the bar). */
@@ -131,7 +140,10 @@
   border-top: 1px solid var(--line-1);
 }
 .picker-page .tpl-tile .tt-tag { font: 600 11px var(--font-mono); letter-spacing: 0.02em; color: var(--fg-3); }
-.picker-page .tpl-tile .tt-meta { display: inline-flex; align-items: center; gap: 10px; }
+.picker-page .tpl-tile .tt-meta {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; justify-content: flex-end;
+}
 .picker-page .tpl-tile .tt-q { font: 500 12px var(--font-mono); color: var(--accent); }
 
 .picker-page .tpl-tile.popular { box-shadow: inset 0 2px 0 var(--accent); }

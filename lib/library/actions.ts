@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { makeShareSlug } from "@/lib/notebooks/share";
 import { buildPrompt } from "@/lib/buildPrompt";
 import { getTemplate } from "@/data/templates";
+import { normalizeCategory, promptPublishError } from "./publishGuard";
 import { getNotebook } from "@/lib/notebooks/repo";
 import { getUserTemplate } from "@/lib/userTemplates/repo";
 import { rowToTemplate } from "@/lib/userTemplates/map";
@@ -75,13 +76,28 @@ export async function setVisibilityAction(
   const { found, slug } = await currentSlug(internal, id);
   if (!found) return { error: "Not found." };
 
+  const category = normalizeCategory(formData.get("category"));
+
   const update: Record<string, unknown> = { visibility };
   if (visibility !== "draft" && !slug) update.share_slug = makeShareSlug();
-  if (internal === "saved_prompt" && visibility !== "draft") {
+
+  if (internal === "saved_prompt") {
     const row = await getSavedPrompt(id);
-    if (row) {
+    if (!row) return { error: "Not found." };
+
+    // A (re)selected category persists regardless of visibility, so it can be set
+    // before publishing.
+    if (category) update.category = category;
+
+    if (visibility !== "draft") {
       const body = await computePromptText(row);
-      if (body) update.body = body;
+      // Publishing a Prompt to the community requires real content + a category;
+      // unlisted (private link) stays unrestricted.
+      if (visibility === "published") {
+        const err = promptPublishError(body, category ?? row.category);
+        if (err) return { error: err };
+      }
+      if (body.trim()) update.body = body;
     }
   }
 

@@ -58,6 +58,7 @@
 }
 .tpl-head h1 { font: 600 22px/1.2 var(--font-sans); letter-spacing: -0.02em; margin: 0 0 5px; text-wrap: balance; }
 .tpl-head p { font: 400 14px/1.5 var(--font-sans); color: var(--fg-2); margin: 0; }
+.tpl-head .tpl-creator { margin-top: 8px; }
 
 .tpl-dual .progress-block { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
 .tpl-dual .progress { display: flex; gap: 6px; }

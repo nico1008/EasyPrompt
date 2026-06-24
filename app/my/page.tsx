@@ -137,6 +137,7 @@ async function OwnedList({ filter }: { filter: LibraryFilter }) {
               id={it.id}
               status={it.status}
               shareSlug={it.shareSlug}
+              category={it.category}
             />
             <form action={DUP[it.internal]}>
               <input type="hidden" name="id" value={it.id} />

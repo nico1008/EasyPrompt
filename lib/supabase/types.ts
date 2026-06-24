@@ -123,6 +123,7 @@ export interface Database {
           user_template_id: string | null;
           answers: Json;
           body: string | null;
+          category: string | null;
           visibility: ContentVisibility;
           share_slug: string | null;
           remixed_from: string | null;
@@ -138,6 +139,7 @@ export interface Database {
           user_template_id?: string | null;
           answers: Json;
           body?: string | null;
+          category?: string | null;
           visibility?: ContentVisibility;
           share_slug?: string | null;
           remixed_from?: string | null;
@@ -148,6 +150,7 @@ export interface Database {
           name?: string;
           answers?: Json;
           body?: string | null;
+          category?: string | null;
           visibility?: ContentVisibility;
           share_slug?: string | null;
           remixed_from?: string | null;
@@ -395,7 +398,9 @@ export interface Database {
         Returns: {
           share_slug: string;
           name: string;
-          body: string | null;
+          preview: string | null;
+          category: string | null;
+          created_at: string;
           updated_at: string;
           author_username: string | null;
           author_display_name: string | null;
@@ -410,6 +415,7 @@ export interface Database {
           icon: string | null;
           tag: string | null;
           blurb: string | null;
+          created_at: string;
           updated_at: string;
           author_username: string | null;
           author_display_name: string | null;

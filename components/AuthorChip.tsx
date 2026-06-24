@@ -22,6 +22,7 @@ export function AuthorChip({
       href={`/u/${author.username}`}
       onClick={(e) => e.stopPropagation()}
       title={`@${author.username}`}
+      aria-label={`Creator: @${author.username}`}
     >
       <Icon name="user" size={12} />
       {label}

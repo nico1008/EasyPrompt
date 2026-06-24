@@ -7,6 +7,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { setVisibilityAction, type VisibilityState } from "@/lib/library/actions";
+import { CATEGORIES } from "@/data/templates";
 import type { LibraryInternal, LibraryStatus } from "@/lib/library/list";
 
 /** Public share-route base per internal type (null = no public route yet). */
@@ -21,11 +22,14 @@ export function LibraryControls({
   id,
   status,
   shareSlug,
+  category,
 }: {
   internal: LibraryInternal;
   id: string;
   status: LibraryStatus;
   shareSlug: string | null;
+  /** Prompt category (required to Publish). Only meaningful for saved_prompt. */
+  category?: string | null;
 }) {
   const [state, action] = useActionState(setVisibilityAction, {} as VisibilityState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -42,6 +46,22 @@ export function LibraryControls({
       <form ref={formRef} action={action}>
         <input type="hidden" name="internal" value={internal} />
         <input type="hidden" name="id" value={id} />
+        {internal === "saved_prompt" && (
+          <select
+            name="category"
+            defaultValue={category ?? ""}
+            aria-label="Category (required to publish)"
+            className="select lib-cat"
+            onChange={() => formRef.current?.requestSubmit()}
+          >
+            <option value="">Category…</option>
+            {CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           name="visibility"
           defaultValue={status}

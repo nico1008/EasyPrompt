@@ -10,6 +10,7 @@ import { blurbFromBody } from "@/lib/community/map";
 import { shareSlugSchema } from "@/lib/notebooks/share";
 import { PromptDetail } from "@/components/PromptDetail";
 import { CommunityPrompt } from "@/components/CommunityPrompt";
+import { RemixStarter } from "@/components/RemixStarter";
 
 /* `/prompts/[slug]` resolves, in order:
  *   1. a legacy catalog slug → 308 to its new home /templates/[slug] (the path
@@ -83,6 +84,7 @@ export default async function PromptDetailPage({
       text={community.text}
       sourceSlug={community.sourceSlug}
       author={community.author}
+      remixSlot={<RemixStarter slug={slug} />}
     />
   );
 }

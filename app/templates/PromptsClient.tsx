@@ -2,15 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  CATEGORIES,
-  TEMPLATES,
-  countFor,
-  displayTitle,
-} from "@/data/templates";
-import type { Template } from "@/data/types";
+import { CATEGORIES, TEMPLATES, countFor } from "@/data/templates";
 import { TemplateCard } from "@/components/TemplateCard";
-import { CommunityCard } from "@/components/CommunityCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
 import type { Counts } from "@/lib/metrics/map";
@@ -18,9 +11,11 @@ import { fetchCommunityTemplates } from "@/lib/community/client";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import { fetchCategoryAffinity } from "@/lib/personalization/client";
 import { affinityScore } from "@/lib/personalization/affinity";
+import { catalogTemplateToItem, communityTemplateToItem, byOriginThenRecency } from "@/lib/browse/map";
 
 type Sort = "foryou" | "popular" | "new" | "az";
 type Filter = "none" | "top" | "small" | "fresh";
+type Source = "all" | "official" | "community";
 
 /* Sidebar icon per category — keeps the picker on the Icon system instead of
    mixing emoji into an otherwise stroked-icon UI. */
@@ -34,18 +29,13 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   code: "code",
 };
 
-/* "12.4k" -> 12400 for numeric sorting. */
-function usesToNumber(uses: string): number {
-  const n = parseFloat(uses);
-  return uses.toLowerCase().includes("k") ? n * 1000 : n;
-}
-
 export function PromptsClient() {
   const params = useSearchParams();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [sort, setSort] = useState<Sort>("popular");
   const [filter, setFilter] = useState<Filter>("none");
+  const [source, setSource] = useState<Source>("all");
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
   const [countsLoaded, setCountsLoaded] = useState(false);
@@ -104,7 +94,6 @@ export function PromptsClient() {
   }, []);
 
   // Show the platform-correct shortcut hint (⌘K on Mac, Ctrl K elsewhere).
-  // Defaults to the non-Mac label so SSR and first client render agree.
   useEffect(() => {
     setIsMac(/mac|iphone|ipad/i.test(navigator.userAgent));
   }, []);
@@ -129,41 +118,57 @@ export function PromptsClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // One unified list: curated (house) + published (community) templates on par.
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let list: Template[] = TEMPLATES.filter((t) => {
-      if (category !== "all" && t.category !== category) return false;
-      if (filter === "top" && !t.popular) return false;
-      if (filter === "small" && t.fields.length > 4) return false;
-      if (filter === "fresh" && (t.added ?? 0) < 4) return false;
-      if (!q) return true;
-      const hay = [
-        displayTitle(t),
-        t.blurb,
-        t.tag,
-        t.category,
-        t.seo_title,
-      ]
-        .join(" ")
-        .toLowerCase();
-      return hay.includes(q);
-    });
+    const house = TEMPLATES.map(catalogTemplateToItem);
+    const comm = community.map(communityTemplateToItem);
+    let list = [...house, ...comm];
 
-    list = [...list].sort((a, b) => {
+    if (source !== "all") {
+      const want = source === "official" ? "house" : "community";
+      list = list.filter((i) => i.origin === want);
+    }
+    if (category !== "all") list = list.filter((i) => i.category === category);
+
+    // Curatorial filters describe the official catalog — they apply to house items.
+    if (filter === "top") list = list.filter((i) => i.origin === "house" && i.popular);
+    if (filter === "small")
+      list = list.filter((i) => i.origin === "house" && i.questionCount != null && i.questionCount <= 4);
+    if (filter === "fresh") list = list.filter((i) => i.origin === "house" && i.recency >= 4);
+
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter((i) =>
+        [i.title, i.blurb, i.tag, i.category ?? ""].join(" ").toLowerCase().includes(q)
+      );
+    }
+
+    return [...list].sort((a, b) => {
       if (sort === "foryou") {
-        // Highest category affinity first, then popularity as the tiebreaker.
-        const d = affinityScore(affinity, b.category) - affinityScore(affinity, a.category);
+        const d = affinityScore(affinity, b.category ?? "") - affinityScore(affinity, a.category ?? "");
         if (d !== 0) return d;
-        return usesToNumber(b.uses) - usesToNumber(a.uses);
+        return byOriginThenRecency(a, b);
       }
-      if (sort === "az") return displayTitle(a).localeCompare(displayTitle(b));
-      if (sort === "new") return (b.added ?? 0) - (a.added ?? 0);
-      // popular: popular flag first, then uses desc
+      if (sort === "az") return a.title.localeCompare(b.title);
+      if (sort === "new") return byOriginThenRecency(a, b);
+      // popular: house first, then the popular flag, then true recency
+      if (a.origin !== b.origin) return a.origin === "house" ? -1 : 1;
       if (a.popular !== b.popular) return a.popular ? -1 : 1;
-      return usesToNumber(b.uses) - usesToNumber(a.uses);
+      return b.recency - a.recency;
     });
-    return list;
-  }, [query, category, sort, filter, affinity]);
+  }, [community, source, category, filter, query, sort, affinity]);
+
+  function usesFor(origin: "house" | "community", slug: string): number | undefined {
+    if (origin === "house") return countsLoaded ? counts.get(slug)?.uses ?? 0 : undefined;
+    return communityLoaded ? communityUses.get(slug)?.uses ?? 0 : undefined;
+  }
+
+  function clearFilters() {
+    setQuery("");
+    setCategory("all");
+    setSource("all");
+    setFilter("none");
+  }
 
   return (
     <main className="picker-page">
@@ -244,6 +249,18 @@ export function PromptsClient() {
                 <span className="ct">{countFor(c.id)}</span>
               </button>
             ))}
+            <div className="group">Source</div>
+            {(["all", "official", "community"] as const).map((s) => (
+              <button
+                key={s}
+                className={source === s ? "on" : undefined}
+                aria-pressed={source === s}
+                onClick={() => setSource(s)}
+              >
+                <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
+                <span>{s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}</span>
+              </button>
+            ))}
             <div className="group">Filter</div>
             <button
               className={filter === "top" ? "on" : undefined}
@@ -274,56 +291,54 @@ export function PromptsClient() {
           <div>
             <div className="grid">
               {results.length === 0 ? (
-                <div className="empty">
-                  No templates match <b>“{query}”</b>. Try a different search or{" "}
-                  <button
-                    onClick={() => {
-                      setQuery("");
-                      setCategory("all");
-                      setFilter("none");
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--accent)",
-                      font: "inherit",
-                      cursor: "pointer",
-                      padding: 0,
-                    }}
-                  >
-                    clear filters
-                  </button>
-                  .
-                </div>
+                <EmptyTemplates query={query} source={source} onClear={clearFilters} />
               ) : (
-                results.map((t) => (
-                  <TemplateCard
-                    key={t.id}
-                    t={t}
-                    uses={countsLoaded ? counts.get(t.slug)?.uses ?? 0 : undefined}
-                  />
+                results.map((item) => (
+                  <TemplateCard key={item.key} item={item} uses={usesFor(item.origin, item.slug)} />
                 ))
               )}
             </div>
-
-            {community.length > 0 && (
-              <section className="community-section">
-                <h2 className="community-h">From the community</h2>
-                <p className="community-sub">Templates published by other people.</p>
-                <div className="grid">
-                  {community.map((c) => (
-                    <CommunityCard
-                      key={c.slug}
-                      card={c}
-                      uses={communityLoaded ? communityUses.get(c.slug)?.uses ?? 0 : undefined}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+/* Filter-aware empty state — never a bare grid. */
+function EmptyTemplates({
+  query,
+  source,
+  onClear,
+}: {
+  query: string;
+  source: Source;
+  onClear: () => void;
+}) {
+  const msg = query.trim()
+    ? `No templates match “${query.trim()}”.`
+    : source === "community"
+      ? "No community templates have been published yet."
+      : source === "official"
+        ? "No official templates here — try All sources."
+        : "Nothing matches these filters.";
+  return (
+    <div className="empty">
+      {msg}{" "}
+      <button
+        onClick={onClear}
+        style={{
+          background: "none",
+          border: "none",
+          color: "var(--accent)",
+          font: "inherit",
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        clear filters
+      </button>
+      .
+    </div>
   );
 }

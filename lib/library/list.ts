@@ -61,6 +61,8 @@ export type LibraryItem = {
   editHref: string | null;
   /** For Prompts created from a Template: "Created from {label}" + link. */
   source: { label: string; href: string } | null;
+  /** Prompt category (required to publish); null for Templates. */
+  category: string | null;
 };
 
 function fmtDate(s: string): string {
@@ -96,6 +98,7 @@ export function buildLibrary(input: {
       primaryLabel: "Open",
       editHref: null,
       source: null,
+      category: null,
     });
   }
 
@@ -118,6 +121,7 @@ export function buildLibrary(input: {
       primaryLabel: "Use",
       editHref: `/my/templates/${t.id}/edit`,
       source: null,
+      category: null,
     });
   }
 
@@ -148,6 +152,7 @@ export function buildLibrary(input: {
       primaryLabel: "Open",
       editHref: null,
       source,
+      category: p.category ?? null,
     });
   }
 

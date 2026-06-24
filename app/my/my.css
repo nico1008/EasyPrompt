@@ -192,7 +192,8 @@
   align-items: center;
   gap: 6px;
 }
-.lib-vis {
+.lib-vis,
+.lib-cat {
   height: 32px;
   width: auto;
   padding: 0 8px;
