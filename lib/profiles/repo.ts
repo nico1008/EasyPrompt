@@ -4,7 +4,7 @@ import "server-only";
  * they return rows only when profiles.is_public = true). Anon-safe; never reads the
  * signed-in user, so the /u/[username] route stays cacheable (ISR). */
 
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import type { IconName } from "@/components/iconNames";
 import { blurbFromBody } from "@/lib/community/map";
 
@@ -29,7 +29,7 @@ export type PublicProfileItem = {
 };
 
 export async function getPublicProfile(username: string): Promise<PublicProfile | null> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("public_profile", {
     p_username: username.toLowerCase(),
   });
@@ -46,7 +46,7 @@ export async function getPublicProfile(username: string): Promise<PublicProfile 
 }
 
 export async function getPublicProfileContent(username: string): Promise<PublicProfileItem[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("public_profile_content", {
     p_username: username.toLowerCase(),
   });

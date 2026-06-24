@@ -13,6 +13,7 @@ import "server-only";
  * cookie as-is). */
 
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "./types";
@@ -41,6 +42,24 @@ export async function createClient() {
         }
       },
     },
+  });
+}
+
+/** A sessionless, cookie-FREE anon client for PUBLIC reads — the security-definer
+ *  RPCs (community_*, public_profile*, published_*) are granted to `anon` and never
+ *  depend on the caller's session. Using this instead of createClient() keeps the
+ *  public detail routes free of `cookies()`, which otherwise throws
+ *  DYNAMIC_SERVER_USAGE on routes that also use generateStaticParams (e.g.
+ *  /prompts/[slug]) because reading a dynamic API in a statically-rendered route is
+ *  disallowed. Synchronous (no cookie store to await). */
+export function createPublicClient() {
+  if (!isSupabaseConfigured()) {
+    throw new Error(
+      "Supabase is not configured (missing NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY)."
+    );
+  }
+  return createSupabaseJsClient<Database>(supabaseUrl()!, supabaseAnonKey()!, {
+    auth: { persistSession: false, autoRefreshToken: false },
   });
 }
 

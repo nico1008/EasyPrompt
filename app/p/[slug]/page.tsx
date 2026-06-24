@@ -12,6 +12,8 @@ import { CommunityTemplate } from "@/components/CommunityTemplate";
  * *published* template is indexable; an *unlisted* one (private share link) is not.
  * Dynamic by nature (per-slug). */
 export const dynamicParams = true;
+// Cacheable now that the read is cookie-free; revalidate keeps publish state fresh.
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,

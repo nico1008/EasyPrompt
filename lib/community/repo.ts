@@ -4,7 +4,7 @@ import "server-only";
  * community_* RPCs (exact-slug, visibility-gated, author-gated). Used by the public
  * detail routes for rich, indexable rendering. Anon-safe. */
 
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { buildPrompt, buildPromptFromBlocks, type Answers } from "@/lib/buildPrompt";
 import { getTemplate } from "@/data/templates";
 import type { BlockDoc } from "@/lib/blocks/types";
@@ -21,7 +21,7 @@ export type CommunityPromptDetail = {
 };
 
 export async function getCommunityPrompt(slug: string): Promise<CommunityPromptDetail | null> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("community_prompt", { p_slug: slug });
   if (error || !data || data.length === 0) return null;
   const row = data[0];
@@ -55,7 +55,7 @@ export type CommunityTemplateDetail = {
 };
 
 export async function getCommunityTemplate(slug: string): Promise<CommunityTemplateDetail | null> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("community_template", { p_slug: slug });
   if (error || !data || data.length === 0) return null;
   const row = data[0];

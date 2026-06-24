@@ -24,6 +24,9 @@ import { RemixStarter } from "@/components/RemixStarter";
 const LEGACY_TEMPLATE_SLUGS = new Set(TEMPLATES.map((t) => t.slug));
 
 export const dynamicParams = true;
+// Community slugs render on-demand and are now cacheable (no per-request cookies);
+// revalidate so publish/unpublish changes — and any transient 404 — self-heal.
+export const revalidate = 300;
 
 export function generateStaticParams() {
   return EXAMPLE_PROMPTS.map((p) => ({ slug: p.slug }));
