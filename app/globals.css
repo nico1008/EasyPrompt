@@ -665,14 +665,28 @@ button { font-family: inherit; cursor: pointer; }
 }
 .author-chip:hover { color: var(--accent); }
 
-/* House creator label ("EasyPrompt") — same metrics as .author-chip, non-link.
-   The community variant simply reuses .author-chip. */
-.creator-chip.creator-house {
-  position: relative; z-index: 1;
-  display: inline-flex; align-items: center; gap: 4px;
-  font: 600 11px var(--font-mono); color: var(--fg-3);
+/* Creator byline (detail pages only) — a verified-byline treatment, identical on
+   the prompt and template detail pages. House = brand + verified tick; community =
+   avatar + name linking to the author's public profile. Light surfaces only. */
+.creator-tag {
+  display: inline-flex; align-items: center; gap: 9px;
+  text-decoration: none; color: inherit; vertical-align: middle;
 }
-.creator-chip.creator-house svg { color: var(--accent); }
+.ct-avatar {
+  width: 28px; height: 28px; border-radius: 999px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.ct-avatar-house { background: var(--accent-soft); color: var(--accent); }
+.ct-avatar-initial { background: var(--accent); color: #fff; font: 700 12px var(--font-sans); }
+.ct-name { font: 600 14px var(--font-sans); letter-spacing: -0.01em; color: var(--fg-1); }
+.ct-verified {
+  display: inline-grid; place-items: center;
+  width: 15px; height: 15px; border-radius: 999px;
+  background: var(--accent); color: #fff;
+}
+a.creator-tag .ct-name { transition: color 140ms ease-out; }
+a.creator-tag:hover .ct-name { color: var(--accent); }
+a.creator-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
 
 .reputation-badge {
   display: inline-flex; align-items: center; gap: 4px;

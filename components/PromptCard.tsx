@@ -6,7 +6,6 @@ import type { MouseEvent } from "react";
 import { Icon } from "./Icon";
 import { BookmarkButton } from "./BookmarkButton";
 import { UsesBadge } from "./UsesBadge";
-import { CreatorChip } from "./CreatorChip";
 import { copyText } from "@/lib/clipboard";
 import { objectMeta } from "@/lib/library/objectMeta";
 import { trackUse } from "@/lib/metrics/track";
@@ -71,7 +70,6 @@ export function PromptCard({ item, uses }: { item: BrowsePromptItem; uses?: numb
       <div className="pt-foot">
         <span className="pt-meta">
           <span className="pt-tag">{item.tag}</span>
-          <CreatorChip creator={item.creator} />
           <UsesBadge target={{ kind: item.metricKind, key: item.slug }} count={uses} managed />
         </span>
         <button

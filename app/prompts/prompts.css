@@ -68,11 +68,6 @@
 }
 /* Uses badge on the dark Prompt tile — lift the color off the base light theme. */
 .prompt-tile .uses-badge { color: rgba(255, 255, 255, 0.5); }
-/* Creator chip on the dark Prompt tile (house brand + community author link). */
-.prompt-tile .creator-chip.creator-house { color: rgba(255, 255, 255, 0.5); }
-.prompt-tile .creator-chip.creator-house svg { color: var(--prompt-accent-on-dark); }
-.prompt-tile .author-chip { color: rgba(255, 255, 255, 0.55); }
-.prompt-tile .author-chip:hover { color: var(--prompt-accent-on-dark); }
 .pt-copy {
   position: relative; z-index: 1;
   display: inline-flex; align-items: center; gap: 6px;
@@ -129,7 +124,8 @@
 .pd-head p { font-size: 15px; line-height: 1.55; color: var(--fg-2); margin: 10px 0 0; max-width: 60ch; }
 .pd-source { font-size: 13px !important; color: var(--fg-3) !important; }
 .pd-source a { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
-.pd-stats { margin-top: 10px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.pd-byline { margin-top: 14px; }
+.pd-stats { margin-top: 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .pd-tpl-note { font: 400 13px/1.5 var(--font-sans); color: var(--fg-3); margin: 4px 0 0; }
 
 .prompt-detail .code-well { margin: 0; }

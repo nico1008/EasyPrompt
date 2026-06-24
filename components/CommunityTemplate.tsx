@@ -11,7 +11,7 @@ import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { UsesBadge } from "@/components/UsesBadge";
-import { AuthorChip } from "@/components/AuthorChip";
+import { CreatorChip } from "@/components/CreatorChip";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
 import { trackUse, trackView } from "@/lib/metrics/track";
@@ -73,9 +73,9 @@ export function CommunityTemplate({
               A reusable template — copy it, then fill in the [bracketed] parts.
             </p>
             {author && (
-              <p className="pd-source">
-                by <AuthorChip author={author} />
-              </p>
+              <div className="pd-byline">
+                <CreatorChip creator={{ kind: "community", author }} />
+              </div>
             )}
             <div className="pd-stats">
               <UsesBadge target={target} />

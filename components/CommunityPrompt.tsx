@@ -12,7 +12,7 @@ import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { UsesBadge } from "@/components/UsesBadge";
-import { AuthorChip } from "@/components/AuthorChip";
+import { CreatorChip } from "@/components/CreatorChip";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
 import { trackUse, trackView } from "@/lib/metrics/track";
@@ -79,9 +79,9 @@ export function CommunityPrompt({
             <span className="pd-tag">Community</span>
             <h1>{name || "Untitled prompt"}</h1>
             {author && (
-              <p className="pd-source">
-                by <AuthorChip author={author} />
-              </p>
+              <div className="pd-byline">
+                <CreatorChip creator={{ kind: "community", author }} />
+              </div>
             )}
             {source && (
               <p className="pd-source">

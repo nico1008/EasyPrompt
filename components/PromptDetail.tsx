@@ -75,8 +75,10 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
                 Created from <Link href={`/templates/${source.slug}`}>{displayTitle(source)}</Link>
               </p>
             )}
-            <div className="pd-stats">
+            <div className="pd-byline">
               <CreatorChip creator={{ kind: "house" }} />
+            </div>
+            <div className="pd-stats">
               <UsesBadge target={target} />
             </div>
           </div>

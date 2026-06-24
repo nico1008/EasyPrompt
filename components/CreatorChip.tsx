@@ -1,24 +1,41 @@
+import Link from "next/link";
 import { Icon } from "./Icon";
-import { AuthorChip } from "./AuthorChip";
 import type { Creator } from "@/lib/browse/types";
 
-/* One creator label for both origins, on cards and detail views:
- *   - community → the author link (AuthorChip; renders only when the author opted
- *     their profile public, otherwise null);
- *   - house → a non-link "EasyPrompt" brand chip.
- * Both carry an aria-label so origin is announced now that the visual
- * "From the community" section heading is gone. */
-export function CreatorChip({ creator, className }: { creator: Creator; className?: string }) {
-  if (creator.kind === "community") {
-    return <AuthorChip author={creator.author} className={className} />;
+/* The creator byline shown on detail pages (prompt + template), identical on both:
+ *   - house → a brand disc + "EasyPrompt" + a verified tick (non-link);
+ *   - community → the author's avatar + name, linking to their public profile
+ *     (renders only when they opted public; null otherwise — privacy preserved).
+ * A borderless verified-byline treatment — see `.creator-tag` in globals.css. */
+export function CreatorChip({ creator }: { creator: Creator }) {
+  if (creator.kind === "house") {
+    return (
+      <span className="creator-tag is-house" aria-label="Creator: EasyPrompt">
+        <span className="ct-avatar ct-avatar-house" aria-hidden="true">
+          <Icon name="shield" size={15} />
+        </span>
+        <span className="ct-name">EasyPrompt</span>
+        <span className="ct-verified" aria-hidden="true">
+          <Icon name="check" size={11} strokeWidth={3} />
+        </span>
+      </span>
+    );
   }
+
+  const author = creator.author;
+  if (!author) return null;
+  const name = author.displayName?.trim() || `@${author.username}`;
+  const initial = (name.trim()[0] || "?").toUpperCase();
   return (
-    <span
-      className={`creator-chip creator-house${className ? ` ${className}` : ""}`}
-      aria-label="Creator: EasyPrompt"
+    <Link
+      className="creator-tag is-community"
+      href={`/u/${author.username}`}
+      aria-label={`Creator: @${author.username}`}
     >
-      <Icon name="shield" size={12} />
-      EasyPrompt
-    </span>
+      <span className="ct-avatar ct-avatar-initial" aria-hidden="true">
+        {initial}
+      </span>
+      <span className="ct-name">{name}</span>
+    </Link>
   );
 }

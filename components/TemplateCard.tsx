@@ -5,7 +5,6 @@ import { Icon } from "./Icon";
 import { RatingStars } from "./RatingStars";
 import { BookmarkButton } from "./BookmarkButton";
 import { UsesBadge } from "./UsesBadge";
-import { CreatorChip } from "./CreatorChip";
 import { objectMeta } from "@/lib/library/objectMeta";
 import { useImpression } from "@/lib/metrics/useImpression";
 import type { BrowseTemplateItem } from "@/lib/browse/types";
@@ -46,7 +45,6 @@ export function TemplateCard({ item, uses }: { item: BrowseTemplateItem; uses?: 
       <div className="tt-foot">
         <span className="tt-tag">{item.tag}</span>
         <span className="tt-meta">
-          <CreatorChip creator={item.creator} />
           <UsesBadge target={{ kind: item.metricKind, key: item.slug }} count={uses} managed />
           {item.showRating && <RatingStars target={{ kind: "catalog", key: item.slug }} compact />}
           {item.questionCount != null && (
