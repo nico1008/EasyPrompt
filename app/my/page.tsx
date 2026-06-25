@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import "./my.css";
 import { Eyebrow } from "@/components/Eyebrow";
 import { CrosshairCard } from "@/components/CrosshairCard";
-import { ConfirmButton } from "@/components/ConfirmButton";
 import { MyTabs } from "@/components/MyTabs";
 import { Icon } from "@/components/Icon";
-import { LibraryControls } from "@/components/library/LibraryControls";
+import { BookmarkButton } from "@/components/BookmarkButton";
+import { MyLibraryGrid } from "@/components/library/MyLibraryGrid";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { listNotebooks } from "@/lib/notebooks/repo";
@@ -20,36 +20,12 @@ import {
   filterLibrary,
   isLibraryFilter,
   type LibraryFilter,
-  type LibraryInternal,
 } from "@/lib/library/list";
-import { objectMeta } from "@/lib/library/objectMeta";
-import { deleteNotebookAction, duplicateNotebookAction } from "@/lib/notebooks/actions";
-import { deleteUserTemplateAction, duplicateUserTemplateAction } from "@/lib/userTemplates/actions";
-import { deleteSavedPromptAction, duplicateSavedPromptAction } from "@/lib/savedPrompts/actions";
-import { removeBookmarkAction } from "@/lib/bookmarks/actions";
 import { categoryLabel, questionCount, displayTitle } from "@/data/templates";
 
 export const metadata: Metadata = {
   title: "My Library",
   robots: { index: false, follow: false },
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  published: "Published",
-  unlisted: "Unlisted",
-};
-
-type FormAction = (formData: FormData) => void | Promise<void>;
-const DUP: Record<LibraryInternal, FormAction> = {
-  notebook: duplicateNotebookAction,
-  user_template: duplicateUserTemplateAction,
-  saved_prompt: duplicateSavedPromptAction,
-};
-const DEL: Record<LibraryInternal, FormAction> = {
-  notebook: deleteNotebookAction,
-  user_template: deleteUserTemplateAction,
-  saved_prompt: deleteSavedPromptAction,
 };
 
 export default async function MyLibraryPage({
@@ -99,61 +75,7 @@ async function OwnedList({ filter }: { filter: LibraryFilter }) {
 
   if (items.length === 0) return <EmptyState filter={filter} />;
 
-  return (
-    <div className="my-list">
-      {items.map((it) => (
-        <CrosshairCard key={it.key} className="panel my-row">
-          <div className="my-row-main">
-            <span className="my-row-name">
-              <span className={`my-type my-type-${it.objectType}`}>
-                <Icon name={objectMeta(it.objectType).icon} size={11} />
-                {objectMeta(it.objectType).label}
-              </span>
-              {it.title}
-              <span className={`my-status my-status-${it.status}`}>{STATUS_LABEL[it.status]}</span>
-              {it.shared && <span className="my-badge">Shared</span>}
-            </span>
-            <span className="my-row-sub">
-              {it.meta}
-              {it.source && (
-                <>
-                  {" · "}
-                  Created from <Link href={it.source.href}>{it.source.label}</Link>
-                </>
-              )}
-            </span>
-          </div>
-          <div className="my-row-actions">
-            <Link className="btn btn-primary btn-sm" href={it.primaryHref}>
-              {it.primaryLabel}
-            </Link>
-            {it.editHref && (
-              <Link className="btn btn-ghost btn-sm" href={it.editHref}>
-                Edit
-              </Link>
-            )}
-            <LibraryControls
-              internal={it.internal}
-              id={it.id}
-              status={it.status}
-              shareSlug={it.shareSlug}
-              category={it.category}
-            />
-            <form action={DUP[it.internal]}>
-              <input type="hidden" name="id" value={it.id} />
-              <button type="submit" className="btn btn-ghost btn-sm">
-                Duplicate
-              </button>
-            </form>
-            <form action={DEL[it.internal]}>
-              <input type="hidden" name="id" value={it.id} />
-              <ConfirmButton />
-            </form>
-          </div>
-        </CrosshairCard>
-      ))}
-    </div>
-  );
+  return <MyLibraryGrid items={items} />;
 }
 
 /* Actionable, filter-aware empty states — never a bare panel. */
@@ -264,50 +186,51 @@ async function Favorites() {
     <div className="my-grid">
       {items.map((b) =>
         b.template ? (
-          <CrosshairCard key={b.id} className="panel my-card">
-            <div className="my-card-icon">
-              <Icon name={b.template.icon} size={20} />
+          <article key={b.id} className="my-card-tile is-template">
+            <div className="mct-bar">
+              <span className="mct-glyph" aria-hidden="true">
+                <Icon name="list" size={14} />
+              </span>
+              <span className="mct-type">Template</span>
+              <span className="mct-fav">
+                <BookmarkButton compact target={{ kind: "catalog", key: b.template.slug }} />
+              </span>
             </div>
-            <span className="my-type my-type-template">
-              <Icon name="list" size={11} /> Template
-            </span>
-            <h3>{displayTitle(b.template)}</h3>
-            <p className="my-card-sub">
-              {categoryLabel(b.template.category)} · {questionCount(b.template)} questions
-            </p>
-            <div className="my-card-actions">
-              <Link className="btn btn-primary btn-sm" href={`/templates/${b.template.slug}`}>
-                Use
-              </Link>
-              <Link className="btn btn-ghost btn-sm" href={`/build/template?from=${b.template.slug}`}>
-                Customize
-              </Link>
-              <form action={removeBookmarkAction}>
-                <input type="hidden" name="id" value={b.id} />
-                <ConfirmButton label="Remove" confirmLabel="Confirm remove" />
-              </form>
+            <div className="mct-body">
+              <h3 className="mct-title">
+                <Link className="mct-link" href={`/templates/${b.template.slug}`}>
+                  {displayTitle(b.template)}
+                </Link>
+              </h3>
             </div>
-          </CrosshairCard>
+            <div className="mct-foot">
+              <span className="mct-meta">
+                {categoryLabel(b.template.category)} · {questionCount(b.template)} questions
+              </span>
+            </div>
+          </article>
         ) : (
-          <CrosshairCard key={b.id} className="panel my-card">
-            <div className="my-card-icon">
-              <Icon name={b.prompt!.icon} size={20} />
+          <article key={b.id} className="my-card-tile is-prompt">
+            <div className="mct-bar">
+              <span className="mct-glyph" aria-hidden="true">
+                <Icon name="code" size={14} />
+              </span>
+              <span className="mct-type">Prompt</span>
+              <span className="mct-fav">
+                <BookmarkButton compact target={{ kind: "example_prompt", key: b.prompt!.slug }} />
+              </span>
             </div>
-            <span className="my-type my-type-prompt">
-              <Icon name="code" size={11} /> Prompt
-            </span>
-            <h3>{b.prompt!.title}</h3>
-            <p className="my-card-sub">{categoryLabel(b.prompt!.category)} · ready to use</p>
-            <div className="my-card-actions">
-              <Link className="btn btn-primary btn-sm" href={`/prompts/${b.prompt!.slug}`}>
-                Open
-              </Link>
-              <form action={removeBookmarkAction}>
-                <input type="hidden" name="id" value={b.id} />
-                <ConfirmButton label="Remove" confirmLabel="Confirm remove" />
-              </form>
+            <div className="mct-body">
+              <h3 className="mct-title">
+                <Link className="mct-link" href={`/prompts/${b.prompt!.slug}`}>
+                  {b.prompt!.title}
+                </Link>
+              </h3>
             </div>
-          </CrosshairCard>
+            <div className="mct-foot">
+              <span className="mct-meta">{categoryLabel(b.prompt!.category)} · ready to use</span>
+            </div>
+          </article>
         )
       )}
     </div>

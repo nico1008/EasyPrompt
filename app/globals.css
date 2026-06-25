@@ -62,6 +62,7 @@
   --z-copybar: 30;   /* sticky mobile copy bar */
   --z-nav: 50;       /* sticky site nav */
   --z-toast: 60;     /* transient notifications */
+  --z-drawer: 70;    /* My Library detail panel / sheet + backdrop */
 }
 
 * { box-sizing: border-box; }
