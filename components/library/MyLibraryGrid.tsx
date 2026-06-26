@@ -13,12 +13,6 @@ import { objectMeta } from "@/lib/library/objectMeta";
 import type { LibraryItem } from "@/lib/library/list";
 import { LibraryDetailPanel } from "@/components/library/LibraryDetailPanel";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  published: "Published",
-  unlisted: "Unlisted",
-};
-
 function LibraryCard({
   item,
   selected,
@@ -42,10 +36,9 @@ function LibraryCard({
           <Icon name={meta.icon} size={14} />
         </span>
         <span className="mct-type">{meta.label}</span>
-        <span className={`my-status my-status-${item.status} mct-status`}>
-          {STATUS_LABEL[item.status]}
-        </span>
-        {item.shared && <span className="my-badge mct-shared">Shared</span>}
+        {item.status === "published" && (
+          <span className="my-status my-status-published mct-status">Published</span>
+        )}
       </div>
       <div className="mct-body">
         <h3 className="mct-title">{item.title}</h3>
