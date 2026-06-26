@@ -27,20 +27,20 @@ export function publicUrlFor(internal: LibraryInternal, slug: string | null): st
   return `${window.location.origin}${base}/${slug}`;
 }
 
-function CopyLink({ url }: { url: string }) {
+function CopyLink({ url, primary = false }: { url: string; primary?: boolean }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
       type="button"
-      className="btn btn-ghost btn-sm"
+      className={primary ? "btn btn-primary btn-block" : "btn btn-ghost btn-sm"}
       onClick={() => {
         void navigator.clipboard?.writeText(url);
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1500);
       }}
     >
-      <Icon name={copied ? "check" : "copy"} size={14} />
-      {copied ? "Copied" : "Copy link"}
+      <Icon name={copied ? "check" : "copy"} size={primary ? 15 : 14} />
+      {copied ? "Copied!" : "Copy link"}
     </button>
   );
 }
@@ -69,8 +69,8 @@ export function SharingSection({
     return (
       <div className="lib-share">
         <div className="lib-share-state">
-          <Icon name="shield" size={14} />
-          <span>Private</span>
+          <span className="lib-dot" aria-hidden="true" />
+          <span className="lib-share-name">Private</span>
           <em>Only you can see this.</em>
         </div>
         <button type="button" className="btn btn-primary btn-block" onClick={onStartPublish}>
@@ -84,21 +84,21 @@ export function SharingSection({
   return (
     <div className="lib-share is-published">
       <div className="lib-share-state on">
-        <Icon name="megaphone" size={14} />
-        <span>Published</span>
-        <em>Listed in the community.</em>
+        <span className="lib-dot" aria-hidden="true" />
+        <span className="lib-share-name">Published</span>
+        <em>Anyone with the link can open this.</em>
       </div>
 
       {url && (
-        <div className="lib-link-row">
+        <>
           <code className="lib-link-url" title={url}>
             {url}
           </code>
-          <CopyLink url={url} />
-        </div>
+          <CopyLink url={url} primary />
+        </>
       )}
 
-      <div className="lib-share-actions">
+      <div className="lib-share-secondary">
         {url && (
           <a className="btn btn-ghost btn-sm" href={url} target="_blank" rel="noreferrer">
             <Icon name="arrow-right" size={14} /> View public page
@@ -113,7 +113,7 @@ export function SharingSection({
             <Icon name="zap" size={14} /> Update public copy
           </button>
         </form>
-        <form action={action}>
+        <form action={action} className="lib-unpublish">
           <input type="hidden" name="internal" value={internal} />
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="visibility" value="draft" />

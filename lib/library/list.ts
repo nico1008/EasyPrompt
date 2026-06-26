@@ -5,8 +5,11 @@
 
 import type { IconName } from "@/components/iconNames";
 import type { Database } from "@/lib/supabase/types";
-import { getTemplate, displayTitle } from "@/data/templates";
+import { getTemplate, displayTitle, categoryLabel } from "@/data/templates";
 import { rowToNotebook } from "@/lib/notebooks/map";
+import { rowToTemplate } from "@/lib/userTemplates/map";
+import { rowToAnswers } from "@/lib/savedPrompts/map";
+import { buildPrompt, buildPromptFromBlocks } from "@/lib/buildPrompt";
 
 type NotebookRow = Database["public"]["Tables"]["prompt_notebooks"]["Row"];
 type UserTemplateRow = Database["public"]["Tables"]["user_templates"]["Row"];
@@ -63,10 +66,27 @@ export type LibraryItem = {
   source: { label: string; href: string } | null;
   /** Prompt category (required to publish); null for Templates. */
   category: string | null;
+  /* ── Inspector view-model (additive): structured fields for the detail panel ── */
+  /** Short rendered snippet of the item's text; null when there's nothing to show. */
+  preview: string | null;
+  /** Human category label (Templates + categorized Prompts); null otherwise. */
+  categoryLabel: string | null;
+  /** "2 questions" / "3 blocks"; null for Prompts (size isn't meaningful). */
+  sizeLabel: string | null;
+  /** Formatted "last edited" date, e.g. "Jun 26, 2026". */
+  updatedLabel: string;
 };
 
 function fmtDate(s: string): string {
   return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+/** Tidy a body into a one-glance snippet: collapse whitespace, trim to ~240 chars. */
+function makePreview(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (!clean) return null;
+  return clean.length > 240 ? `${clean.slice(0, 240).trimEnd()}…` : clean;
 }
 
 function statusOf(v: string | null | undefined): LibraryStatus {
@@ -81,7 +101,8 @@ export function buildLibrary(input: {
   const items: LibraryItem[] = [];
 
   for (const n of input.notebooks) {
-    const blocks = rowToNotebook(n).doc.blocks.length;
+    const doc = rowToNotebook(n).doc;
+    const blocks = doc.blocks.length;
     items.push({
       key: `nb-${n.id}`,
       objectType: "template",
@@ -99,10 +120,15 @@ export function buildLibrary(input: {
       editHref: null,
       source: null,
       category: null,
+      preview: makePreview(buildPromptFromBlocks(doc).text),
+      categoryLabel: null,
+      sizeLabel: `${blocks} ${blocks === 1 ? "block" : "blocks"}`,
+      updatedLabel: fmtDate(n.updated_at),
     });
   }
 
   const utTitle = new Map(input.userTemplates.map((t) => [t.id, t.title]));
+  const utById = new Map(input.userTemplates.map((t) => [t.id, t]));
   for (const t of input.userTemplates) {
     const fieldCount = Array.isArray(t.fields) ? (t.fields as unknown[]).length : 0;
     items.push({
@@ -122,19 +148,30 @@ export function buildLibrary(input: {
       editHref: `/my/templates/${t.id}/edit`,
       source: null,
       category: null,
+      preview: makePreview(t.blurb || t.base_prompt),
+      categoryLabel: t.category ? categoryLabel(t.category) : null,
+      sizeLabel: `${fieldCount} ${fieldCount === 1 ? "question" : "questions"}`,
+      updatedLabel: fmtDate(t.updated_at),
     });
   }
 
   for (const p of input.prompts) {
     let source: { label: string; href: string } | null = null;
+    let previewText = p.body ?? "";
     if (p.source_kind === "catalog" && p.catalog_slug) {
       const ct = getTemplate(p.catalog_slug);
       source = { label: ct ? displayTitle(ct) : p.catalog_slug, href: `/templates/${p.catalog_slug}` };
+      if (!previewText.trim() && ct) previewText = buildPrompt(ct, rowToAnswers(p, ct)).text;
     } else if (p.source_kind === "user" && p.user_template_id) {
       source = {
         label: utTitle.get(p.user_template_id) ?? "Custom template",
         href: `/my/templates/${p.user_template_id}`,
       };
+      const utRow = utById.get(p.user_template_id);
+      if (!previewText.trim() && utRow) {
+        const tpl = rowToTemplate(utRow);
+        previewText = buildPrompt(tpl, rowToAnswers(p, tpl)).text;
+      }
     }
     items.push({
       key: `sp-${p.id}`,
@@ -153,6 +190,10 @@ export function buildLibrary(input: {
       editHref: null,
       source,
       category: p.category ?? null,
+      preview: makePreview(previewText),
+      categoryLabel: p.category ? categoryLabel(p.category) : null,
+      sizeLabel: null,
+      updatedLabel: fmtDate(p.updated_at),
     });
   }
 

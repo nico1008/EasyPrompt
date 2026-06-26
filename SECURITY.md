@@ -35,9 +35,13 @@ EasyPrompt follows a defense-in-depth approach:
 
 ## Known Limitation
 
-Pro access codes are currently verified using a stateless model and are not bound to a specific user or device. As a result, a purchased code may be shared between multiple users.
+Pro access codes use a stateless, HMAC-signed model. When a user is **signed in**, redeeming binds
+the entitlement to their account (an owner-scoped `entitlements` row), so Pro follows them across
+devices. The **anonymous** path, however, is not bound to a user or device — a code redeemed without
+an account can be shared between multiple users.
 
-This does **not** expose user data or compromise accounts, but it may result in unauthorized access to paid features. A redemption-tracking system may be introduced in a future release.
+This does **not** expose user data or compromise accounts, but it may result in unauthorized access
+to paid features. A redemption-tracking system may be introduced in a future release.
 
 ## Reporting Vulnerabilities
 

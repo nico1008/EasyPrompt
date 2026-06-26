@@ -1,15 +1,14 @@
 "use client";
 
-/* My Library detail / management surface. A card click opens this — every item
- * action lives HERE, never on the card face: Open/Use, Edit, Sharing (Publish),
- * Duplicate, and Delete. Responsive by CSS: a right slide-in panel on desktop, a
- * full-width sheet on small screens. The duplicate/delete server actions revalidate
- * /my, so the grid + props refresh and the parent auto-closes this surface when the
- * item disappears.
+/* My Library detail / management surface — a card click opens this asset inspector.
+ * Every item action lives HERE, never on the card face. Responsive by CSS: a right
+ * slide-in panel on desktop, a full-width sheet on small screens. Duplicate/delete
+ * server actions revalidate /my, so the grid + props refresh and the parent
+ * auto-closes this surface when the item disappears.
  *
- * Two modes: `overview` (default) and `publish` — a deliberate flow that takes over
- * the panel body. Publishing is consequential (it lists the item publicly), so it's
- * never an inline toggle. */
+ * Hierarchy (overview): asset header (icon + hero title + properties + preview) →
+ * Open (secondary) → Sharing → Management. Publishing is consequential, so it gets
+ * its own deliberate flow that takes over the body (`mode === "publish"`). */
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -33,6 +32,15 @@ const DEL: Record<LibraryInternal, FormAction> = {
   user_template: deleteUserTemplateAction,
   saved_prompt: deleteSavedPromptAction,
 };
+
+function Prop({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="lib-prop">
+      <dt>{label}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
 
 export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClose: () => void }) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -74,7 +82,7 @@ export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClo
             {meta.label}
           </span>
           <button type="button" className="lib-drawer-x" aria-label="Close" onClick={onClose}>
-            <Icon name="minus" size={16} />
+            <Icon name="plus" size={16} className="lib-x-glyph" />
           </button>
         </div>
 
@@ -92,18 +100,35 @@ export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClo
           </div>
         ) : (
           <div className="lib-drawer-body">
-            <header className="lib-drawer-head">
-              <h2 title={item.title}>{item.title}</h2>
-              <p className="lib-drawer-meta">{item.meta}</p>
-              {item.source && (
-                <p className="lib-drawer-source">
-                  Created from <Link href={item.source.href}>{item.source.label}</Link>
-                </p>
+            <header className="lib-asset">
+              <span className="lib-asset-icon" aria-hidden="true">
+                <Icon name={item.icon} size={22} />
+              </span>
+              <h2 className="lib-asset-title" title={item.title}>
+                {item.title}
+              </h2>
+
+              <dl className="lib-props">
+                <Prop label="Last edited">{item.updatedLabel}</Prop>
+                {item.categoryLabel && <Prop label="Category">{item.categoryLabel}</Prop>}
+                {item.sizeLabel && <Prop label="Size">{item.sizeLabel}</Prop>}
+                {item.source && (
+                  <Prop label="Created from">
+                    <Link href={item.source.href}>{item.source.label}</Link>
+                  </Prop>
+                )}
+              </dl>
+
+              {item.preview && (
+                <div className="lib-preview">
+                  <span className="lib-preview-label">Preview</span>
+                  <p className="lib-preview-text">{item.preview}</p>
+                </div>
               )}
             </header>
 
-            <div className="lib-drawer-primary">
-              <Link className="btn btn-primary" href={item.primaryHref}>
+            <div className="lib-open-row">
+              <Link className="btn btn-ghost lib-open" href={item.primaryHref}>
                 <Icon name="arrow-right" size={15} /> {item.primaryLabel}
               </Link>
               {item.editHref && (
@@ -113,27 +138,33 @@ export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClo
               )}
             </div>
 
-            <SharingSection
-              internal={item.internal}
-              id={item.id}
-              status={item.status}
-              shareSlug={item.shareSlug}
-              category={item.category}
-              onStartPublish={() => setMode("publish")}
-            />
+            <section className="lib-group">
+              <span className="lib-group-label">Sharing</span>
+              <SharingSection
+                internal={item.internal}
+                id={item.id}
+                status={item.status}
+                shareSlug={item.shareSlug}
+                category={item.category}
+                onStartPublish={() => setMode("publish")}
+              />
+            </section>
 
-            <div className="lib-drawer-manage">
-              <form action={DUP[item.internal]}>
-                <input type="hidden" name="id" value={item.id} />
-                <button type="submit" className="btn btn-ghost btn-sm">
-                  <Icon name="copy" size={14} /> Duplicate
-                </button>
-              </form>
-              <form action={DEL[item.internal]}>
-                <input type="hidden" name="id" value={item.id} />
-                <ConfirmButton />
-              </form>
-            </div>
+            <section className="lib-group lib-group-manage">
+              <span className="lib-group-label">Management</span>
+              <div className="lib-drawer-manage">
+                <form action={DUP[item.internal]}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <button type="submit" className="btn btn-ghost btn-sm">
+                    <Icon name="copy" size={14} /> Duplicate
+                  </button>
+                </form>
+                <form action={DEL[item.internal]}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <ConfirmButton />
+                </form>
+              </div>
+            </section>
           </div>
         )}
       </div>

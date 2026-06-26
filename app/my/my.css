@@ -100,6 +100,22 @@
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+/* Selected = the asset being inspected: lifts forward; the rest recede so the
+   link between the active card and the panel is unmistakable. */
+.my-page .my-card-tile.selected {
+  transform: translateY(-2px) scale(1.012);
+  z-index: 1;
+}
+.my-page .my-grid.has-selection .my-card-tile.dimmed {
+  opacity: 0.45;
+  filter: saturate(0.82);
+}
+.my-page .my-grid.has-selection .my-card-tile.dimmed:hover {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.72;
+}
+
 .my-page .my-card-tile .mct-bar {
   display: flex;
   align-items: center;
@@ -171,7 +187,7 @@
 .my-page .my-card-tile.is-template:hover { border-color: var(--accent); }
 .my-page .my-card-tile.is-template.selected {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-2);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 18px 40px var(--accent-tint), var(--shadow-2);
 }
 
 /* Prompt accent (dark .md-file / terminal green) */
@@ -200,7 +216,8 @@
 }
 .my-page .my-card-tile.is-prompt.selected {
   border-color: var(--prompt-accent-on-dark);
-  box-shadow: 0 0 0 3px rgba(70, 214, 166, 0.22), 0 16px 36px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 0 0 3px rgba(70, 214, 166, 0.28), 0 0 26px rgba(70, 214, 166, 0.22),
+    0 18px 40px rgba(0, 0, 0, 0.34);
 }
 
 /* Object-type chip (Template / Prompt) in the unified library — glyph + label so
@@ -271,7 +288,7 @@
   animation: lib-fade 160ms ease-out;
 }
 .lib-drawer {
-  width: min(440px, 100%);
+  width: min(484px, 100%);
   height: 100%;
   background: var(--bg-1);
   border-left: 1px solid var(--line-2);
@@ -315,43 +332,116 @@
   transition: background 120ms, color 120ms;
 }
 .lib-drawer-x:hover { background: var(--bg-3); color: var(--fg-1); }
+.lib-drawer-x .lib-x-glyph { transform: rotate(45deg); } /* plus → close ✕ */
 
 .lib-drawer-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 18px 28px;
+  padding: 24px 22px 28px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 28px;
 }
 
-.lib-drawer-head h2 {
-  font: 700 22px/1.2 var(--font-sans);
+/* ── Asset header — icon + hero title + properties + preview ───────────────── */
+.lib-asset {
+  display: flex;
+  flex-direction: column;
+}
+.lib-asset-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-3);
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.lib-drawer.is-prompt .lib-asset-icon {
+  background: var(--prompt-accent-soft);
+  color: var(--prompt-accent);
+}
+.lib-asset-title {
+  margin: 0;
+  font: 700 24px/1.2 var(--font-sans);
   letter-spacing: -0.02em;
   color: var(--fg-1);
-  margin: 0;
+  text-wrap: balance;
   overflow-wrap: anywhere;
 }
-.lib-drawer-meta {
-  margin: 10px 0 0;
-  font: 500 13px var(--font-mono);
-  color: var(--fg-3);
-}
-.lib-drawer-source {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: var(--fg-2);
-}
-.lib-drawer-source a { color: var(--accent); }
-.lib-drawer-source a:hover { text-decoration: underline; }
 
-.lib-drawer-primary {
+/* Property list — quiet label / value rows (Linear-style). */
+.lib-props {
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.lib-prop {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 13px;
+}
+.lib-prop dt { color: var(--fg-3); }
+.lib-prop dd {
+  margin: 0;
+  color: var(--fg-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lib-prop dd a { color: var(--accent); text-decoration: none; }
+.lib-prop dd a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Preview snippet — feels like inspecting the asset's contents. */
+.lib-preview {
+  margin-top: 18px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-2);
+  background: var(--bg-2);
+  padding: 12px 14px;
+}
+.lib-preview-label {
+  display: block;
+  font: 600 10px var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin-bottom: 7px;
+}
+.lib-preview-text {
+  margin: 0;
+  font: 400 12.5px/1.6 var(--font-mono);
+  color: var(--fg-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Open (secondary, supports the title — never the loud hero) ────────────── */
+.lib-open-row {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
 }
+.lib-open-row .lib-open { flex: 1; justify-content: center; }
 
-/* ── Sharing area (overview) — binary Private / Published ──────────────────── */
+/* ── Grouped sections (Sharing / Management) with quiet labels + air ───────── */
+.lib-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lib-group-label {
+  font: 600 12px var(--font-sans);
+  letter-spacing: 0.01em;
+  color: var(--fg-3);
+}
+.lib-group-manage { margin-top: auto; }
+
+/* ── Sharing area (overview) — binary Private / Published, one primary ─────── */
 .lib-share {
   border: 1px solid var(--line-2);
   border-radius: var(--r-3);
@@ -364,31 +454,33 @@
 .lib-share-state {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font: 600 13px var(--font-sans);
-  color: var(--fg-2);
+  gap: 8px;
+  font: 600 13.5px var(--font-sans);
+  color: var(--fg-1);
 }
-.lib-share-state svg { color: var(--fg-3); }
+.lib-share-state .lib-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--fg-3);
+  flex-shrink: 0;
+}
 .lib-share-state em {
   font-style: normal;
-  font-weight: 500;
+  font-weight: 400;
+  font-size: 13px;
   color: var(--fg-3);
 }
-.lib-share.is-published .lib-share-state { color: #0f7b52; }
-.lib-share.is-published .lib-share-state svg { color: #0f7b52; }
-.lib-share.is-published .lib-share-state em { color: var(--fg-3); }
+.lib-share.is-published .lib-share-state .lib-dot {
+  background: #0f7b52;
+  box-shadow: 0 0 0 3px rgba(15, 123, 82, 0.16);
+}
 
 .btn.btn-block { width: 100%; justify-content: center; }
 
-.lib-link-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 .lib-link-url {
-  flex: 1;
-  min-width: 0;
-  padding: 8px 10px;
+  display: block;
+  padding: 9px 11px;
   border: 1px solid var(--line-2);
   border-radius: var(--r-2);
   background: var(--bg-1);
@@ -398,12 +490,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.lib-share-actions {
+/* Inline url + copy (used in the publish success step, where "Done" is primary). */
+.lib-link-row { display: flex; align-items: center; gap: 8px; }
+.lib-link-row .lib-link-url { flex: 1; min-width: 0; }
+.lib-share-secondary {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+  padding-top: 10px;
+  margin-top: 2px;
+  border-top: 1px solid var(--line-1);
 }
+.lib-share-secondary .lib-unpublish { margin-left: auto; }
 .lib-err {
   margin: 0;
   font-size: 12px;
@@ -573,6 +672,7 @@
   .lib-drawer,
   .lib-pub { animation: none; }
   .my-page .my-card-tile { transition: none; }
+  .my-page .my-card-tile.selected { transform: none; }
 }
 
 .my-empty {

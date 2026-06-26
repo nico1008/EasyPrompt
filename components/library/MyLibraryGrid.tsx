@@ -16,17 +16,21 @@ import { LibraryDetailPanel } from "@/components/library/LibraryDetailPanel";
 function LibraryCard({
   item,
   selected,
+  dimmed,
   onSelect,
 }: {
   item: LibraryItem;
   selected: boolean;
+  dimmed: boolean;
   onSelect: () => void;
 }) {
   const meta = objectMeta(item.objectType);
   return (
     <button
       type="button"
-      className={`my-card-tile is-${item.objectType}${selected ? " selected" : ""}`}
+      className={`my-card-tile is-${item.objectType}${selected ? " selected" : ""}${
+        dimmed ? " dimmed" : ""
+      }`}
       aria-haspopup="dialog"
       aria-label={`${meta.label}: ${item.title}`}
       onClick={onSelect}
@@ -56,12 +60,13 @@ export function MyLibraryGrid({ items }: { items: LibraryItem[] }) {
 
   return (
     <>
-      <div className="my-grid">
+      <div className={`my-grid${selectedKey ? " has-selection" : ""}`}>
         {items.map((it) => (
           <LibraryCard
             key={it.key}
             item={it}
             selected={it.key === selectedKey}
+            dimmed={selectedKey !== null && it.key !== selectedKey}
             onSelect={() => setSelectedKey(it.key)}
           />
         ))}
