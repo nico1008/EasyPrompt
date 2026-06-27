@@ -75,6 +75,7 @@ export function Builder({
   savedPromptId,
   crumbs,
   backHref = "/templates",
+  restoreDrafts = false,
 }: {
   template: Template;
   related: RelatedLite[];
@@ -88,6 +89,8 @@ export function Builder({
   crumbs?: { href?: string; label: string }[];
   /** Back-link target for the topbar's "← Back" button. */
   backHref?: string;
+  /** Explicit opt-in for local draft restore/autosave. Catalog template pages stay blank. */
+  restoreDrafts?: boolean;
 }) {
   // Nothing is pre-selected: the fill-in starts blank (authored defaults are a
   // suggestion reference only — see lib/buildPrompt.blankAnswers).
@@ -126,26 +129,33 @@ export function Builder({
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const built = useMemo(() => buildPrompt(template, answers), [template, answers]);
+  const draftsEnabled = restoreDrafts && initialAnswers === undefined;
 
   /* ---- Draft autosave (anon, no account): persist both the in-progress answers
      and any Custom edit so a refresh never loses work. Off when reopening a saved
-     prompt (initialAnswers set) — that row is the source of truth. ---- */
+     prompt (initialAnswers set) and off by default for template pages, because a
+     Template is an empty constructor unless a surface explicitly opts into drafts. ---- */
   const { clear: clearDraft } = useDraft({
     templateId: template.id,
-    enabled: initialAnswers === undefined,
+    enabled: draftsEnabled,
     answers,
     hasContent: built.answered > 0,
     onRestore: setAnswers,
   });
   const { clear: clearCustomDraft } = useLocalDraft<string>({
     key: `easyprompt.promptcustom.${template.id}`,
-    enabled: initialAnswers === undefined,
+    enabled: draftsEnabled,
     value: customBody ?? "",
     hasContent: customBody !== null && customBody.trim().length > 0,
     serialize: (v) => (v.length > 24_000 ? null : v),
     parse: (raw) => (typeof raw === "string" && raw ? raw : null),
     onRestore: (v) => setCustomBody(v),
   });
+  useEffect(() => {
+    if (initialAnswers !== undefined || restoreDrafts) return;
+    clearDraft();
+    clearCustomDraft();
+  }, [clearCustomDraft, clearDraft, initialAnswers, restoreDrafts]);
   const handleSaved = useCallback(() => {
     clearDraft();
     clearCustomDraft();
@@ -411,6 +421,11 @@ export function Builder({
             ))}
           </nav>
         </div>
+        {isCatalog && (
+          <div className="tpl-topbar-meta">
+            <CreatorChip creator={{ kind: "house" }} />
+          </div>
+        )}
       </div>
 
       {/* ---- Mobile segmented view switch (desktop shows both columns) ---- */}
@@ -443,9 +458,6 @@ export function Builder({
             <div>
               <h1>{displayTitle(template)}</h1>
               <p>{template.intro}</p>
-              <div className="tpl-creator">
-                <CreatorChip creator={{ kind: "house" }} />
-              </div>
             </div>
           </header>
 

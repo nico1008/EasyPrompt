@@ -70,7 +70,8 @@ function stripLeadingHeading(text: string): string {
 /* `answers` (optional) carries a user's in-progress classic-form input across the
  * "open in builder" bridge, so crossing over doesn't discard their work: a field's
  * typed value seeds the matching variable block, and a checked box enables its
- * section. Absent answers fall back to template defaults (the original behaviour). */
+ * section. When answers are supplied, they are authoritative; missing keys stay
+ * empty instead of falling back to authored defaults. */
 export function blockDocFromTemplate(template: Template, answers?: Answers): BlockDoc {
   const blocks: Block[] = [];
   let n = 0;
@@ -95,7 +96,7 @@ export function blockDocFromTemplate(template: Template, answers?: Answers): Blo
       id: id(),
       kind: "variable",
       field: { ...field } as Field,
-      value: answers?.fields[field.id] ?? field.default ?? "",
+      value: answers ? answers.fields[field.id] ?? "" : field.default ?? "",
       enabled: true,
       collapsed: false,
     };
