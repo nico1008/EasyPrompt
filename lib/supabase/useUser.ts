@@ -1,50 +1,125 @@
 "use client";
 
-/* Reactive signed-in user (email) for client UI like the nav. Reads the session
- * client-side so the shared layout never calls cookies() — that keeps the
- * marketing + catalog pages statically rendered (the SEO engine). Mirrors the
- * PremiumProvider pattern: server/first paint is logged-out, then it hydrates.
- * Authorization is still enforced server-side; this is display only. */
+/* Reactive signed-in account state for client UI like the nav. Reads through a
+ * same-origin route that uses the server auth cookie, so local dev and
+ * production behave the same after server-action logins. The shared layout still
+ * never calls cookies(), keeping marketing and catalog pages static. */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { isSupabaseConfigured } from "./env";
-import { createClient } from "./client";
 
-export function useSupabaseUser(): string | null {
-  const [email, setEmail] = useState<string | null>(null);
+export type SupabaseAccountProfile = {
+  username: string | null;
+  displayName: string | null;
+  isPublic: boolean;
+};
+
+export type SupabaseAccountUser = {
+  email: string;
+  profile: SupabaseAccountProfile;
+};
+
+export type SupabaseAccountState = {
+  account: SupabaseAccountUser | null;
+  authLikely: boolean;
+  loaded: boolean;
+};
+
+type AccountStateResponse = {
+  configured: boolean;
+  user: SupabaseAccountUser | null;
+};
+
+const AUTH_HINT_COOKIE = "easyprompt.auth";
+
+function hasAuthHintCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie
+    .split(";")
+    .some((cookie) => cookie.trim().startsWith(`${AUTH_HINT_COOKIE}=`));
+}
+
+async function fetchAccountState(): Promise<SupabaseAccountUser | null> {
+  const res = await fetch("/api/account-state", {
+    cache: "no-store",
+    credentials: "same-origin",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json()) as AccountStateResponse;
+  return data.user;
+}
+
+export function useSupabaseAccountState(): SupabaseAccountState {
+  const [state, setState] = useState<SupabaseAccountState>({
+    account: null,
+    authLikely: false,
+    loaded: false,
+  });
   const pathname = usePathname();
 
-  // Live updates for auth changes the browser client performs itself: token
-  // refresh, cross-tab sign-in (storage event), and INITIAL_SESSION on subscribe.
-  useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-    const supabase = createClient();
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setEmail(session?.user?.email ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  const refresh = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      authLikely: prev.authLikely || hasAuthHintCookie(),
+    }));
 
-  // Re-read from the cookie on mount AND on every navigation. Sign-in/out run as
-  // SERVER ACTIONS that set the auth cookie out-of-band and then redirect — the
-  // browser client never performed them, so onAuthStateChange stays silent and
-  // the nav would otherwise update only after a manual reload. getUser() validates
-  // the token against the (fresh) cookie, so this catches both login and logout.
-  useEffect(() => {
-    if (!isSupabaseConfigured()) return;
     let active = true;
-    createClient()
-      .auth.getUser()
-      .then(({ data }) => {
-        if (active) setEmail(data.user?.email ?? null);
+    fetchAccountState()
+      .then((account) => {
+        if (active) {
+          setState({
+            account,
+            authLikely: Boolean(account),
+            loaded: true,
+          });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setState((prev) => ({
+            ...prev,
+            authLikely: prev.authLikely || hasAuthHintCookie(),
+            loaded: true,
+          }));
+        }
       });
     return () => {
       active = false;
     };
-  }, [pathname]);
+  }, []);
 
-  return email;
+  // /api/account-state is the only source of truth for display auth. Browser
+  // Supabase auth events are deliberately ignored because server actions own
+  // sign-in/sign-out and can leave the browser client with stale/null state.
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    return refresh();
+  }, [pathname, refresh]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    function onFocus() {
+      refresh();
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === "visible") refresh();
+    }
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [refresh]);
+
+  return state;
+}
+
+export function useSupabaseAccount(): SupabaseAccountUser | null {
+  return useSupabaseAccountState().account;
+}
+
+export function useSupabaseUser(): string | null {
+  return useSupabaseAccount()?.email ?? null;
 }

@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { UserMenu } from "./UserMenu";
 import { config } from "@/config";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { useSupabaseUser } from "@/lib/supabase/useUser";
+import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { useEscape } from "@/lib/useEscape";
 
 // Core content-model nav. Marketing links (Home / How it works / Pricing) live in
@@ -34,13 +34,15 @@ export function Nav() {
     burgerRef.current?.focus();
   });
 
-  // Auth state is resolved client-side (see useSupabaseUser) so the shared
+  // Auth state is resolved after mount through /api/account-state, so the shared
   // layout stays free of cookies() and the marketing/catalog pages stay static.
   const accountsOn = config.accounts.enabled && isSupabaseConfigured();
-  const userEmail = useSupabaseUser();
+  const { account, authLikely } = useSupabaseAccountState();
+  const userEmail = account?.email ?? "";
+  const showAccountChrome = accountsOn && (Boolean(account) || authLikely);
 
   const links =
-    accountsOn && userEmail
+    showAccountChrome
       ? [...BASE_LINKS, { href: "/my", label: "My Library" }]
       : BASE_LINKS;
 
@@ -65,8 +67,8 @@ export function Nav() {
       </div>
 
       <div className="right">
-        {accountsOn && userEmail ? (
-          <UserMenu email={userEmail} />
+        {showAccountChrome ? (
+          <UserMenu email={userEmail} profile={account?.profile ?? null} />
         ) : accountsOn ? (
           <>
             <Link className="nav-login" href="/login">

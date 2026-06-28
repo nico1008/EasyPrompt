@@ -15,6 +15,7 @@ import { supabaseUrl, supabaseAnonKey, isSupabaseConfigured } from "./env";
 
 /** Path prefixes that require a signed-in user. */
 const PROTECTED_PREFIXES = ["/my", "/account"];
+const AUTH_HINT_COOKIE = "easyprompt.auth";
 
 function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
@@ -49,6 +50,17 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (user) {
+    response.cookies.set(AUTH_HINT_COOKIE, "1", {
+      path: "/",
+      sameSite: "lax",
+      secure: request.nextUrl.protocol === "https:",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  } else {
+    response.cookies.delete(AUTH_HINT_COOKIE);
+  }
 
   const pathname = request.nextUrl.pathname;
   if (!user && isProtected(pathname)) {

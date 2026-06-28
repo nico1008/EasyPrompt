@@ -140,7 +140,10 @@ Optional; everything checks `isSupabaseConfigured()` (`lib/supabase/env.ts`) fir
   Server Components via RLS-scoped repos (`lib/*/repo.ts`, `import "server-only"`); **all mutations
   are Server Actions** (`lib/auth/actions.ts`, `lib/userTemplates/actions.ts`,
   `lib/savedPrompts/actions.ts`), Zod-validated. `middleware.ts` refreshes the session + guards
-  `/my`, `/account`. Authorize with `getUser()` (revalidates), never `getSession()`.
+  `/my`, `/account`. Authorize with `getUser()` (revalidates), never `getSession()`. Client chrome
+  that only needs display auth state uses `GET /api/account-state` after mount; that route reads the
+  server auth cookie and profile row so local dev matches production without calling `cookies()` in
+  the root layout.
 - **Authz = Row-Level Security** (owner = `auth.uid()`) across the migrations, applied in order.
   There is **no `0008`** (it was skipped — the planned `is_public` cleanup never happened):
   `0001_accounts` (`profiles`, `user_templates`, `saved_prompts`; new-user trigger;

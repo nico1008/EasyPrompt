@@ -6,63 +6,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { signOutAction } from "@/lib/auth/actions";
-import { createClient } from "@/lib/supabase/client";
+import type { SupabaseAccountProfile } from "@/lib/supabase/useUser";
 import "./UserMenu.css";
 
-type MenuProfile = {
-  username: string | null;
-  displayName: string | null;
-  isPublic: boolean;
-};
-
-export function UserMenu({ email }: { email: string }) {
+export function UserMenu({
+  email,
+  profile,
+}: {
+  email: string;
+  profile: SupabaseAccountProfile | null;
+}) {
   const [open, setOpen] = useState(false);
-  const [profile, setProfile] = useState<MenuProfile | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const pathname = usePathname();
-  const initial = (email.trim()[0] ?? "?").toUpperCase();
-
-  useEffect(() => {
-    let active = true;
-    const supabase = createClient();
-
-    async function loadProfile() {
-      try {
-        const { data } = await supabase.auth.getUser();
-        const user = data.user;
-        if (!user) {
-          if (active) setProfile(null);
-          return;
-        }
-
-        const { data: row } = await supabase
-          .from("profiles")
-          .select("username, display_name, is_public")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (active) {
-          setProfile({
-            username: row?.username ?? null,
-            displayName: row?.display_name ?? null,
-            isPublic: row?.is_public ?? false,
-          });
-        }
-      } catch {
-        if (active) setProfile(null);
-      }
-    }
-
-    void loadProfile();
-
-    return () => {
-      active = false;
-    };
-  }, [email, pathname]);
+  const initial = (email.trim()[0] ?? "").toUpperCase();
 
   useEffect(() => {
     if (!open) return;
@@ -107,18 +66,18 @@ export function UserMenu({ email }: { email: string }) {
         aria-label="Account menu"
         onClick={() => setOpen((o) => !o)}
       >
-        {initial}
+        {initial || <Icon name="user" size={15} />}
       </button>
 
       {open && (
         <div className="user-pop" role="menu" aria-label="Account menu">
           <div className="user-pop-head">
             <span className="user-pop-avatar" aria-hidden="true">
-              {initial}
+              {initial || <Icon name="user" size={15} />}
             </span>
             <div className="user-pop-id">
               <strong>Signed in as</strong>
-              <span title={email}>{email}</span>
+              <span title={email || undefined}>{email || "Loading account..."}</span>
             </div>
           </div>
 
