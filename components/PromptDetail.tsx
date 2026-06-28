@@ -61,9 +61,16 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
       <Toast show={Boolean(toast)} message={toast ?? ""} />
 
       <div className="pd-wrap">
-        <Link className="pd-back" href="/prompts">
-          <Icon name="arrow-right" size={14} /> All prompts
-        </Link>
+        <div className="pd-topbar">
+          <div className="pd-topbar-left">
+            <Link className="pd-back" href="/prompts">
+              <Icon name="arrow-right" size={14} /> All prompts
+            </Link>
+          </div>
+          <div className="pd-topbar-meta">
+            <CreatorChip creator={{ kind: "house" }} />
+          </div>
+        </div>
 
         <div className="pd-head">
           <div className="pd-head-main">
@@ -75,9 +82,6 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
                 Created from <Link href={`/templates/${source.slug}`}>{displayTitle(source)}</Link>
               </p>
             )}
-            <div className="pd-byline">
-              <CreatorChip creator={{ kind: "house" }} />
-            </div>
             <div className="pd-stats">
               <UsesBadge target={target} />
             </div>

@@ -70,19 +70,23 @@ export function CommunityPrompt({
       <Toast show={Boolean(toast)} message={toast ?? ""} />
 
       <div className="pd-wrap">
-        <Link className="pd-back" href="/prompts">
-          <Icon name="arrow-right" size={14} /> All prompts
-        </Link>
+        <div className="pd-topbar">
+          <div className="pd-topbar-left">
+            <Link className="pd-back" href="/prompts">
+              <Icon name="arrow-right" size={14} /> All prompts
+            </Link>
+          </div>
+          {author && (
+            <div className="pd-topbar-meta">
+              <CreatorChip creator={{ kind: "community", author }} />
+            </div>
+          )}
+        </div>
 
         <div className="pd-head">
           <div className="pd-head-main">
             <span className="pd-tag">Community</span>
             <h1>{name || "Untitled prompt"}</h1>
-            {author && (
-              <div className="pd-byline">
-                <CreatorChip creator={{ kind: "community", author }} />
-              </div>
-            )}
             {source && (
               <p className="pd-source">
                 Created from <Link href={`/templates/${source.slug}`}>{displayTitle(source)}</Link>

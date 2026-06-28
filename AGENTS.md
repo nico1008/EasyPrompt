@@ -42,6 +42,15 @@ below.
 - The three `docs/` files (`ARCHITECTURE`, `ENGINEERING`, `DESIGN-SYSTEM`) are deeper references;
   don't re-read them unless the task touches their area.
 
+## UI verification discipline
+- Do not launch a dev server or browser visual check for every UI change.
+- For small or medium UI changes, rely on code inspection plus targeted type/build/test checks when
+  they are useful. The user will do visual confirmation.
+- Use browser visual verification only for complex, broad, high-risk, or interaction-heavy UI work
+  where rendered behavior is hard to reason about from code.
+- If the need for visual verification is unclear, ask the user before starting a dev server.
+- Do not start `npm run dev`, `npm run start`, or browser tooling solely because a UI file changed.
+
 ## Architecture (data flow)
 1. `data/types.ts` — the content schema: `Template`, `Field` (text/textarea/select/pills),
    `Checkbox`, `Category`. Source of truth for the *shape* of content.
