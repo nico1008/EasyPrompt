@@ -6,11 +6,11 @@ product
 
 ## Users
 
-People who build reusable AI prompt templates and ready-to-copy prompts for ChatGPT, Codex, Gemini, and similar tools. They are usually in a task-focused workflow and need the interface to help them move from a reusable structure to a finished prompt without extra ceremony.
+People who browse reusable AI prompt Templates and ready-to-copy Prompts for ChatGPT, Codex, Gemini, and similar tools. They are usually in a task-focused workflow and need a strong starting point before they decide to create their own.
 
 ## Product Purpose
 
-EasyPrompt helps users start from an empty Template, fill only the sections that matter, and copy or save the generated Prompt. Success means the user can clearly distinguish reusable Templates from finished Prompts and never sees a Template silently prefilled with old answers.
+EasyPrompt helps users browse Templates for repeat work and Prompts that are ready to copy. Building is secondary: users create their own Template or Prompt when the catalogs do not fit. Success means the user can clearly distinguish reusable Templates from finished Prompts and never sees a Template silently prefilled with old answers.
 
 ## Brand Personality
 
@@ -23,7 +23,8 @@ Avoid marketing-page decoration inside the tool surface, over-styled form contro
 ## Design Principles
 
 - Preserve the Template vs Prompt distinction.
-- Keep the main task visible: fill on the left, inspect and copy on the right.
+- Treat browsing Templates and Prompts as the main public action.
+- Treat the builder as a secondary creation path for gaps in the catalog.
 - Prefer familiar product UI controls over invented interactions.
 - Use restrained indigo accents for state and primary actions.
 - Make skipped fields feel intentional, not broken.

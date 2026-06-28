@@ -42,6 +42,10 @@ vitest.config.ts
 /.claude
 CLAUDE.md
 
+# claude code config & agent instructions
+/.codex
+AGENTS.md
+
 # private tooling (access-code mint CLI)
 /scripts
 

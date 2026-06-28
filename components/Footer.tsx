@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/data/templates";
 
-/* Global footer — absent in the mockups, required by the UI build plan
-   (SEO category links, submit-a-template, legal). Built from system tokens. */
+/* Global footer: category links, product links, and legal links. Built from the
+   same system tokens as the app shell. */
 export function Footer() {
   return (
     <footer className="site-footer">
@@ -12,8 +12,8 @@ export function Footer() {
             <span className="glyph-pixel" aria-hidden="true" /> EasyPrompt
           </Link>
           <p>
-            Fill out a form, get a perfect prompt. The builder is free with no
-            sign-up; optional Pro Boosters sharpen the output.
+            Browse reusable Templates and ready-to-copy Prompts. Build your own when
+            the catalog does not fit.
           </p>
         </div>
 
@@ -24,7 +24,8 @@ export function Footer() {
               {c.label}
             </Link>
           ))}
-          <Link href="/templates">All prompts</Link>
+          <Link href="/templates">All templates</Link>
+          <Link href="/prompts">All prompts</Link>
         </nav>
 
         <nav className="footer-col" aria-label="Product">
@@ -42,8 +43,8 @@ export function Footer() {
       </div>
 
       <div className="footer-base">
-        <span>© {new Date().getFullYear()} EasyPrompt</span>
-        <span className="footer-free">Core builder free · No account required</span>
+        <span>&copy; {new Date().getFullYear()} EasyPrompt</span>
+        <span className="footer-free">Templates + Prompts / Core browsing free</span>
       </div>
     </footer>
   );

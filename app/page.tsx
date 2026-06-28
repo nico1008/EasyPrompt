@@ -1,29 +1,16 @@
 import Link from "next/link";
 import "./landing.css";
-import { Eyebrow } from "@/components/Eyebrow";
 import { CrosshairCard } from "@/components/CrosshairCard";
 import { Icon } from "@/components/Icon";
-import { TEMPLATES, CATEGORIES } from "@/data/templates";
 import { config } from "@/config";
 
-/* Templates strip chips — popular starting points. Real templates link to their
-   builder; the rest seed a search on the library. */
 const CHIPS: { label: string; slug?: string }[] = [
   { label: "Weekly meal planner", slug: "weekly-meal-planner" },
   { label: "Cover letter", slug: "tailored-cover-letter" },
-  { label: "Lesson plan · K-12", slug: "k12-lesson-plan" },
+  { label: "Lesson plan", slug: "k12-lesson-plan" },
   { label: "Customer email reply", slug: "customer-email-reply" },
-  { label: "Real estate listing", slug: "real-estate-listing" },
-  { label: "Wedding toast", slug: "wedding-toast" },
-  { label: "Workout plan", slug: "workout-plan" },
   { label: "React component scaffold", slug: "react-component-scaffold" },
-  { label: "SQL query builder" },
-  { label: "Birthday party invite" },
-  { label: "Performance review draft", slug: "performance-review" },
-  { label: "Pricing page copy" },
-  { label: "D&D encounter" },
-  { label: "Apology message" },
-  { label: "Eulogy draft" },
+  { label: "Performance review", slug: "performance-review" },
 ];
 
 function chipHref(c: { label: string; slug?: string }) {
@@ -33,260 +20,106 @@ function chipHref(c: { label: string; slug?: string }) {
 export default function LandingPage() {
   return (
     <main className="landing">
-      {/* ============ HERO ============ */}
       <section className="hero">
         <div className="hero-bg" />
         <div className="hero-inner">
-          <div className="eyebrow">
+          <div className="hero-kicker">
             <span className="dot" />
-            Free to use · Save your work · Works with any AI
+            your prompt workspace
           </div>
-          <h1 className="display">
-            Fill<span className="accent">.</span> Copy<span className="accent">.</span>{" "}
-            Paste<span className="accent">.</span>
-          </h1>
+          <h1 className="display">Browse AI prompts you can use again.</h1>
           <p className="sub">
-            A prompt builder for everyone. Fill in a <strong>template</strong> to generate a
-            perfect prompt, or grab a ready-to-use <strong>prompt</strong> and paste it straight
-            into ChatGPT, Claude, or Gemini.
+            Find reusable <strong>Templates</strong> for repeat work and ready{" "}
+            <strong>Prompts</strong> you can copy now. Build your own when the catalog
+            does not fit.
           </p>
-          <div className="ctas">
+
+          <div className="ctas" aria-label="Primary actions">
             <Link className="btn btn-primary btn-lg" href="/templates">
-              Try a template →
+              Browse templates
             </Link>
-            <Link className="btn btn-ghost btn-lg" href="/how-it-works">
-              See how it works
+            <Link className="btn btn-ink btn-lg" href="/prompts">
+              Browse prompts
             </Link>
           </div>
-          {/* live mini demo */}
-          <div className="demo">
-            <span className="sr-only">
-              A preview of a filled template and the prompt it produces. Fill your own on the
-              next screen.
-            </span>
-            <CrosshairCard className="form-side">
-              <div className="demo-head">
-                <span className="title">Weekly meal planner</span>
-                <span className="pip">Preview · 3 questions</span>
-              </div>
-              <div className="field">
-                <label>
-                  How many people? <span className="req">*</span>
-                </label>
-                <input
-                  className="input"
-                  defaultValue="A family of 4 (2 adults, 2 kids)"
-                  readOnly
-                  tabIndex={-1}
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="field">
-                <label>Any dietary preferences?</label>
-                <select className="select" tabIndex={-1} aria-hidden="true">
-                  <option>Vegetarian, no nuts</option>
-                </select>
-              </div>
-              <div className="field">
-                <label>Optional extras</label>
-                <div className="check on">
-                  <span className="box" />
-                  <div>
-                    <div className="label">Include a grocery list</div>
-                  </div>
-                </div>
-              </div>
-            </CrosshairCard>
+          <Link className="hero-build-link" href="/build">
+            Build your own <Icon name="arrow-right" size={14} />
+          </Link>
 
-            <CrosshairCard className="code-well dark output-side">
-              <div className="code-bar">
-                <span className="pip" />
-                <span>prompt.md</span>
-                <span className="tag">Copied</span>
+          <CrosshairCard
+            className="catalog-preview"
+            aria-label="Browse reusable Templates and ready-to-copy Prompts."
+          >
+            <Link
+              className="landing-tile landing-template-tile"
+              href="/templates"
+              aria-label="Browse reusable Templates"
+            >
+              <div className="lp-tile-bar">
+                <span className="lp-glyph" aria-hidden="true">
+                  <Icon name="list" size={14} />
+                </span>
+                <h2>Launch email framework</h2>
+                <span className="lp-star" aria-hidden="true">
+                  <Icon name="star" size={12} />
+                </span>
               </div>
-              <div className="code-body">
-                <span className="c-mute"># Role</span>
-                {"\n"}You are a friendly meal-planning assistant.{"\n"}
-                {"\n"}
-                <span className="c-mute"># Task</span>
-                {"\n"}Plan a week of meals for{" "}
-                <span className="c-acc">a family of 4</span>
-                {"\n"}(2 adults, 2 kids).{"\n"}
-                {"\n"}
-                <span className="c-mute"># Preferences</span>
-                {"\n"}- <span className="c-acc">Vegetarian, no nuts</span>
-                {"\n"}- Keep recipes simple and kid-friendly{"\n"}
-                {"\n"}
-                <span className="c-mute"># Output</span>
-                {"\n"}- 7 dinners with prep time{"\n"}-{" "}
-                <span className="c-acc">Grocery list at the end</span>
+              <div className="lp-tile-body">
+                <p>
+                  Plan a reusable campaign sequence with fields for goal, audience,
+                  offer, and constraints.
+                </p>
               </div>
-            </CrosshairCard>
-          </div>
+              <div className="lp-tile-foot">
+                <span>Marketing</span>
+                <span className="lp-meta">
+                  <span>1.2k uses</span>
+                  <span>4 questions</span>
+                </span>
+              </div>
+            </Link>
 
-          <div className="trust">
-            <span>
-              <b>{TEMPLATES.length}</b> free templates
-            </span>
-            <span style={{ color: "var(--line-3)" }}>·</span>
-            <span>
-              <b>{CATEGORIES.length}</b> categories
-            </span>
-            <span style={{ color: "var(--line-3)" }}>·</span>
-            <span>Works with ChatGPT, Claude &amp; Gemini</span>
-          </div>
+            <Link
+              className="landing-tile landing-prompt-tile"
+              href="/prompts"
+              aria-label="Browse ready-to-copy Prompts"
+            >
+              <div className="lp-tile-bar">
+                <span className="lp-glyph" aria-hidden="true">
+                  <Icon name="code" size={14} />
+                </span>
+                <h2>product-critique.prompt.md</h2>
+              </div>
+              <div className="lp-tile-body">
+                <p>
+                  A finished markdown prompt for finding UX risks, sharper positioning,
+                  and practical next steps.
+                </p>
+              </div>
+              <div className="lp-tile-foot">
+                <span className="lp-meta">
+                  <span>Work</span>
+                  <span>842 uses</span>
+                </span>
+                <span className="lp-copy">
+                  <Icon name="copy" size={13} />
+                  Copy
+                </span>
+              </div>
+            </Link>
+          </CrosshairCard>
         </div>
       </section>
 
-      {/* ============ STEPS ============ */}
-      <section className="steps">
-        <div className="steps-head">
-          <Eyebrow>How it works</Eyebrow>
-          <h2 className="h2" style={{ marginTop: 14 }}>
-            Three steps. No prompt-engineering required.
-          </h2>
+      <section className="browse-section">
+        <div className="section-copy">
+          <h2 className="h2">Start from a real task.</h2>
+          <p>
+            Search the catalogs first. Templates help when the work repeats. Prompts help
+            when the instruction is already ready to copy.
+          </p>
         </div>
-        <div className="steps-grid">
-          <div className="panel step">
-            <div className="num">1</div>
-            <h3 className="h3">Pick a template</h3>
-            <p>
-              Meal planning, cover letters, lesson plans, code snippets — a growing
-              library, each one carefully designed.
-            </p>
-            <div className="pix" />
-          </div>
-          <div className="panel step">
-            <div className="num">2</div>
-            <h3 className="h3">Fill out the form</h3>
-            <p>
-              Plain questions. Type a few answers, skip the ones you don&apos;t care
-              about. The prompt updates as you go.
-            </p>
-            <div
-              className="pix"
-              style={{ backgroundPosition: "0 100%, 12px 60%, 24px 100%, 36px 60%" }}
-            />
-          </div>
-          <div className="panel step">
-            <div className="num">3</div>
-            <h3 className="h3">Copy and paste</h3>
-            <p>
-              One tap copies the finished prompt to your clipboard. Open your
-              favorite AI, paste, and you&apos;re done.
-            </p>
-            <div
-              className="pix"
-              style={{ backgroundPosition: "0 60%, 12px 100%, 24px 60%, 36px 100%" }}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ============ WHO IT'S FOR ============ */}
-      <section className="who">
-        <div className="who-head">
-          <h2 className="h2">No matter what you&apos;re trying to make.</h2>
-        </div>
-        <div className="who-grid">
-          <Link className="panel who-card" href="/templates?category=education">
-            <div className="icon">
-              <Icon name="teacher" />
-            </div>
-            <h3>Teachers</h3>
-            <p>
-              Lesson plans, parent emails, rubrics — drafted in the time it takes to
-              make coffee.
-            </p>
-          </Link>
-          <Link className="panel who-card" href="/templates?category=marketing">
-            <div className="icon">
-              <Icon name="chart" />
-            </div>
-            <h3>Small business owners</h3>
-            <p>
-              Marketing copy, customer replies, ad headlines — without hiring a
-              copywriter.
-            </p>
-          </Link>
-          <Link className="panel who-card" href="/templates?category=writing">
-            <div className="icon">
-              <Icon name="briefcase" />
-            </div>
-            <h3>Job seekers</h3>
-            <p>
-              Cover letters tailored to each posting, interview prep, follow-up
-              emails that land.
-            </p>
-          </Link>
-          <Link className="panel who-card" href="/templates?category=code">
-            <div className="icon">
-              <Icon name="code" />
-            </div>
-            <h3>Developers</h3>
-            <p>
-              Component scaffolds, bug hunts, code reviews — with the right
-              constraints baked in.
-            </p>
-          </Link>
-        </div>
-      </section>
-
-      {/* ============ TWO WAYS TO START ============ */}
-      <section className="two-ways">
-        <div className="tw-head">
-          <h2 className="h2">Two ways to start.</h2>
-          <p>Build from a template, or grab a finished prompt. Both land you in seconds.</p>
-        </div>
-        <div className="tw-grid">
-          <Link className="tw-card tw-template" href="/templates">
-            <span className="tw-ic">
-              <Icon name="list" size={22} />
-            </span>
-            <h3>Templates</h3>
-            <p>
-              Fill in a short form and get a polished, structured prompt. {TEMPLATES.length} free
-              templates, designed for real tasks.
-            </p>
-            <span className="tw-go">
-              Browse templates <Icon name="arrow-right" size={14} />
-            </span>
-          </Link>
-          <Link className="tw-card tw-prompt" href="/prompts">
-            <span className="tw-filebar">
-              <span className="tw-pips" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </span>
-              <span className="tw-fname">~/prompts</span>
-            </span>
-            <span className="tw-ic">
-              <Icon name="code" size={22} />
-            </span>
-            <h3>Prompts</h3>
-            <p>Copy a ready-to-use prompt as-is, or customize it to fit. Nothing to fill in.</p>
-            <span className="tw-go">
-              Browse prompts <Icon name="arrow-right" size={14} />
-            </span>
-          </Link>
-        </div>
-      </section>
-
-      {/* ============ TEMPLATES ============ */}
-      <section className="templates-strip">
-        <div className="ts-head">
-          <div>
-            <Eyebrow>{TEMPLATES.length} templates and counting</Eyebrow>
-            <h2 className="h2" style={{ marginTop: 14 }}>
-              A starting point for whatever you need.
-            </h2>
-          </div>
-          <Link className="btn btn-ghost btn-sm" href="/templates">
-            Browse all →
-          </Link>
-        </div>
-        <div className="chips">
+        <div className="chips" aria-label="Popular starting points">
           {CHIPS.map((c) => (
             <Link key={c.label} className="chip" href={chipHref(c)}>
               {c.label}
@@ -295,30 +128,157 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ============ PRICING TEASER ============ */}
-      <section className="pricing-teaser">
-        <div className="pt-inner">
-          <div className="pt-copy">
-            <h2 className="h2">The builder is free. Pro makes it sharper.</h2>
-            <p>
-              Every template works without paying a cent. Pro Boosters append
-              expert blocks — role priming, strict output formats, per-model
-              tuning — for {config.pricing.lifetime}.
-            </p>
-          </div>
-          <Link className="btn btn-ghost" href="/pricing">
-            See pricing →
+      <section className="build-section">
+        <div className="build-copy">
+          <h2 className="h2">Build your own when nothing fits.</h2>
+          <p>
+            Create a reusable Template for work you repeat, or write a new Prompt when you
+            already know the exact instruction.
+          </p>
+        </div>
+        <div className="build-actions" aria-label="Build actions">
+          <Link className="build-action build-action-template" href="/build/template">
+            <span>
+              <Icon name="list" size={18} />
+            </span>
+            <div>
+              <strong>New Template</strong>
+              <small>For repeat work</small>
+            </div>
+            <Icon name="arrow-right" size={15} />
+          </Link>
+          <Link className="build-action build-action-prompt" href="/build/prompt">
+            <span>
+              <Icon name="code" size={18} />
+            </span>
+            <div>
+              <strong>New Prompt</strong>
+              <small>For ready markdown</small>
+            </div>
+            <Icon name="arrow-right" size={15} />
           </Link>
         </div>
       </section>
 
-      {/* ============ CLOSING ============ */}
-      <section className="closing">
-        <h2 className="h2">A perfect prompt is 30 seconds away.</h2>
-        <p>Free to start. No credit card. No prompt-engineering YouTube tutorials.</p>
-        <Link className="btn btn-primary btn-lg" href="/templates">
-          Try a template →
+      <section className="workflow">
+        <div className="section-copy">
+          <h2 className="h2">Browse, copy, save.</h2>
+          <p>
+            EasyPrompt stays close to the way people already work with ChatGPT, Claude,
+            Gemini, and Codex.
+          </p>
+        </div>
+        <div className="workflow-list">
+          <div className="workflow-row">
+            <span className="num">1</span>
+            <div>
+              <h3>Choose a starting point</h3>
+              <p>Use a catalog Template or Prompt that already matches the job.</p>
+            </div>
+          </div>
+          <div className="workflow-row">
+            <span className="num">2</span>
+            <div>
+              <h3>Copy to any AI</h3>
+              <p>Take the finished text into the tool you already use.</p>
+            </div>
+          </div>
+          <div className="workflow-row">
+            <span className="num">3</span>
+            <div>
+              <h3>Save and share your best work</h3>
+              <p>Keep it private, send an unlisted link, or publish when ready.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="support-section">
+        <div className="support-copy">
+          <h2 className="h2">Save and share your best work.</h2>
+          <p>
+            Keep reusable Templates and ready Prompts in one library. Share private
+            links, publish useful work, or come back to the prompts you use often.
+          </p>
+          <div className="support-actions">
+            <Link className="btn btn-ghost btn-sm" href="/my">
+              Open My Library
+            </Link>
+            <Link className="btn btn-ghost btn-sm" href="/submit-template">
+              Submit a template
+            </Link>
+          </div>
+        </div>
+        <div className="support-panel" aria-label="Library, sharing, and publishing">
+          <div className="support-row">
+            <span className="support-icon support-icon-template" aria-hidden="true">
+              <Icon name="list" size={16} />
+            </span>
+            <div>
+              <strong>Library</strong>
+              <span>Keep Templates and Prompts together</span>
+            </div>
+          </div>
+          <div className="support-row">
+            <span className="support-icon support-icon-prompt" aria-hidden="true">
+              <Icon name="share" size={16} />
+            </span>
+            <div>
+              <strong>Share</strong>
+              <span>Send an unlisted link when ready</span>
+            </div>
+          </div>
+          <div className="support-row">
+            <span className="support-icon" aria-hidden="true">
+              <Icon name="megaphone" size={16} />
+            </span>
+            <div>
+              <strong>Publish</strong>
+              <span>Make useful work discoverable</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pricing-teaser">
+        <div className="pt-copy">
+          <h2 className="h2">Core browsing is free.</h2>
+          <p>
+            Browse, copy, create, and save prompts for free. Pro Boosters add sharper
+            building blocks for {config.pricing.lifetime}.
+          </p>
+        </div>
+        <Link className="btn btn-ghost" href="/pricing">
+          See pricing
         </Link>
+      </section>
+
+      <section className="closing">
+        <div className="closing-copy">
+          <h2 className="h2">Find the prompt that gets you moving.</h2>
+          <p>
+            Start from the catalog, then copy, save, or build only when you need
+            something more specific.
+          </p>
+        </div>
+        <div className="closing-panel">
+          <div className="closing-rows" aria-hidden="true">
+            <span>
+              <Icon name="list" size={16} /> Templates for repeat work
+            </span>
+            <span>
+              <Icon name="code" size={16} /> Prompts ready to copy
+            </span>
+          </div>
+          <div className="closing-actions">
+            <Link className="btn btn-primary btn-lg" href="/templates">
+              Browse templates
+            </Link>
+            <Link className="btn btn-ink btn-lg" href="/prompts">
+              Browse prompts
+            </Link>
+          </div>
+        </div>
       </section>
     </main>
   );

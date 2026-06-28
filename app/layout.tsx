@@ -27,31 +27,31 @@ const SITE = "https://easyprompt.app";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "EasyPrompt — Fill. Copy. Paste.",
-    template: "%s · EasyPrompt",
+    default: "EasyPrompt - Reusable prompt workspace",
+    template: "%s - EasyPrompt",
   },
   description:
-    "A prompt builder for everyone. Pick a template, fill out a short form, and get a perfectly crafted prompt to paste into ChatGPT, Claude, or Gemini. Free to use — create a free account to save prompts and build your own templates. Optional Pro Boosters sharpen the output.",
+    "Browse reusable AI prompt Templates and ready-to-copy Prompts for ChatGPT, Claude, Gemini, and Codex. Build your own when the catalog does not fit.",
   keywords: [
-    "AI prompt generator",
-    "prompt builder",
+    "AI prompt templates",
+    "reusable prompts",
     "ChatGPT prompts",
     "Claude prompts",
-    "free prompt templates",
+    "ready-to-copy prompts",
   ],
   openGraph: {
     type: "website",
     siteName: "EasyPrompt",
-    title: "EasyPrompt — Fill. Copy. Paste.",
+    title: "EasyPrompt - Reusable prompt workspace",
     description:
-      "Pick a template, fill a short form, get a perfectly crafted AI prompt. Free to use — save your work with a free account.",
+      "Browse reusable Templates, copy ready Prompts, and build your own when nothing fits.",
     url: SITE,
   },
   twitter: {
     card: "summary_large_image",
-    title: "EasyPrompt — Fill. Copy. Paste.",
+    title: "EasyPrompt - Reusable prompt workspace",
     description:
-      "Pick a template, fill a short form, get a perfectly crafted AI prompt. Free to use — save your work with a free account.",
+      "Browse reusable Templates, copy ready Prompts, and build your own when nothing fits.",
   },
 };
 
