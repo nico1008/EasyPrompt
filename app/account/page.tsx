@@ -55,7 +55,7 @@ export default async function AccountPage() {
           </div>
 
           <nav className="account-nav" aria-label="Settings sections">
-            <a href="#public-profile">
+            <a className="is-active" href="#public-profile" aria-current="true">
               <Icon name="user" size={15} /> Public profile
             </a>
             <a href="#password">

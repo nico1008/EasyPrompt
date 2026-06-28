@@ -126,7 +126,7 @@ export function AccountForms({
           )}
         </div>
         <Feedback state={profileState} />
-        <div>
+        <div className="account-section-foot">
           <SaveButton label="Save profile" />
         </div>
       </form>
@@ -152,7 +152,7 @@ export function AccountForms({
           )}
         </div>
         <Feedback state={pwState} />
-        <div>
+        <div className="account-section-foot">
           <SaveButton label="Update password" />
         </div>
       </form>

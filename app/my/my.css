@@ -719,42 +719,48 @@
 }
 
 /* Account settings */
+.account-page {
+  position: relative;
+  background: rgba(255, 255, 255, 0.86);
+}
 .account-layout {
-  width: min(1080px, calc(100% - 40px));
+  width: min(900px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 36px 0 88px;
+  padding: 28px 0 72px;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: 214px minmax(0, 1fr);
+  gap: 16px;
   align-items: start;
 }
 .account-sidebar {
   position: sticky;
-  top: 84px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.account-side-card {
-  padding: 16px;
-  border: 1px solid var(--line-1);
-  border-radius: var(--r-3);
-  background: var(--bg-1);
-  box-shadow: var(--shadow-1);
+  top: 72px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+.account-side-card {
+  order: 2;
+  padding: 12px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-2);
+  background: rgba(255, 255, 255, 0.72);
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 8px 10px;
+  align-items: center;
+}
 .account-avatar {
-  width: 54px;
-  height: 54px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   border: 1px solid var(--line-3);
   background: var(--accent-soft);
   color: var(--accent);
-  font: 700 20px var(--font-sans);
+  font: 700 13px var(--font-sans);
+  grid-row: span 3;
 }
 .account-side-id {
   min-width: 0;
@@ -763,12 +769,12 @@
   gap: 4px;
 }
 .account-side-id strong {
-  font: 700 15px var(--font-sans);
+  font: 700 13px var(--font-sans);
   color: var(--fg-1);
   overflow-wrap: anywhere;
 }
 .account-side-id span {
-  font: 500 12px var(--font-mono);
+  font: 500 11px var(--font-mono);
   color: var(--fg-3);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -776,11 +782,12 @@
 }
 .account-visibility {
   width: fit-content;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: var(--r-1);
   background: var(--bg-3);
   color: var(--fg-3);
-  font: 600 11px var(--font-sans);
+  font: 600 10px var(--font-sans);
+  grid-column: 2;
 }
 .account-visibility.is-public {
   background: #e6f6ee;
@@ -788,9 +795,10 @@
 }
 .account-public-link {
   width: fit-content;
-  font: 600 13px var(--font-sans);
+  font: 600 12px var(--font-sans);
   color: var(--accent);
   text-decoration: none;
+  grid-column: 2;
 }
 .account-public-link:hover {
   text-decoration: underline;
@@ -803,16 +811,18 @@
   border: 1px solid var(--line-1);
   border-radius: var(--r-3);
   background: var(--bg-1);
+  box-shadow: 0 6px 12px rgba(15, 15, 30, 0.05);
 }
 .account-nav a {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 10px;
+  padding: 10px;
   border-radius: var(--r-2);
   font: 600 13px var(--font-sans);
   color: var(--fg-2);
   text-decoration: none;
+  border: 1px solid transparent;
 }
 .account-nav a svg {
   color: var(--fg-3);
@@ -824,11 +834,21 @@
 .account-nav a:hover svg {
   color: var(--accent);
 }
+.account-nav a.is-active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: rgba(91, 91, 255, 0.18);
+}
+.account-nav a.is-active svg {
+  color: var(--accent);
+}
 .account-main {
   min-width: 0;
+  max-width: 620px;
 }
 .account-head {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
+  padding: 2px 2px 0;
 }
 .account-kicker {
   display: block;
@@ -839,7 +859,7 @@
   color: var(--accent);
 }
 .account-head h1 {
-  font: 700 32px/1.1 var(--font-sans);
+  font: 700 28px/1.12 var(--font-sans);
   letter-spacing: -0.025em;
   margin: 0;
   color: var(--fg-1);
@@ -851,23 +871,39 @@
   line-height: 1.55;
 }
 .account-card {
-  padding: 24px;
-  margin-bottom: 16px;
+  padding: 18px 20px 0;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  scroll-margin-top: 92px;
+  gap: 12px;
+  scroll-margin-top: 84px;
+  overflow: hidden;
 }
 .account-card h2 {
-  font: 700 18px var(--font-sans);
+  font: 700 17px var(--font-sans);
   letter-spacing: -0.01em;
   margin: 0;
   color: var(--fg-1);
+}
+.account-card .field {
+  max-width: 440px;
+}
+.account-card .input {
+  width: 100%;
 }
 .account-card .muted {
   font-size: 13px;
   color: var(--fg-3);
   margin: 0;
+  max-width: 56ch;
+}
+.account-section-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin: 2px -20px 0;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line-1);
+  background: var(--bg-2);
 }
 .account-ok {
   font-size: 13px;
@@ -881,6 +917,7 @@
 }
 .account-danger {
   border-color: #f0c8c4;
+  padding-bottom: 18px;
 }
 .account-toggle label {
   display: flex;
@@ -915,20 +952,21 @@
     width: min(100% - 32px, 680px);
     padding-top: 24px;
     grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 14px;
   }
   .account-sidebar {
     position: static;
   }
   .account-side-card {
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: 38px minmax(0, 1fr);
     align-items: center;
+    order: 1;
   }
   .account-avatar {
-    width: 48px;
-    height: 48px;
-    font-size: 18px;
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
     grid-row: span 3;
   }
   .account-visibility,
@@ -940,6 +978,10 @@
     grid-template-columns: 1fr 1fr;
   }
   .account-card {
-    padding: 20px;
+    padding: 18px 18px 0;
+  }
+  .account-section-foot {
+    margin-inline: -18px;
+    padding-inline: 18px;
   }
 }

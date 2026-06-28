@@ -73,7 +73,7 @@ export function ProSection({
           {state.error}
         </p>
       )}
-      <div>
+      <div className="account-section-foot">
         <RedeemButton />
       </div>
     </form>
