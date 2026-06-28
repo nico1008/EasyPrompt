@@ -8,7 +8,7 @@ import type { CommunityAuthor } from "@/lib/community/map";
 export type Origin = "house" | "community";
 
 /** Who made an item. House = first-party ("EasyPrompt"); community = an author
- *  (null when they haven't opted their profile public). */
+ *  (null when the author has no username). */
 export type Creator = { kind: "house" } | { kind: "community"; author: CommunityAuthor | null };
 
 export type PromptMetricKind = "example_prompt" | "user_prompt";

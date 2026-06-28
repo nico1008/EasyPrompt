@@ -1,8 +1,7 @@
 import "server-only";
 
-/* Public profile reads via the security-definer public_profile* RPCs (opt-in:
- * they return rows only when profiles.is_public = true). Anon-safe; never reads the
- * signed-in user, so the /u/[username] route stays cacheable (ISR). */
+/* Public profile reads via the security-definer public_profile* RPCs. Anon-safe;
+ * never reads the signed-in user, so the /[username] route stays cacheable. */
 
 import { createPublicClient } from "@/lib/supabase/server";
 import type { IconName } from "@/components/iconNames";

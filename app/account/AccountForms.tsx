@@ -22,7 +22,7 @@ function SaveButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
     <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>
-      {pending ? "Saving…" : label}
+      {pending ? "Saving..." : label}
     </button>
   );
 }
@@ -38,21 +38,19 @@ export function AccountForms({
   displayName,
   username,
   bio,
-  isPublic,
 }: {
   email: string;
   displayName: string;
   username: string;
   bio: string;
-  isPublic: boolean;
 }) {
   const [profileState, profileAction] = useActionState(updateProfileAction, EMPTY);
   const [pwState, pwAction] = useActionState(updatePasswordAction, EMPTY);
 
   return (
     <>
-      <form id="public-profile" action={profileAction} className="panel account-card account-section">
-        <h2>Public profile</h2>
+      <form id="profile" action={profileAction} className="panel account-card account-section">
+        <h2>Profile</h2>
         <div className="field">
           <label htmlFor="a-email">Email</label>
           <input id="a-email" className="input" value={email} disabled readOnly />
@@ -83,9 +81,15 @@ export function AccountForms({
             className="input"
             defaultValue={username}
             placeholder="username"
+            required
             aria-invalid={profileState.fieldErrors?.username ? true : undefined}
-            aria-describedby={profileState.fieldErrors?.username ? "a-user-err" : undefined}
+            aria-describedby={
+              profileState.fieldErrors?.username ? "a-user-err a-user-help" : "a-user-help"
+            }
           />
+          <span id="a-user-help" className="helper">
+            Your profile lives at /{username || "username"}.
+          </span>
           {profileState.fieldErrors?.username && (
             <span id="a-user-err" className="account-err" role="alert">
               {profileState.fieldErrors.username[0]}
@@ -100,7 +104,7 @@ export function AccountForms({
             className="input"
             rows={3}
             defaultValue={bio}
-            placeholder="A short line about you (shown on your public profile)."
+            placeholder="A short line about you."
             aria-invalid={profileState.fieldErrors?.bio ? true : undefined}
             aria-describedby={profileState.fieldErrors?.bio ? "a-bio-err" : undefined}
           />
@@ -110,21 +114,11 @@ export function AccountForms({
             </span>
           )}
         </div>
-        <div className="field account-toggle">
-          <label htmlFor="a-public">
-            <input id="a-public" name="is_public" type="checkbox" defaultChecked={isPublic} />
-            Make my profile public
-          </label>
-          <span className="helper">
-            Lists your published Prompts &amp; Templates at{" "}
-            {username ? <code>/u/{username}</code> : "/u/your-username"} with your name. Off by default.
-          </span>
-          {isPublic && username && (
-            <Link className="account-profile-link" href={`/u/${username}`}>
-              View public profile →
-            </Link>
-          )}
-        </div>
+        {username && (
+          <Link className="account-profile-link" href={`/${username}`}>
+            View profile
+          </Link>
+        )}
         <Feedback state={profileState} />
         <div className="account-section-foot">
           <SaveButton label="Save profile" />

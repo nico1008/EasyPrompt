@@ -44,16 +44,15 @@ export function UserMenu({
     };
   }, [open]);
 
-  const publicProfileHref =
-    profile?.isPublic && profile.username ? `/u/${profile.username}` : null;
-  const accountHref = publicProfileHref ?? "/account#public-profile";
-  const accountLabel = publicProfileHref ? "Your account" : "Set up public profile";
+  const profileHref = profile?.username ? `/${profile.username}` : null;
+  const accountHref = profileHref ?? "/account#profile";
+  const accountLabel = "Your account";
   const accountTitle =
-    publicProfileHref && profile?.displayName
+    profileHref && profile?.displayName
       ? profile.displayName
-      : publicProfileHref
+      : profileHref
         ? `@${profile?.username}`
-        : "Create a public profile";
+        : "Set your username";
 
   return (
     <div className="user-menu" ref={ref}>

@@ -25,7 +25,7 @@ export default async function SignupPage({
     <AuthShell
       eyebrow="Get started"
       title="Create your account"
-      subtitle="Save prompts, build your own templates, and pick up where you left off."
+      subtitle="Choose your username, save prompts, and build your own templates."
     >
       <SignupForm next={next} />
     </AuthShell>

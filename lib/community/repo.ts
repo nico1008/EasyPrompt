@@ -1,8 +1,8 @@
 import "server-only";
 
 /* Server reads for community (user-published) content via the security-definer
- * community_* RPCs (exact-slug, visibility-gated, author-gated). Used by the public
- * detail routes for rich, indexable rendering. Anon-safe. */
+ * community_* RPCs (exact-slug, visibility-gated). Used by the public detail
+ * routes for rich, indexable rendering. Anon-safe. */
 
 import { createPublicClient } from "@/lib/supabase/server";
 import { buildPrompt, buildPromptFromBlocks, type Answers } from "@/lib/buildPrompt";

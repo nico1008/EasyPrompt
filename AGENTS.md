@@ -124,13 +124,13 @@ surface in the UI (no "Built / Saved / Authored / Notebook" wording).
   (`setVisibilityAction`) writes it (RLS owner-only); publishing a Prompt freezes its text into
   `saved_prompts.body`. Public reads go through security-definer, exact-slug, visibility-gated RPCs
   (`shared_template`/`shared_prompt`/`shared_notebook`) — no enumeration, no owner leak.
-- **Community & profiles (shipped):** opt-in public profiles (`/u/[username]`), community
+- **Community & profiles (shipped):** username-based public profiles (`/[username]`), community
   discovery/listing, and remix attribution are live — see "Community, profiles & metrics" below.
   Users submit a template to the community via `/submit-template`.
 - **Still deferred:** Import (link + paste — `source_kind='import'`) and AI generation
   (`source_kind='ai'`) — both kinds exist in the enum but have no `lib/` module or route yet.
-  `user_templates.is_public` still coexists with `visibility` (the planned `0008` consolidation was
-  never written; the app mirrors `is_public` to `visibility`). *(Manual Prompt creation + the Markdown
+  `user_templates.is_public` still coexists with `visibility` as a legacy column (the planned `0008`
+  consolidation was never written); the app uses `visibility` for sharing. *(Manual Prompt creation + the Markdown
   editor + community listing/profiles are all **shipped**, not deferred.)*
 
 ## Accounts (Supabase)
@@ -153,10 +153,11 @@ Optional; everything checks `isSupabaseConfigured()` (`lib/supabase/env.ts`) fir
   (ratings, bookmarks, `prompt_notebooks`) · `0006_notebook_versions_sharing` (version history +
   `share_slug` + `shared_notebook`) · `0007_content_model` (unified Templates/Prompts `visibility` +
   `share_slug` + `shared_*` RPCs) · `0009_interaction_metrics` (usage "Uses" tracking) ·
-  `0010_profiles_and_remix` (opt-in `profiles.is_public` + `bio`, `saved_prompts.remixed_from`) ·
+  `0010_profiles_and_remix` (`profiles.bio`, legacy `profiles.is_public`, `saved_prompts.remixed_from`) ·
   `0011_community_rpcs` (`published_*`/`community_*`/`public_profile*` listing RPCs) ·
   `0012_community_prompt_id` · `0013_profile_content_preview` · `0014_prompt_category_and_listing`
-  (`saved_prompts.category` + listing-RPC reshape). **Additive-only** throughout. Apply migrations
+  (`saved_prompts.category` + listing-RPC reshape) · `0015_username_accounts` (required usernames,
+  `username_available`, root profile URLs, and username-based public profile RPCs). **Additive-only** throughout. Apply migrations
   *before* deploying matching code, and keep `lib/supabase/types.ts` (the TS schema source of truth)
   in sync with the SQL.
 - **Reuse:** a `user_templates` row → catalog `Template` via `lib/userTemplates/map.ts`, so the same
@@ -192,17 +193,17 @@ Pro/premium is a stateless HMAC token (`lib/access/token.ts`) the client holds i
 ## Community, profiles & metrics
 All public read paths are **security-definer RPCs** (`search_path=''`, granted to `anon` +
 `authenticated`); RLS on the base tables stays owner-only, so these RPCs are the *only* way anyone
-reads another user's rows. Author identity (`username`/`display_name`) is exposed **only** when that
-author's `profiles.is_public = true` — published content from a non-opted-in author carries no link.
+reads another user's rows. Author identity (`username`/`display_name`) is exposed when the author has
+a username. Content exposure is still controlled per Template/Prompt by `visibility`.
 - **Discovery / listing:** `published_prompts` / `published_templates` (newest-first, paginated;
   short `preview` only, full body fetched lazily on copy) back the community browse grids
   (`lib/community/`, `lib/browse/`). Detail-by-slug via `community_prompt` / `community_template`.
-- **Public profiles:** `/u/[username]` → `public_profile` (+ on-read `reputation`, a 90-day capped
+- **Public profiles:** `/[username]` → `public_profile` (+ on-read `reputation`, a 90-day capped
   sum of distinct anonymized actors) and `public_profile_content` (the author's published cards).
-  `lib/profiles/repo.ts`. Profiles are **private by default**; the owner opts in on `/account`, which
-  is the account settings page. In the signed-in avatar menu, **Your account** links to `/u/[username]`
-  only when the owner has both a username and `profiles.is_public = true`; otherwise it falls back to
-  `/account#public-profile`. The separate **Settings** item always links to `/account`.
+  `lib/profiles/repo.ts`. Username is required at signup; legacy `/u/[username]` redirects to
+  `/[username]`. The signed-in avatar menu links **Your account** to `/{username}` when a username
+  exists, otherwise it falls back to `/account#profile`. The separate **Settings** item always links
+  to `/account`.
 - **Remix:** "Use as starting point" forks a community Prompt into the user's library, recording a
   structured `saved_prompts.remixed_from` pointer (the remixer can't read the source row under RLS).
 - **Usage metrics ("Uses"):** `POST /api/track` (Node, fire-and-forget, 204) → `record_interaction`

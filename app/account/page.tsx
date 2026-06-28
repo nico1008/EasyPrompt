@@ -22,14 +22,13 @@ export default async function AccountPage() {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, bio, is_public")
+    .select("username, display_name, bio")
     .eq("id", user.id)
     .maybeSingle();
 
   const entitlement = await getEntitlement();
   const email = user.email ?? "";
   const username = profile?.username ?? "";
-  const isPublic = profile?.is_public ?? false;
   const initial = (email.trim()[0] ?? "?").toUpperCase();
 
   return (
@@ -44,19 +43,16 @@ export default async function AccountPage() {
               <strong>{profile?.display_name || username || "Your account"}</strong>
               <span title={email}>{email}</span>
             </div>
-            <span className={`account-visibility ${isPublic ? "is-public" : ""}`}>
-              {isPublic ? "Public profile" : "Private profile"}
-            </span>
-            {isPublic && username ? (
-              <Link className="account-public-link" href={`/u/${username}`}>
-                View public profile
+            {username ? (
+              <Link className="account-public-link" href={`/${username}`}>
+                View profile
               </Link>
             ) : null}
           </div>
 
           <nav className="account-nav" aria-label="Settings sections">
-            <a className="is-active" href="#public-profile" aria-current="true">
-              <Icon name="user" size={15} /> Public profile
+            <a className="is-active" href="#profile" aria-current="true">
+              <Icon name="user" size={15} /> Profile
             </a>
             <a href="#password">
               <Icon name="shield" size={15} /> Password
@@ -82,7 +78,6 @@ export default async function AccountPage() {
             displayName={profile?.display_name ?? ""}
             username={username}
             bio={profile?.bio ?? ""}
-            isPublic={isPublic}
           />
           <ProSection
             currentPlan={entitlement?.plan ?? null}

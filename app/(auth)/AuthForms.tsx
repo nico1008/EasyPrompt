@@ -75,6 +75,24 @@ export function LoginForm({ next }: { next?: string }) {
         <FieldErr id="email-err" errs={state.fieldErrors?.email} />
       </div>
       <div className="field">
+        <label htmlFor="username">Username</label>
+        <input
+          id="username"
+          name="username"
+          className="input"
+          autoComplete="username"
+          required
+          aria-invalid={state.fieldErrors?.username ? true : undefined}
+          aria-describedby={
+            state.fieldErrors?.username ? "username-err username-help" : "username-help"
+          }
+        />
+        <span id="username-help" className="helper">
+          Your profile will live at /username.
+        </span>
+        <FieldErr id="username-err" errs={state.fieldErrors?.username} />
+      </div>
+      <div className="field">
         <label htmlFor="password">Password</label>
         <input
           id="password"

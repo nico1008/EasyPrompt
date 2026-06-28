@@ -20,7 +20,7 @@ export async function GET(): Promise<Response> {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, display_name, is_public")
+      .select("username, display_name")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -31,7 +31,6 @@ export async function GET(): Promise<Response> {
         profile: {
           username: profile?.username ?? null,
           displayName: profile?.display_name ?? null,
-          isPublic: profile?.is_public ?? false,
         },
       },
     });

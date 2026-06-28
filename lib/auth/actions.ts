@@ -71,6 +71,7 @@ export async function signUpAction(
 
   const parsed = signUpSchema.safeParse({
     email: formData.get("email"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
   if (!parsed.success) {
@@ -80,10 +81,26 @@ export async function signUpAction(
 
   const next = safeNext(formData.get("next"));
   const supabase = await createClient();
+  const { data: usernameAvailable, error: usernameError } = await supabase.rpc(
+    "username_available",
+    {
+      p_username: parsed.data.username,
+    }
+  );
+  if (usernameError) {
+    return { error: "Couldn't check that username. Please try again." };
+  }
+  if (!usernameAvailable) {
+    return { fieldErrors: { username: ["That username is already taken."] } };
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
+      data: {
+        username: parsed.data.username,
+      },
       emailRedirectTo: `${await siteOrigin()}/auth/confirm?next=${encodeURIComponent(
         next
       )}`,
@@ -202,24 +219,17 @@ export async function updateProfileAction(
 
   // Coerce empty strings to undefined so blanks clear instead of failing rules.
   const rawName = (formData.get("display_name") as string | null)?.trim() || undefined;
-  const rawUser = (formData.get("username") as string | null)?.trim() || undefined;
+  const rawUser = (formData.get("username") as string | null)?.trim() || "";
   const rawBio = (formData.get("bio") as string | null)?.trim() || undefined;
-  const isPublic = formData.get("is_public") === "on";
 
   const parsed = profileSchema.safeParse({
     display_name: rawName,
     username: rawUser,
     bio: rawBio,
-    is_public: isPublic,
   });
   if (!parsed.success) {
     const { fieldErrors } = z.flattenError(parsed.error);
     return { fieldErrors };
-  }
-
-  // A public profile needs a username to live at /u/<username>.
-  if (parsed.data.is_public && !parsed.data.username) {
-    return { fieldErrors: { username: ["Pick a username to make your profile public."] } };
   }
 
   const supabase = await createClient();
@@ -228,13 +238,18 @@ export async function updateProfileAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Please log in again." };
 
+  const { data: currentProfile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("profiles")
     .update({
       display_name: parsed.data.display_name ?? null,
-      username: parsed.data.username ?? null,
+      username: parsed.data.username,
       bio: parsed.data.bio ?? null,
-      is_public: parsed.data.is_public ?? false,
     })
     .eq("id", user.id);
 
@@ -246,7 +261,10 @@ export async function updateProfileAction(
 
   revalidatePath("/", "layout");
   revalidatePath("/account");
-  if (parsed.data.username) revalidatePath(`/u/${parsed.data.username}`);
+  revalidatePath(`/${parsed.data.username}`);
+  if (currentProfile?.username && currentProfile.username !== parsed.data.username) {
+    revalidatePath(`/${currentProfile.username}`);
+  }
   return { ok: true, message: "Profile saved." };
 }
 

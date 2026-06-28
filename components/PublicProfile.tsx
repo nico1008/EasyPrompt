@@ -3,17 +3,16 @@ import { ReputationBadge } from "./ReputationBadge";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import type { PublicProfile as Profile, PublicProfileItem } from "@/lib/profiles/repo";
 
-/* Public, indexable profile (/u/<username>). Shows contributions + helpfulness —
- * never vanity metrics. Header (identicon + name + bio + stats + reputation tier),
- * then a grid of the author's published Prompts/Templates reusing the community
- * card shell. Server component (no client state); UsesBadge hydrates per card. */
+/* Public, indexable profile (/<username>). Shows contributions and helpfulness.
+ * Header includes identity, bio, stats, and reputation. The grid reuses the
+ * community card shell. */
 
 function initial(name: string): string {
   return (name.trim()[0] || "?").toUpperCase();
 }
 
-/* Profile items render with the SAME CommunityCard as the catalog community
-   sections. author is null — no self-link chip on your own profile. */
+/* Profile items render with the same CommunityCard as the catalog community
+   sections. author is null, so there is no self-link chip on your own profile. */
 function toCard(it: PublicProfileItem): CommunityCardModel {
   return {
     objectType: it.objectType,
@@ -61,11 +60,11 @@ export function PublicProfile({
               <span>
                 <strong>{items.length}</strong> published
               </span>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true">.</span>
               <span>
                 <strong>{totalUses}</strong> {totalUses === 1 ? "use" : "uses"}
               </span>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true">.</span>
               <span>Member since {since}</span>
             </div>
           </div>

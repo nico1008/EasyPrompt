@@ -2,11 +2,9 @@ import Link from "next/link";
 import { Icon } from "./Icon";
 import type { CommunityAuthor } from "@/lib/community/map";
 
-/* Author attribution on community cards/detail. Links to the author's public
- * profile — but ONLY renders when the author opted their profile public (the
- * listing RPCs return a handle only then), so non-opted-in authors stay private.
- * `stopPropagation` so a tap on the chip inside a card navigates to the profile,
- * not the card. */
+/* Author attribution on community cards/detail. Links to the author's account
+ * profile when the RPC returns a username. `stopPropagation` keeps taps on the
+ * chip inside a card from navigating to the card itself. */
 export function AuthorChip({
   author,
   className,
@@ -19,7 +17,7 @@ export function AuthorChip({
   return (
     <Link
       className={`author-chip${className ? ` ${className}` : ""}`}
-      href={`/u/${author.username}`}
+      href={`/${author.username}`}
       onClick={(e) => e.stopPropagation()}
       title={`@${author.username}`}
       aria-label={`Creator: @${author.username}`}

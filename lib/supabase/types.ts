@@ -1,6 +1,6 @@
 /* Database types for the typed Supabase client.
  *
- * Hand-written to match supabase/migrations/0001_accounts.sql. If you wire up
+ * Hand-written to match supabase/migrations through 0015. If you wire up
  * the Supabase CLI you can regenerate this with:
  *   supabase gen types typescript --project-id <ref> > lib/supabase/types.ts
  * Keep the two in sync — the migration is the source of truth for the DB; this
@@ -351,6 +351,10 @@ export interface Database {
       delete_current_user: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      username_available: {
+        Args: { p_username: string };
+        Returns: boolean;
       };
       rating_aggregate: {
         Args: { p_target_kind: string; p_target_key: string };

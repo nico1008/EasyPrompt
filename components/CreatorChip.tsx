@@ -2,11 +2,10 @@ import Link from "next/link";
 import { Icon } from "./Icon";
 import type { Creator } from "@/lib/browse/types";
 
-/* The creator byline shown on detail pages (prompt + template), identical on both:
- *   - house → a brand disc + "EasyPrompt" + a verified tick (non-link);
- *   - community → the author's avatar + name, linking to their public profile
- *     (renders only when they opted public; null otherwise — privacy preserved).
- * A borderless verified-byline treatment — see `.creator-tag` in globals.css. */
+/* The creator byline shown on detail pages:
+ *   - house -> a brand disc + "EasyPrompt" + a verified tick;
+ *   - community -> the author's avatar + name, linking to their account profile.
+ */
 export function CreatorChip({ creator }: { creator: Creator }) {
   if (creator.kind === "house") {
     return (
@@ -29,7 +28,7 @@ export function CreatorChip({ creator }: { creator: Creator }) {
   return (
     <Link
       className="creator-tag is-community"
-      href={`/u/${author.username}`}
+      href={`/${author.username}`}
       aria-label={`Creator: @${author.username}`}
     >
       <span className="ct-avatar ct-avatar-initial" aria-hidden="true">
