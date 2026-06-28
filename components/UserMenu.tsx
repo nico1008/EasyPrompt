@@ -1,11 +1,12 @@
 "use client";
 
-/* Signed-in nav control: an avatar button that opens a small menu with links to
- * the dashboard + settings and a Log out form (posts to the signOutAction server
- * action). Closes on outside-click and Escape. */
+/* Signed-in nav control: an avatar button that opens a grouped account menu.
+ * Log out posts to the signOutAction server action. Closes on outside-click and
+ * Escape. */
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { signOutAction } from "@/lib/auth/actions";
 import "./UserMenu.css";
 
@@ -51,25 +52,45 @@ export function UserMenu({ email }: { email: string }) {
       </button>
 
       {open && (
-        <div className="user-pop" role="menu">
-          <div className="user-pop-email" title={email}>
-            {email}
+        <div className="user-pop" role="menu" aria-label="Account menu">
+          <div className="user-pop-head">
+            <span className="user-pop-avatar" aria-hidden="true">
+              {initial}
+            </span>
+            <div className="user-pop-id">
+              <strong>Signed in as</strong>
+              <span title={email}>{email}</span>
+            </div>
           </div>
-          <Link role="menuitem" href="/my" onClick={() => setOpen(false)}>
-            My prompts
+
+          <Link
+            className="user-account-link"
+            role="menuitem"
+            href="/account"
+            onClick={() => setOpen(false)}
+          >
+            <Icon name="user" size={14} />
+            Your account
           </Link>
-          <Link role="menuitem" href="/my/library" onClick={() => setOpen(false)}>
-            Library
-          </Link>
-          <Link role="menuitem" href="/build" onClick={() => setOpen(false)}>
-            New prompt
-          </Link>
-          <Link role="menuitem" href="/my/templates/new" onClick={() => setOpen(false)}>
-            New template
-          </Link>
-          <Link role="menuitem" href="/account" onClick={() => setOpen(false)}>
-            Account settings
-          </Link>
+
+          <div className="user-pop-group">
+            <Link role="menuitem" href="/my?filter=prompts" onClick={() => setOpen(false)}>
+              My prompts
+            </Link>
+            <Link role="menuitem" href="/my" onClick={() => setOpen(false)}>
+              My library
+            </Link>
+          </div>
+
+          <div className="user-pop-group">
+            <Link role="menuitem" href="/build/prompt" onClick={() => setOpen(false)}>
+              New prompt
+            </Link>
+            <Link role="menuitem" href="/build/template" onClick={() => setOpen(false)}>
+              New template
+            </Link>
+          </div>
+
           <form action={signOutAction} className="user-pop-logout">
             <button type="submit" role="menuitem">
               Log out

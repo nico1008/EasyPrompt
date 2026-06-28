@@ -51,8 +51,8 @@ export function AccountForms({
 
   return (
     <>
-      <form action={profileAction} className="panel account-card">
-        <h2>Profile</h2>
+      <form id="public-profile" action={profileAction} className="panel account-card account-section">
+        <h2>Public profile</h2>
         <div className="field">
           <label htmlFor="a-email">Email</label>
           <input id="a-email" className="input" value={email} disabled readOnly />
@@ -131,7 +131,7 @@ export function AccountForms({
         </div>
       </form>
 
-      <form action={pwAction} className="panel account-card">
+      <form id="password" action={pwAction} className="panel account-card account-section">
         <h2>Password</h2>
         <div className="field">
           <label htmlFor="a-pw">New password</label>
@@ -156,17 +156,21 @@ export function AccountForms({
           <SaveButton label="Update password" />
         </div>
       </form>
-
-      <CrosshairCard className="panel account-card account-danger">
-        <h2>Delete account</h2>
-        <p className="muted">
-          Permanently deletes your account and every template and saved prompt you
-          own. This can&apos;t be undone.
-        </p>
-        <form action={deleteAccountAction}>
-          <ConfirmButton label="Delete my account" confirmLabel="Yes, delete everything" />
-        </form>
-      </CrosshairCard>
     </>
+  );
+}
+
+export function AccountDangerZone() {
+  return (
+    <CrosshairCard id="danger-zone" className="panel account-card account-section account-danger">
+      <h2>Danger zone</h2>
+      <p className="muted">
+        Permanently deletes your account and every template and saved prompt you
+        own. This can&apos;t be undone.
+      </p>
+      <form action={deleteAccountAction}>
+        <ConfirmButton label="Delete my account" confirmLabel="Yes, delete everything" />
+      </form>
+    </CrosshairCard>
   );
 }

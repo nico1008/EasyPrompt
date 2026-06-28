@@ -46,7 +46,7 @@ export function ProSection({
   const until = entExp ? new Date(entExp).toLocaleDateString() : null;
 
   return (
-    <form action={action} className="panel account-card">
+    <form id="pro" action={action} className="panel account-card account-section">
       <h2>Pro</h2>
       {plan ? (
         <p className="account-ok" role="status">
