@@ -196,7 +196,10 @@ author's `profiles.is_public = true` — published content from a non-opted-in a
   (`lib/community/`, `lib/browse/`). Detail-by-slug via `community_prompt` / `community_template`.
 - **Public profiles:** `/u/[username]` → `public_profile` (+ on-read `reputation`, a 90-day capped
   sum of distinct anonymized actors) and `public_profile_content` (the author's published cards).
-  `lib/profiles/repo.ts`. Profiles are **private by default**; the owner opts in on `/account`.
+  `lib/profiles/repo.ts`. Profiles are **private by default**; the owner opts in on `/account`, which
+  is the account settings page. In the signed-in avatar menu, **Your account** links to `/u/[username]`
+  only when the owner has both a username and `profiles.is_public = true`; otherwise it falls back to
+  `/account#public-profile`. The separate **Settings** item always links to `/account`.
 - **Remix:** "Use as starting point" forks a community Prompt into the user's library, recording a
   structured `saved_prompts.remixed_from` pointer (the remixer can't read the source row under RLS).
 - **Usage metrics ("Uses"):** `POST /api/track` (Node, fire-and-forget, 204) → `record_interaction`

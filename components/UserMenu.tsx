@@ -6,15 +6,63 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { signOutAction } from "@/lib/auth/actions";
+import { createClient } from "@/lib/supabase/client";
 import "./UserMenu.css";
+
+type MenuProfile = {
+  username: string | null;
+  displayName: string | null;
+  isPublic: boolean;
+};
 
 export function UserMenu({ email }: { email: string }) {
   const [open, setOpen] = useState(false);
+  const [profile, setProfile] = useState<MenuProfile | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
   const initial = (email.trim()[0] ?? "?").toUpperCase();
+
+  useEffect(() => {
+    let active = true;
+    const supabase = createClient();
+
+    async function loadProfile() {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const user = data.user;
+        if (!user) {
+          if (active) setProfile(null);
+          return;
+        }
+
+        const { data: row } = await supabase
+          .from("profiles")
+          .select("username, display_name, is_public")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (active) {
+          setProfile({
+            username: row?.username ?? null,
+            displayName: row?.display_name ?? null,
+            isPublic: row?.is_public ?? false,
+          });
+        }
+      } catch {
+        if (active) setProfile(null);
+      }
+    }
+
+    void loadProfile();
+
+    return () => {
+      active = false;
+    };
+  }, [email, pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -36,6 +84,17 @@ export function UserMenu({ email }: { email: string }) {
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  const publicProfileHref =
+    profile?.isPublic && profile.username ? `/u/${profile.username}` : null;
+  const accountHref = publicProfileHref ?? "/account#public-profile";
+  const accountLabel = publicProfileHref ? "Your account" : "Set up public profile";
+  const accountTitle =
+    publicProfileHref && profile?.displayName
+      ? profile.displayName
+      : publicProfileHref
+        ? `@${profile?.username}`
+        : "Create a public profile";
 
   return (
     <div className="user-menu" ref={ref}>
@@ -66,14 +125,20 @@ export function UserMenu({ email }: { email: string }) {
           <Link
             className="user-account-link"
             role="menuitem"
-            href="/account"
+            href={accountHref}
             onClick={() => setOpen(false)}
           >
             <Icon name="user" size={14} />
-            Your account
+            <span className="user-account-copy">
+              <span>{accountLabel}</span>
+              <small>{accountTitle}</small>
+            </span>
           </Link>
 
           <div className="user-pop-group">
+            <Link role="menuitem" href="/account" onClick={() => setOpen(false)}>
+              Settings
+            </Link>
             <Link role="menuitem" href="/my?filter=prompts" onClick={() => setOpen(false)}>
               My prompts
             </Link>

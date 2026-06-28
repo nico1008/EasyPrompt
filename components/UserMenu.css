@@ -114,6 +114,22 @@
 .user-account-link:hover {
   border-color: var(--line-3);
 }
+.user-account-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.user-account-copy span,
+.user-account-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-account-copy small {
+  font: 500 11px var(--font-sans);
+  color: var(--fg-3);
+}
 
 .user-pop-group {
   padding-top: 6px;
