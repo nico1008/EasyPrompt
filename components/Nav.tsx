@@ -37,8 +37,11 @@ export function Nav() {
   // Auth state is resolved after mount through /api/account-state, so the shared
   // layout stays free of cookies() and the marketing/catalog pages stay static.
   const accountsOn = config.accounts.enabled && isSupabaseConfigured();
-  const { account, authLikely } = useSupabaseAccountState();
-  const userEmail = account?.email ?? "";
+  const { account, authLikely, loaded } = useSupabaseAccountState();
+  const username = account?.profile.username;
+  const avatarLabel =
+    account?.profile.displayName?.trim() || username || account?.email?.trim()[0]?.toUpperCase() || "";
+  const avatarInitial = (avatarLabel.trim()[0] ?? "").toUpperCase();
   const showAccountChrome = accountsOn && (Boolean(account) || authLikely);
 
   const links =
@@ -67,8 +70,16 @@ export function Nav() {
       </div>
 
       <div className="right">
-        {showAccountChrome ? (
-          <UserMenu email={userEmail} profile={account?.profile ?? null} />
+        {accountsOn && account && username ? (
+          <UserMenu username={username} displayName={account.profile.displayName} />
+        ) : showAccountChrome && (!loaded || !account) ? (
+          <button className="user-avatar is-loading" type="button" aria-label="Loading account" disabled>
+            {avatarInitial || "?"}
+          </button>
+        ) : showAccountChrome ? (
+          <Link className="user-avatar" href="/account#profile" aria-label="Complete profile">
+            {avatarInitial || "?"}
+          </Link>
         ) : accountsOn ? (
           <>
             <Link className="nav-login" href="/login">

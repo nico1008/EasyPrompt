@@ -201,9 +201,9 @@ a username. Content exposure is still controlled per Template/Prompt by `visibil
 - **Public profiles:** `/[username]` → `public_profile` (+ on-read `reputation`, a 90-day capped
   sum of distinct anonymized actors) and `public_profile_content` (the author's published cards).
   `lib/profiles/repo.ts`. Username is required at signup; legacy `/u/[username]` redirects to
-  `/[username]`. The signed-in avatar menu links **Your account** to `/{username}` when a username
-  exists, otherwise it falls back to `/account#profile`. The separate **Settings** item always links
-  to `/account`.
+  `/[username]`. The signed-in avatar menu only opens after account state includes a username and
+  uses Lucide icons in this order: Profile, My library, Settings, Pro, Sign out. If a legacy loaded
+  account has no username, the avatar links to `/account#profile` instead of opening the menu.
 - **Remix:** "Use as starting point" forks a community Prompt into the user's library, recording a
   structured `saved_prompts.remixed_from` pointer (the remixer can't read the source row under RLS).
 - **Usage metrics ("Uses"):** `POST /api/track` (Node, fire-and-forget, 204) → `record_interaction`

@@ -1,27 +1,27 @@
 "use client";
 
-/* Signed-in nav control: an avatar button that opens a grouped account menu.
+/* Signed-in nav control: an avatar button that opens the account menu.
  * Log out posts to the signOutAction server action. Closes on outside-click and
  * Escape. */
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Icon } from "@/components/Icon";
+import { Library, LogOut, Settings, User, Zap } from "lucide-react";
 import { signOutAction } from "@/lib/auth/actions";
-import type { SupabaseAccountProfile } from "@/lib/supabase/useUser";
 import "./UserMenu.css";
 
 export function UserMenu({
-  email,
-  profile,
+  username,
+  displayName,
 }: {
-  email: string;
-  profile: SupabaseAccountProfile | null;
+  username: string;
+  displayName: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const initial = (email.trim()[0] ?? "").toUpperCase();
+  const nickname = displayName?.trim() || username;
+  const initial = (nickname.trim()[0] ?? "").toUpperCase();
 
   useEffect(() => {
     if (!open) return;
@@ -29,8 +29,7 @@ export function UserMenu({
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      // Esc closes the menu and returns focus to the trigger (avoids dropping the
-      // keyboard user at the top of the tab order).
+      // Esc closes the menu and returns focus to the trigger.
       if (e.key === "Escape") {
         setOpen(false);
         btnRef.current?.focus();
@@ -44,16 +43,6 @@ export function UserMenu({
     };
   }, [open]);
 
-  const profileHref = profile?.username ? `/${profile.username}` : null;
-  const accountHref = profileHref ?? "/account#profile";
-  const accountLabel = "Your account";
-  const accountTitle =
-    profileHref && profile?.displayName
-      ? profile.displayName
-      : profileHref
-        ? `@${profile?.username}`
-        : "Set your username";
-
   return (
     <div className="user-menu" ref={ref}>
       <button
@@ -65,58 +54,43 @@ export function UserMenu({
         aria-label="Account menu"
         onClick={() => setOpen((o) => !o)}
       >
-        {initial || <Icon name="user" size={15} />}
+        {initial}
       </button>
 
       {open && (
         <div className="user-pop" role="menu" aria-label="Account menu">
           <div className="user-pop-head">
             <span className="user-pop-avatar" aria-hidden="true">
-              {initial || <Icon name="user" size={15} />}
+              {initial}
             </span>
             <div className="user-pop-id">
-              <strong>Signed in as</strong>
-              <span title={email || undefined}>{email || "Loading account..."}</span>
+              <strong>{nickname}</strong>
             </div>
           </div>
 
-          <Link
-            className="user-account-link"
-            role="menuitem"
-            href={accountHref}
-            onClick={() => setOpen(false)}
-          >
-            <Icon name="user" size={14} />
-            <span className="user-account-copy">
-              <span>{accountLabel}</span>
-              <small>{accountTitle}</small>
-            </span>
-          </Link>
-
           <div className="user-pop-group">
-            <Link role="menuitem" href="/account" onClick={() => setOpen(false)}>
-              Settings
-            </Link>
-            <Link role="menuitem" href="/my?filter=prompts" onClick={() => setOpen(false)}>
-              My prompts
+            <Link role="menuitem" href={`/${username}`} onClick={() => setOpen(false)}>
+              <User size={16} strokeWidth={1.9} />
+              <span>Profile</span>
             </Link>
             <Link role="menuitem" href="/my" onClick={() => setOpen(false)}>
-              My library
+              <Library size={16} strokeWidth={1.9} />
+              <span>My library</span>
             </Link>
-          </div>
-
-          <div className="user-pop-group">
-            <Link role="menuitem" href="/build/prompt" onClick={() => setOpen(false)}>
-              New prompt
+            <Link role="menuitem" href="/account" onClick={() => setOpen(false)}>
+              <Settings size={16} strokeWidth={1.9} />
+              <span>Settings</span>
             </Link>
-            <Link role="menuitem" href="/build/template" onClick={() => setOpen(false)}>
-              New template
+            <Link role="menuitem" href="/account#pro" onClick={() => setOpen(false)}>
+              <Zap size={16} strokeWidth={1.9} />
+              <span>Pro</span>
             </Link>
           </div>
 
           <form action={signOutAction} className="user-pop-logout">
             <button type="submit" role="menuitem">
-              Log out
+              <LogOut size={16} strokeWidth={1.9} />
+              <span>Sign out</span>
             </button>
           </form>
         </div>
