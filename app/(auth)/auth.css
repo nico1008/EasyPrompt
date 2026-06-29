@@ -89,6 +89,20 @@
   color: var(--fg-3);
   font-size: 14px;
 }
+.auth-page .auth-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.auth-page .auth-success-actions > a:not(.btn) {
+  flex-basis: 100%;
+  color: var(--accent);
+  font-size: 13px;
+}
+.auth-page .auth-success-actions > a:not(.btn):hover {
+  text-decoration: underline;
+}
 
 .auth-page .auth-notice {
   line-height: 1.6;

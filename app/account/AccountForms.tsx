@@ -110,12 +110,32 @@ export function AccountForms({
             className="input"
             autoComplete="new-password"
             placeholder="At least 8 characters"
+            required
             aria-invalid={pwState.fieldErrors?.password ? true : undefined}
             aria-describedby={pwState.fieldErrors?.password ? "a-pw-err" : undefined}
           />
           {pwState.fieldErrors?.password && (
             <span id="a-pw-err" className="account-err" role="alert">
               {pwState.fieldErrors.password[0]}
+            </span>
+          )}
+        </div>
+        <div className="field">
+          <label htmlFor="a-pw-confirm">Confirm new password</label>
+          <input
+            id="a-pw-confirm"
+            name="confirmPassword"
+            type="password"
+            className="input"
+            autoComplete="new-password"
+            placeholder="Re-enter your new password"
+            required
+            aria-invalid={pwState.fieldErrors?.confirmPassword ? true : undefined}
+            aria-describedby={pwState.fieldErrors?.confirmPassword ? "a-pw-confirm-err" : undefined}
+          />
+          {pwState.fieldErrors?.confirmPassword && (
+            <span id="a-pw-confirm-err" className="account-err" role="alert">
+              {pwState.fieldErrors.confirmPassword[0]}
             </span>
           )}
         </div>

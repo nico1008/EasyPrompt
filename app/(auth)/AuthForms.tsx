@@ -5,7 +5,7 @@
  * useFormStatus gives each submit button a pending state for free. */
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   signInAction,
@@ -14,6 +14,7 @@ import {
   updatePasswordAction,
 } from "@/lib/auth/actions";
 import { safeAuthRedirect } from "@/lib/auth/redirects";
+import { deriveUsernameFromEmail } from "@/lib/auth/usernames";
 import type { ActionState } from "@/lib/auth/schemas";
 
 const EMPTY: ActionState = {};
@@ -50,6 +51,24 @@ function Success({ title, body }: { title: string; body: string }) {
     <div className="auth-success" role="status">
       <strong>{title}</strong>
       <p>{body}</p>
+    </div>
+  );
+}
+
+function SignupSuccess({ message, next }: { message: string; next: string }) {
+  return (
+    <div className="auth-success" role="status">
+      <strong>Check your inbox</strong>
+      <p>{message}</p>
+      <div className="auth-success-actions">
+        <Link className="btn btn-primary btn-sm" href={authHref("/login", next)}>
+          Log in
+        </Link>
+        <Link className="btn btn-ghost btn-sm" href="/forgot-password">
+          Reset password
+        </Link>
+        <Link href={authHref("/signup", next)}>Try another email</Link>
+      </div>
     </div>
   );
 }
@@ -108,9 +127,12 @@ export function LoginForm({ next }: { next?: string }) {
 /* --------------------------------- signup --------------------------------- */
 export function SignupForm({ next }: { next?: string }) {
   const [state, action] = useActionState(signUpAction, EMPTY);
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameEdited, setUsernameEdited] = useState(false);
   const nextPath = safeAuthRedirect(next);
   if (state.ok && state.message) {
-    return <Success title="Check your inbox" body={state.message} />;
+    return <SignupSuccess message={state.message} next={nextPath} />;
   }
   return (
     <form action={action} className="auth-form" noValidate>
@@ -123,6 +145,14 @@ export function SignupForm({ next }: { next?: string }) {
           name="email"
           type="email"
           className="input"
+          value={email}
+          onChange={(event) => {
+            const nextEmail = event.target.value;
+            setEmail(nextEmail);
+            if (!usernameEdited) {
+              setUsername(deriveUsernameFromEmail(nextEmail));
+            }
+          }}
           autoComplete="email"
           required
           aria-invalid={state.fieldErrors?.email ? true : undefined}
@@ -136,6 +166,11 @@ export function SignupForm({ next }: { next?: string }) {
           id="username"
           name="username"
           className="input"
+          value={username}
+          onChange={(event) => {
+            setUsernameEdited(true);
+            setUsername(event.target.value);
+          }}
           autoComplete="username"
           required
           aria-invalid={state.fieldErrors?.username ? true : undefined}
@@ -164,6 +199,22 @@ export function SignupForm({ next }: { next?: string }) {
         />
         <span id="password-help" className="helper">At least 8 characters.</span>
         <FieldErr id="password-err" errs={state.fieldErrors?.password} />
+      </div>
+      <div className="field">
+        <label htmlFor="confirmPassword">Confirm password</label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          className="input"
+          autoComplete="new-password"
+          required
+          aria-invalid={state.fieldErrors?.confirmPassword ? true : undefined}
+          aria-describedby={
+            state.fieldErrors?.confirmPassword ? "confirm-password-err" : undefined
+          }
+        />
+        <FieldErr id="confirm-password-err" errs={state.fieldErrors?.confirmPassword} />
       </div>
       <SubmitButton>Create account</SubmitButton>
       <div className="auth-links">
@@ -239,6 +290,22 @@ export function ResetForm() {
         />
         <span id="password-help" className="helper">At least 8 characters.</span>
         <FieldErr id="password-err" errs={state.fieldErrors?.password} />
+      </div>
+      <div className="field">
+        <label htmlFor="confirmPassword">Confirm new password</label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          className="input"
+          autoComplete="new-password"
+          required
+          aria-invalid={state.fieldErrors?.confirmPassword ? true : undefined}
+          aria-describedby={
+            state.fieldErrors?.confirmPassword ? "confirm-password-err" : undefined
+          }
+        />
+        <FieldErr id="confirm-password-err" errs={state.fieldErrors?.confirmPassword} />
       </div>
       <SubmitButton>Update password</SubmitButton>
     </form>

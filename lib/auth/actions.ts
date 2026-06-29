@@ -21,16 +21,15 @@ import {
   type ActionState,
 } from "./schemas";
 import { safeAuthRedirect } from "./redirects";
+import { SIGNUP_CHECK_EMAIL } from "./messages";
 
 const NOT_CONFIGURED: ActionState = {
   error: "Accounts aren't set up on this deployment yet.",
 };
 
-/* Neutral signup response — shown whether or not the email already has an
+/* Neutral signup response is shown whether or not the email already has an
  * account, so signup can't be used to enumerate registered emails. Pair with
  * Supabase Auth → "Prevent user existence errors" = ON for full coverage. */
-const SIGNUP_CHECK_EMAIL =
-  "Almost there — check your email for a confirmation link to finish signing up.";
 
 /** Absolute site origin, for email redirect links. */
 async function siteOrigin(): Promise<string> {
@@ -68,6 +67,7 @@ export async function signUpAction(
     email: formData.get("email"),
     username: formData.get("username"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
   });
   if (!parsed.success) {
     const { fieldErrors } = z.flattenError(parsed.error);
@@ -185,6 +185,7 @@ export async function updatePasswordAction(
 
   const parsed = updatePasswordSchema.safeParse({
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
   });
   if (!parsed.success) {
     const { fieldErrors } = z.flattenError(parsed.error);

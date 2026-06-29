@@ -21,11 +21,23 @@ export const usernameSchema = z
   .regex(USERNAME_REGEX, "Use letters, numbers, and single hyphens.")
   .refine((username) => !isReservedUsername(username), "That username is reserved.");
 
-export const signUpSchema = z.object({
-  email: emailSchema,
-  username: usernameSchema,
-  password: passwordSchema,
-});
+const confirmPasswordSchema = z.string().min(1, "Confirm your password.");
+
+function passwordsMatch<T extends { password: string; confirmPassword: string }>(data: T): boolean {
+  return data.password === data.confirmPassword;
+}
+
+export const signUpSchema = z
+  .object({
+    email: emailSchema,
+    username: usernameSchema,
+    password: passwordSchema,
+    confirmPassword: confirmPasswordSchema,
+  })
+  .refine(passwordsMatch, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
 
 export const signInSchema = z.object({
   email: emailSchema,
@@ -36,9 +48,15 @@ export const requestResetSchema = z.object({
   email: emailSchema,
 });
 
-export const updatePasswordSchema = z.object({
-  password: passwordSchema,
-});
+export const updatePasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: confirmPasswordSchema,
+  })
+  .refine(passwordsMatch, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
 
 /** Profile edits keep username required because account URLs are username-based. */
 export const profileSchema = z.object({
