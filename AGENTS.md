@@ -9,6 +9,22 @@ system adds a unified **My Library** of saved Templates + Prompts with private/p
 anonymous builder works without any account (gated by `isSupabaseConfigured()`). See "Content model"
 below.
 
+## Non-negotiables
+- Use product language in UI copy: **Template** and **Prompt**. Do not expose storage/internal words
+  like notebook, saved, authored, or table names.
+- Templates are empty constructors. Opening a Template starts blank unless the user explicitly restores
+  a draft.
+- Prompts are ready-to-use content. Template-sourced Prompts may link back to the source Template;
+  standalone/manual/import Prompts should not show a source Template link.
+- `visibility` is the source of truth for private/public state. Treat legacy `is_public` columns as
+  implementation baggage.
+- Do not read signed-in auth state in `app/layout.tsx`; it can make static routes dynamic.
+- CSS imported in App Router is global. Prefix route CSS under a page-root class.
+- Supabase migrations must be applied before matching code is considered done, and
+  `lib/supabase/types.ts` must stay in sync.
+- Small UI changes do not need browser verification by default. Broad layout or interaction-heavy
+  changes do.
+
 ## Stack
 - Next.js 15.5.19 (App Router) · React 19 · TypeScript 5.7 (strict)
 - Supabase (`@supabase/ssr` + `@supabase/supabase-js`) for auth + Postgres; `zod` 4 for input validation
@@ -27,6 +43,31 @@ below.
   `next build` skips lint via `eslint.ignoreDuringBuilds` (`next.config.mjs`). Don't rely on `npm run
   lint`; the quality gate is `npm run test` + `tsc` (strict). See ENGINEERING.md.
 
+## Agent workflow
+### Commits
+- After completing a task that changes repo files, Codex must create a git commit.
+- Before committing, inspect `git status` and `git diff`.
+- Commit only the intended changes.
+- Do not commit unrelated user/local changes.
+- Do not commit if there are no repo changes, the task is blocked, tests/checks fail in a way that
+  should block completion, or the user explicitly asks not to commit.
+- The commit subject must start with an emoji.
+- Example format: `✨ Add prompt editor autosave`.
+
+### Docs
+- After a significant task, update the relevant docs in the same change.
+- Significant means changes to architecture, data flow, public routes, database schema/RPCs, auth,
+  content model, design system, commands, or developer workflow.
+- Use the most relevant doc: `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/ENGINEERING.md`, or
+  `docs/DESIGN-SYSTEM.md`.
+- If no docs need changes, say so in the final response.
+
+### Final response
+- Summarize what changed.
+- Mention tests/checks run.
+- Mention whether docs were updated or why not.
+- Mention the commit hash/subject if a commit was created.
+
 ## Working efficiently in this repo
 - **Behavior lives in `lib/` + `data/`, and it's pure.** To understand or change logic, read the
   relevant `lib/<area>/` module and its `tests/<area>.test.ts` — not the React tree. The `app/` and
@@ -43,8 +84,9 @@ below.
   the project database before calling the task done. Before applying, verify the target project,
   confirm the migration is not already applied, inspect the SQL for destructive or unsafe behavior,
   and run a post-apply verification query.
-- The three `docs/` files (`ARCHITECTURE`, `ENGINEERING`, `DESIGN-SYSTEM`) are deeper references;
-  don't re-read them unless the task touches their area.
+- The three `docs/` files (`ARCHITECTURE`, `ENGINEERING`, `DESIGN-SYSTEM`) are deeper references.
+  Do not reread all docs by default. Read or update the relevant doc when the task touches that area.
+  Keep `AGENTS.md` focused on rules future agents must see.
 
 ## UI verification discipline
 - Do not launch a dev server or browser visual check for every UI change.
