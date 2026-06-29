@@ -31,7 +31,8 @@ next-env.d.ts
 .agents
 skills-lock.json
 
-# internal docs (not part of the app)
+# internal project docs (local-only; do not publish to GitHub)
+# Public repo docs are allowed only when they are repo-facing, such as README.md or SECURITY.md.
 /docs
 
 # tests

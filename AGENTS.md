@@ -57,6 +57,8 @@ without Supabase, gated by `isSupabaseConfigured()`.
   content model, design system, commands, or developer workflow.
 - Use the most relevant doc: `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/ENGINEERING.md`, or
   `docs/DESIGN-SYSTEM.md`.
+- Project docs under `docs/` are local-only and must not be published to GitHub. Do not force-add
+  ignored docs. Repo-facing docs such as `README.md` and `SECURITY.md` are allowed.
 - If no docs need changes, say so in the final response.
 
 ### Final response
@@ -83,7 +85,8 @@ without Supabase, gated by `isSupabaseConfigured()`.
   and run a post-apply verification query.
 - The three `docs/` files (`ARCHITECTURE`, `ENGINEERING`, `DESIGN-SYSTEM`) are deeper references.
   Do not reread all docs by default. Read or update the relevant doc when the task touches that area.
-  Keep `AGENTS.md` focused on rules future agents must see.
+  Keep `AGENTS.md` focused on rules future agents must see. Leave `docs/` ignored unless the user
+  explicitly changes the repository publishing policy.
 
 ## UI verification discipline
 - Do not launch a dev server or browser visual check for every UI change.
