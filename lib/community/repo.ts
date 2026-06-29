@@ -41,9 +41,7 @@ export async function getCommunityPrompt(slug: string): Promise<CommunityPromptD
     text,
     visibility: "public",
     sourceSlug: row.catalog_slug,
-    author: row.author_username
-      ? { username: row.author_username, displayName: row.author_display_name }
-      : null,
+    author: row.author_username ? { username: row.author_username } : null,
   };
 }
 
@@ -73,8 +71,6 @@ export async function getCommunityTemplate(slug: string): Promise<CommunityTempl
     title: row.title,
     text,
     visibility: "public",
-    author: row.author_username
-      ? { username: row.author_username, displayName: row.author_display_name }
-      : null,
+    author: row.author_username ? { username: row.author_username } : null,
   };
 }

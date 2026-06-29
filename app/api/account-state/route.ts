@@ -20,7 +20,7 @@ export async function GET(): Promise<Response> {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, display_name")
+      .select("username")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -30,7 +30,6 @@ export async function GET(): Promise<Response> {
         email: user.email ?? "",
         profile: {
           username: profile?.username ?? null,
-          displayName: profile?.display_name ?? null,
         },
       },
     });

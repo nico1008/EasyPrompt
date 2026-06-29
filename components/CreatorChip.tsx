@@ -23,7 +23,7 @@ export function CreatorChip({ creator }: { creator: Creator }) {
 
   const author = creator.author;
   if (!author) return null;
-  const name = author.displayName?.trim() || author.username;
+  const name = author.username;
   const initial = (name.trim()[0] || "?").toUpperCase();
   return (
     <Link

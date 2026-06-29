@@ -72,7 +72,7 @@ export async function redeemEntitlementAction(
     now
   );
 
-  revalidatePath("/account");
+  revalidatePath("/settings");
   return { ok: true, token, plan: result.plan };
 }
 

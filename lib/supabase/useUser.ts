@@ -11,7 +11,6 @@ import { isSupabaseConfigured } from "./env";
 
 export type SupabaseAccountProfile = {
   username: string | null;
-  displayName: string | null;
 };
 
 export type SupabaseAccountUser = {

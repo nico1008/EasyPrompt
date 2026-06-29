@@ -12,16 +12,13 @@ import "./UserMenu.css";
 
 export function UserMenu({
   username,
-  displayName,
 }: {
   username: string;
-  displayName: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const nickname = displayName?.trim() || username;
-  const initial = (nickname.trim()[0] ?? "").toUpperCase();
+  const initial = (username.trim()[0] ?? "").toUpperCase();
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +61,7 @@ export function UserMenu({
               {initial}
             </span>
             <div className="user-pop-id">
-              <strong>{nickname}</strong>
+              <strong>@{username}</strong>
             </div>
           </div>
 
@@ -77,11 +74,11 @@ export function UserMenu({
               <Library size={16} strokeWidth={1.9} />
               <span>My library</span>
             </Link>
-            <Link role="menuitem" href="/account" onClick={() => setOpen(false)}>
+            <Link role="menuitem" href="/settings" onClick={() => setOpen(false)}>
               <Settings size={16} strokeWidth={1.9} />
               <span>Settings</span>
             </Link>
-            <Link role="menuitem" href="/account#pro" onClick={() => setOpen(false)}>
+            <Link role="menuitem" href="/settings#pro" onClick={() => setOpen(false)}>
               <Zap size={16} strokeWidth={1.9} />
               <span>Pro</span>
             </Link>

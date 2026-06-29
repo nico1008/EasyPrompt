@@ -5,7 +5,7 @@
 
 import type { IconName } from "@/components/iconNames";
 
-export type CommunityAuthor = { username: string; displayName: string | null };
+export type CommunityAuthor = { username: string };
 
 export type CommunityCard = {
   objectType: "prompt" | "template";
@@ -44,8 +44,8 @@ export function blurbFromBody(body: string | null | undefined, fallback = "A com
   return pick.length > MAX_BLURB ? `${pick.slice(0, MAX_BLURB - 1).trimEnd()}…` : pick;
 }
 
-function authorOf(username: string | null, displayName: string | null): CommunityAuthor | null {
-  return username ? { username, displayName } : null;
+function authorOf(username: string | null): CommunityAuthor | null {
+  return username ? { username } : null;
 }
 
 export type PublicPromptRow = {
@@ -69,7 +69,7 @@ export function promptRowToCard(row: PublicPromptRow): CommunityCard {
     tag: "Community",
     category: row.category,
     href: `/prompts/${row.share_slug}`,
-    author: authorOf(row.author_username, row.author_display_name),
+    author: authorOf(row.author_username),
     createdAt: row.created_at,
   };
 }
@@ -96,7 +96,7 @@ export function templateRowToCard(row: PublicTemplateRow): CommunityCard {
     tag: row.tag?.trim() || "Community",
     category: row.category,
     href: `/p/${row.share_slug}`,
-    author: authorOf(row.author_username, row.author_display_name),
+    author: authorOf(row.author_username),
     createdAt: row.created_at,
   };
 }

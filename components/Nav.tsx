@@ -39,8 +39,7 @@ export function Nav() {
   const accountsOn = config.accounts.enabled && isSupabaseConfigured();
   const { account, authLikely, loaded } = useSupabaseAccountState();
   const username = account?.profile.username;
-  const avatarLabel =
-    account?.profile.displayName?.trim() || username || account?.email?.trim()[0]?.toUpperCase() || "";
+  const avatarLabel = username || account?.email?.trim()[0]?.toUpperCase() || "";
   const avatarInitial = (avatarLabel.trim()[0] ?? "").toUpperCase();
   const showAccountChrome = accountsOn && (Boolean(account) || authLikely);
 
@@ -71,13 +70,13 @@ export function Nav() {
 
       <div className="right">
         {accountsOn && account && username ? (
-          <UserMenu username={username} displayName={account.profile.displayName} />
+          <UserMenu username={username} />
         ) : showAccountChrome && (!loaded || !account) ? (
           <button className="user-avatar is-loading" type="button" aria-label="Loading account" disabled>
             {avatarInitial || "?"}
           </button>
         ) : showAccountChrome ? (
-          <Link className="user-avatar" href="/account#profile" aria-label="Complete profile">
+          <Link className="user-avatar" href="/settings#profile" aria-label="Complete profile">
             {avatarInitial || "?"}
           </Link>
         ) : accountsOn ? (

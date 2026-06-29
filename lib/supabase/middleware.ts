@@ -14,7 +14,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { supabaseUrl, supabaseAnonKey, isSupabaseConfigured } from "./env";
 
 /** Path prefixes that require a signed-in user. */
-const PROTECTED_PREFIXES = ["/my", "/account"];
+const PROTECTED_PREFIXES = ["/my", "/settings"];
 const AUTH_HINT_COOKIE = "easyprompt.auth";
 
 function isProtected(pathname: string): boolean {

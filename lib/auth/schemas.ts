@@ -42,11 +42,6 @@ export const updatePasswordSchema = z.object({
 
 /** Profile edits keep username required because account URLs are username-based. */
 export const profileSchema = z.object({
-  display_name: z
-    .string()
-    .trim()
-    .max(60, "Keep your name under 60 characters.")
-    .optional(),
   username: usernameSchema,
   bio: z.string().trim().max(200, "Keep your bio under 200 characters.").optional(),
 });

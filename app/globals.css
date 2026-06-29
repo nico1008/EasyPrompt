@@ -695,7 +695,7 @@ a.creator-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 
   font: 600 11px var(--font-sans); color: var(--accent); background: var(--accent-soft);
 }
 
-/* Provider open buttons. CSS-only marks, no logo assets or SVGs. */
+/* Provider open buttons. Raster marks live in /public/brand/providers. */
 .provider-open-actions {
   display: inline-flex;
   align-items: center;
@@ -724,21 +724,12 @@ a.creator-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .provider-mark {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 22px;
   height: 22px;
   border-radius: var(--r-1);
-  color: #fff;
-  font: 800 9px var(--font-mono);
-  letter-spacing: 0;
+  object-fit: contain;
 }
-.provider-open-chatgpt .provider-mark { background: #10a37f; }
-.provider-open-chatgpt .provider-mark::before { content: "GPT"; }
-.provider-open-claude .provider-mark { background: #d97757; }
-.provider-open-claude .provider-mark::before { content: "C"; font-size: 11px; }
-.provider-open-gemini .provider-mark { background: #4285f4; }
-.provider-open-gemini .provider-mark::before { content: "G"; font-size: 11px; }
 .provider-open-actions.is-compact {
   gap: 5px;
 }

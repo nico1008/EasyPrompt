@@ -10,7 +10,6 @@ import { blurbFromBody } from "@/lib/community/map";
 export type PublicProfile = {
   id: string;
   username: string;
-  displayName: string | null;
   bio: string | null;
   createdAt: string;
   reputation: number;
@@ -37,7 +36,6 @@ export async function getPublicProfile(username: string): Promise<PublicProfile 
   return {
     id: r.id,
     username: r.username ?? username,
-    displayName: r.display_name,
     bio: r.bio,
     createdAt: r.created_at,
     reputation: r.reputation,

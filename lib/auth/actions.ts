@@ -218,12 +218,10 @@ export async function updateProfileAction(
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;
 
   // Coerce empty strings to undefined so blanks clear instead of failing rules.
-  const rawName = (formData.get("display_name") as string | null)?.trim() || undefined;
   const rawUser = (formData.get("username") as string | null)?.trim() || "";
   const rawBio = (formData.get("bio") as string | null)?.trim() || undefined;
 
   const parsed = profileSchema.safeParse({
-    display_name: rawName,
     username: rawUser,
     bio: rawBio,
   });
@@ -247,7 +245,6 @@ export async function updateProfileAction(
   const { error } = await supabase
     .from("profiles")
     .update({
-      display_name: parsed.data.display_name ?? null,
       username: parsed.data.username,
       bio: parsed.data.bio ?? null,
     })
@@ -260,7 +257,7 @@ export async function updateProfileAction(
   }
 
   revalidatePath("/", "layout");
-  revalidatePath("/account");
+  revalidatePath("/settings");
   revalidatePath(`/${parsed.data.username}`);
   if (currentProfile?.username && currentProfile.username !== parsed.data.username) {
     revalidatePath(`/${currentProfile.username}`);

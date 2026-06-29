@@ -83,7 +83,7 @@ export default function PrivacyPage() {
           <h2>Deleting your data</h2>
           <p>
             You can delete any template or saved prompt at any time. To remove
-            everything, delete your account from Account settings — this permanently
+            everything, delete your account from Settings — this permanently
             deletes your account and all templates and prompts you own.
           </p>
 

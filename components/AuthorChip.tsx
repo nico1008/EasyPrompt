@@ -13,7 +13,7 @@ export function AuthorChip({
   className?: string;
 }) {
   if (!author) return null;
-  const label = author.displayName?.trim() || `@${author.username}`;
+  const label = `@${author.username}`;
   return (
     <Link
       className={`author-chip${className ? ` ${className}` : ""}`}

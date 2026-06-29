@@ -1,8 +1,8 @@
 "use client";
 
-/* Account settings forms: profile (display name + username), password change,
- * and the delete-account danger zone. Profile/password use useActionState for
- * inline feedback; delete is a form action with a two-step ConfirmButton. */
+/* Account settings forms: profile (username + bio), password change, and the
+ * delete-account danger zone. Profile/password use useActionState for inline
+ * feedback; delete is a form action with a two-step ConfirmButton. */
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
@@ -34,13 +34,9 @@ function Feedback({ state }: { state: ActionState }) {
 }
 
 export function AccountForms({
-  email,
-  displayName,
   username,
   bio,
 }: {
-  email: string;
-  displayName: string;
   username: string;
   bio: string;
 }) {
@@ -51,28 +47,6 @@ export function AccountForms({
     <>
       <form id="profile" action={profileAction} className="panel account-card account-section">
         <h2>Profile</h2>
-        <div className="field">
-          <label htmlFor="a-email">Email</label>
-          <input id="a-email" className="input" value={email} disabled readOnly />
-          <span className="helper">Email changes aren&apos;t available here yet.</span>
-        </div>
-        <div className="field">
-          <label htmlFor="a-name">Display name</label>
-          <input
-            id="a-name"
-            name="display_name"
-            className="input"
-            defaultValue={displayName}
-            placeholder="Your name"
-            aria-invalid={profileState.fieldErrors?.display_name ? true : undefined}
-            aria-describedby={profileState.fieldErrors?.display_name ? "a-name-err" : undefined}
-          />
-          {profileState.fieldErrors?.display_name && (
-            <span id="a-name-err" className="account-err" role="alert">
-              {profileState.fieldErrors.display_name[0]}
-            </span>
-          )}
-        </div>
         <div className="field">
           <label htmlFor="a-user">Username</label>
           <input

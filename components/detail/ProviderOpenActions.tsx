@@ -15,6 +15,12 @@ const LABELS: Record<ProviderId, string> = {
   gemini: "Open in Gemini",
 };
 
+const ICONS: Record<ProviderId, string> = {
+  chatgpt: "/brand/providers/chatgpt.webp",
+  claude: "/brand/providers/claude.webp",
+  gemini: "/brand/providers/gemini.webp",
+};
+
 const PROVIDERS: ProviderId[] = ["chatgpt", "claude", "gemini"];
 
 export function ProviderOpenActions({
@@ -44,7 +50,7 @@ export function ProviderOpenActions({
           aria-label={LABELS[provider]}
           title={LABELS[provider]}
         >
-          <span className="provider-mark" aria-hidden="true" />
+          <img className="provider-mark" src={ICONS[provider]} alt="" aria-hidden="true" />
         </a>
       ))}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-/* Keeps server-rendered auth UI (nav, /my, /account) in sync after a client-side
+/* Keeps server-rendered auth UI (nav, /my, /settings) in sync after a client-side
  * auth change. When the Supabase client fires SIGNED_IN / SIGNED_OUT / etc., we
  * router.refresh() so the RSC tree re-reads the session. No-op when Supabase is
  * unconfigured. Mounted once in the root layout, renders nothing. */

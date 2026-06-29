@@ -22,7 +22,7 @@ export async function generateMetadata({
   }
   const profile = await getPublicProfile(username);
   if (!profile) return { title: "Profile not found", robots: { index: false, follow: false } };
-  const name = profile.displayName?.trim() || profile.username;
+  const name = profile.username;
   return {
     title: `${name} - EasyPrompt creator profile`,
     description: profile.bio?.trim() || `${name}'s public prompts and templates on EasyPrompt.`,
