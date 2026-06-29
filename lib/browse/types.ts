@@ -1,5 +1,5 @@
 /* Unified browse-item model: one shape per object type that both first-party
- * ("house") and user-published ("community") items normalize into, so the browse
+ * ("house") and public community items normalize into, so the browse
  * pages render a single mixed grid with one sort/filter pipeline. Pure types. */
 
 import type { IconName } from "@/components/iconNames";

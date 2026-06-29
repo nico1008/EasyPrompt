@@ -244,9 +244,8 @@
   background: var(--prompt-accent-soft);
 }
 
-/* Status chip (Draft / Published / Unlisted) — replaces the old status tabs.
-   Draft stays quiet; Published/Unlisted read as active states. */
-.my-status {
+/* Visibility chip. Private stays quiet on cards; Public is the only visible state. */
+.my-visibility {
   display: inline-block;
   margin-left: 8px;
   padding: 1px 7px;
@@ -256,7 +255,7 @@
   border-radius: var(--r-1);
   vertical-align: middle;
 }
-.my-status-published { color: #0f7b52; background: #e6f6ee; }
+.my-visibility-public { color: #0f7b52; background: #e6f6ee; }
 
 /* Bookmark toggle on a dark Favorites (Prompt) tile. */
 .my-page .my-card-tile.is-prompt .bookmark-btn {
@@ -428,7 +427,7 @@
 }
 .lib-open-row .lib-open { flex: 1; justify-content: center; }
 
-/* ── Grouped sections (Sharing / Management) with quiet labels + air ───────── */
+/* Grouped sections (Visibility / Management) with quiet labels + air. */
 .lib-group {
   display: flex;
   flex-direction: column;
@@ -441,8 +440,8 @@
 }
 .lib-group-manage { margin-top: auto; }
 
-/* ── Sharing area (overview) — binary Private / Published, one primary ─────── */
-.lib-share {
+/* Visibility area: GitHub-style private/public choice rows. */
+.lib-visibility {
   border: 1px solid var(--line-2);
   border-radius: var(--r-3);
   background: var(--bg-2);
@@ -451,29 +450,59 @@
   flex-direction: column;
   gap: 12px;
 }
-.lib-share-state {
+.lib-visibility-choices {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  font: 600 13.5px var(--font-sans);
+}
+.lib-vis-choice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--bg-1);
+  color: var(--fg-1);
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms;
+}
+.lib-vis-choice:hover,
+.lib-vis-choice.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.lib-vis-choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.lib-vis-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--bg-3);
+  color: var(--accent);
+}
+.lib-vis-choice span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.lib-vis-choice strong {
+  font: 700 13.5px var(--font-sans);
   color: var(--fg-1);
 }
-.lib-share-state .lib-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--fg-3);
-  flex-shrink: 0;
-}
-.lib-share-state em {
+.lib-vis-choice em {
   font-style: normal;
   font-weight: 400;
   font-size: 13px;
+  line-height: 1.35;
   color: var(--fg-3);
-}
-.lib-share.is-published .lib-share-state .lib-dot {
-  background: #0f7b52;
-  box-shadow: 0 0 0 3px rgba(15, 123, 82, 0.16);
 }
 
 .btn.btn-block { width: 100%; justify-content: center; }
@@ -490,7 +519,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* Inline url + copy (used in the publish success step, where "Done" is primary). */
+.lib-public-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .lib-link-row { display: flex; align-items: center; gap: 8px; }
 .lib-link-row .lib-link-url { flex: 1; min-width: 0; }
 .lib-share-secondary {
@@ -508,8 +541,13 @@
   font-size: 12px;
   color: #b23b30;
 }
+.lib-ok {
+  margin: 0;
+  font-size: 12px;
+  color: #0f7b52;
+}
 
-/* ── Publish flow — a deliberate takeover of the panel body ────────────────── */
+/* Legacy publish flow selectors are unused after the private/public visibility update. */
 .lib-pub {
   display: flex;
   flex-direction: column;
@@ -607,7 +645,7 @@
 }
 .lib-pub-foot .btn { flex: 1; justify-content: center; }
 
-/* Published success step */
+/* Legacy success step selectors are unused after the private/public visibility update. */
 .lib-pub-success {
   display: flex;
   flex-direction: column;

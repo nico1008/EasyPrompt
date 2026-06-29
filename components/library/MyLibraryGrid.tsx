@@ -40,8 +40,8 @@ function LibraryCard({
           <Icon name={meta.icon} size={14} />
         </span>
         <span className="mct-type">{meta.label}</span>
-        {item.status === "published" && (
-          <span className="my-status my-status-published mct-status">Published</span>
+        {item.visibility === "public" && (
+          <span className="my-visibility my-visibility-public mct-status">Public</span>
         )}
       </div>
       <div className="mct-body">

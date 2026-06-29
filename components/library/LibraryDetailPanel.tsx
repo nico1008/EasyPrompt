@@ -6,15 +6,14 @@
  * server actions revalidate /my, so the grid + props refresh and the parent
  * auto-closes this surface when the item disappears.
  *
- * Hierarchy (overview): asset header (icon + hero title + properties + preview) →
- * Open (secondary) → Sharing → Management. Publishing is consequential, so it gets
- * its own deliberate flow that takes over the body (`mode === "publish"`). */
+ * Hierarchy: asset header (icon + hero title + properties + preview) ->
+ * Open (secondary) -> Visibility -> Management. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { ConfirmButton } from "@/components/ConfirmButton";
-import { SharingSection, PublishFlow } from "@/components/library/LibraryControls";
+import { VisibilitySection } from "@/components/library/LibraryControls";
 import { objectMeta } from "@/lib/library/objectMeta";
 import type { LibraryInternal, LibraryItem } from "@/lib/library/list";
 import { deleteNotebookAction, duplicateNotebookAction } from "@/lib/notebooks/actions";
@@ -45,18 +44,14 @@ function Prop({ label, children }: { label: string; children: React.ReactNode })
 export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClose: () => void }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const meta = objectMeta(item.objectType);
-  const [mode, setMode] = useState<"overview" | "publish">("overview");
-  const modeRef = useRef(mode);
-  modeRef.current = mode;
 
-  // Close on ESC (or step back out of publish); trap initial focus; restore on unmount.
+  // Close on ESC; trap initial focus; restore on unmount.
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     panelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (modeRef.current === "publish") setMode("overview");
-      else onClose();
+      onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => {
@@ -86,27 +81,14 @@ export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClo
           </button>
         </div>
 
-        {mode === "publish" ? (
-          <div className="lib-drawer-body">
-            <PublishFlow
-              internal={item.internal}
-              objectType={item.objectType}
-              id={item.id}
-              title={item.title}
-              shareSlug={item.shareSlug}
-              category={item.category}
-              onClose={() => setMode("overview")}
-            />
-          </div>
-        ) : (
-          <div className="lib-drawer-body">
-            <header className="lib-asset">
-              <span className="lib-asset-icon" aria-hidden="true">
-                <Icon name={item.icon} size={22} />
-              </span>
-              <h2 className="lib-asset-title" title={item.title}>
-                {item.title}
-              </h2>
+        <div className="lib-drawer-body">
+          <header className="lib-asset">
+            <span className="lib-asset-icon" aria-hidden="true">
+              <Icon name={item.icon} size={22} />
+            </span>
+            <h2 className="lib-asset-title" title={item.title}>
+              {item.title}
+            </h2>
 
               <dl className="lib-props">
                 <Prop label="Last edited">{item.updatedLabel}</Prop>
@@ -139,14 +121,13 @@ export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClo
             </div>
 
             <section className="lib-group">
-              <span className="lib-group-label">Sharing</span>
-              <SharingSection
+              <span className="lib-group-label">Visibility</span>
+              <VisibilitySection
                 internal={item.internal}
                 id={item.id}
-                status={item.status}
+                visibility={item.visibility}
                 shareSlug={item.shareSlug}
                 category={item.category}
-                onStartPublish={() => setMode("publish")}
               />
             </section>
 
@@ -165,8 +146,7 @@ export function LibraryDetailPanel({ item, onClose }: { item: LibraryItem; onClo
                 </form>
               </div>
             </section>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

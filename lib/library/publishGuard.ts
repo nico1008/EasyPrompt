@@ -1,6 +1,5 @@
-/* Pure publish-gate logic for saved Prompts — shared by setVisibilityAction and
- * unit tests (the action itself is server-only). A community Prompt may be
- * *published* only with real content and a category; draft/unlisted are exempt. */
+/* Pure public-visibility guard for saved Prompts. Public browse/filtering needs
+ * real content and a category; private Prompts are exempt. */
 
 import { CATEGORIES } from "@/data/templates";
 
@@ -11,9 +10,9 @@ export function normalizeCategory(raw: unknown): string | null {
   return typeof raw === "string" && CATEGORY_IDS.has(raw) ? raw : null;
 }
 
-/** The reason a Prompt can't be published yet, or null when it may proceed. */
-export function promptPublishError(body: string, category: string | null): string | null {
-  if (!body.trim()) return "Add some content before publishing.";
-  if (!category) return "Pick a category before publishing.";
+/** The reason a Prompt can't become public yet, or null when it may proceed. */
+export function promptPublicVisibilityError(body: string, category: string | null): string | null {
+  if (!body.trim()) return "Add some content before making this public.";
+  if (!category) return "Pick a category before making this public.";
   return null;
 }

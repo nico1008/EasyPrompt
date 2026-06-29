@@ -1,6 +1,6 @@
 "use client";
 
-/* Public detail view for a *published* community Template (/p/<share_slug>):
+/* Public detail view for a community Template (/p/<share_slug>):
  * indexable, authored, and usage-tracked (keyed user_template:<slug>). Shows the
  * template's assembled/preview prompt read-only with copy + open-in. (Full anon
  * fill-in of a community template is a follow-up.) Reuses the .prompt-detail styles. */

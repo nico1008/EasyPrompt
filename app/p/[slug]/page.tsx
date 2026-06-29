@@ -9,10 +9,10 @@ import { CommunityTemplate } from "@/components/CommunityTemplate";
 
 /* A community Template by share slug. Data comes from the security-definer
  * community_template(slug) RPC (exact-slug, visibility-gated, author-gated). A
- * *published* template is indexable; an *unlisted* one (private share link) is not.
+ * public Template is indexable.
  * Dynamic by nature (per-slug). */
 export const dynamicParams = true;
-// Cacheable now that the read is cookie-free; revalidate keeps publish state fresh.
+// Cacheable now that the read is cookie-free; revalidate keeps visibility fresh.
 export const revalidate = 300;
 
 export async function generateMetadata({
@@ -23,7 +23,7 @@ export async function generateMetadata({
   const { slug } = await params;
   if (isSupabaseConfigured() && shareSlugSchema.safeParse(slug).success) {
     const tpl = await getCommunityTemplate(slug);
-    if (tpl && tpl.visibility === "published") {
+    if (tpl) {
       return {
         title: `${tpl.title || "Community template"} — community template`,
         description: blurbFromBody(tpl.text, "A community template on EasyPrompt."),

@@ -17,15 +17,14 @@ import { RemixStarter } from "@/components/RemixStarter";
  *      used to be the SEO'd Template detail; the static catalog is the single
  *      source of truth, so a Prompt can never claim a legacy slug);
  *   2. a curated example Prompt (static data) → the indexable detail view;
- *   3. a published/unlisted user Prompt by share slug → the community detail view
- *      (published = indexable; unlisted = noindex private link).
+ *   3. a public user Prompt by share slug -> the community detail view.
  * Example slugs are prerendered (generateStaticParams); unknown slugs fall
  * through to the dynamic community-prompt lookup (dynamicParams). */
 const LEGACY_TEMPLATE_SLUGS = new Set(TEMPLATES.map((t) => t.slug));
 
 export const dynamicParams = true;
 // Community slugs render on-demand and are now cacheable (no per-request cookies);
-// revalidate so publish/unpublish changes — and any transient 404 — self-heal.
+// revalidate so visibility changes and any transient 404 self-heal.
 export const revalidate = 300;
 
 export function generateStaticParams() {
@@ -47,10 +46,10 @@ export async function generateMetadata({
     };
   }
 
-  // A published community Prompt is indexable; an unlisted one (private link) is not.
+  // A public community Prompt is indexable.
   if (isSupabaseConfigured() && shareSlugSchema.safeParse(slug).success) {
     const community = await getCommunityPrompt(slug);
-    if (community && community.visibility === "published") {
+    if (community) {
       return {
         title: `${community.name || "Community prompt"} — community prompt`,
         description: blurbFromBody(community.text, "A community prompt on EasyPrompt."),
@@ -73,7 +72,7 @@ export default async function PromptDetailPage({
   const example = getExamplePrompt(slug);
   if (example) return <PromptDetail prompt={example} />;
 
-  // Otherwise it can only be a published/unlisted community Prompt by share slug.
+  // Otherwise it can only be a public community Prompt by share slug.
   if (!isSupabaseConfigured()) notFound();
   if (!shareSlugSchema.safeParse(slug).success) notFound();
 

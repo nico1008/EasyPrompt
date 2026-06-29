@@ -62,8 +62,8 @@ export function PromptsLibraryClient() {
     };
   }, []);
 
-  // Published community Prompts (+ their Uses), hydrated client-side so the page
-  // stays static. Empty-safe when nobody has published yet.
+  // Public community Prompts (+ their Uses), hydrated client-side so the page
+  // stays static. Empty-safe when nobody has made one public yet.
   useEffect(() => {
     let active = true;
     void fetchCommunityPrompts(24, 0).then(async (cards) => {
@@ -103,7 +103,7 @@ export function PromptsLibraryClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // One unified list: curated (house) + published (community) prompts on par.
+  // One unified list: curated (house) + public community prompts on par.
   const results = useMemo(() => {
     const house = EXAMPLE_PROMPTS.map(examplePromptToItem);
     const comm = community.map(communityPromptToItem);
@@ -260,7 +260,7 @@ function EmptyPrompts({
   const msg = query.trim()
     ? `No prompts match “${query.trim()}”.`
     : source === "community"
-      ? "No community prompts have been published yet."
+      ? "No public community prompts yet."
       : source === "official"
         ? "No official prompts here — try All sources."
         : "Nothing matches these filters.";

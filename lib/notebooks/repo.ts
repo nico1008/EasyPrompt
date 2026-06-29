@@ -29,7 +29,7 @@ export async function getNotebook(id: string): Promise<NotebookRow | null> {
   return data ?? null;
 }
 
-/* Public read for a shared prompt. Goes through the security-definer RPC
+/* Public read for a public Template. Goes through the security-definer RPC
  * (shared_notebook), which returns name+doc for an EXACT slug only — no table
  * read, no enumeration, no owner exposure. Anon-safe (no session required). */
 export async function getSharedNotebook(

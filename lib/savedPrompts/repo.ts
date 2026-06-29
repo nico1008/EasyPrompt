@@ -28,9 +28,9 @@ export async function getSavedPrompt(id: string): Promise<SavedPromptRow | null>
   return data ?? null;
 }
 
-/* Public read for a published/unlisted Prompt via the security-definer
+/* Public read for a public Prompt via the security-definer
  * shared_prompt(slug) RPC (exact-slug, visibility-gated, no enumeration). Renders
- * from the frozen `body` when present (set at publish time); otherwise recomputes
+ * from the frozen `body` when present; otherwise recomputes
  * a catalog-sourced prompt from its answers. Anon-safe. */
 export async function getSharedPrompt(
   slug: string

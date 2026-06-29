@@ -1,4 +1,4 @@
-/* My Library — normalize the user's owned content (Templates + Prompts) into one
+/* My Library: normalize the user's owned content (Templates + Prompts) into one
  * card model with filters. Pure (no server-only imports), so it's unit-tested and
  * usable on the server. Internal storage (notebooks / user_templates / saved_prompts)
  * is hidden behind `objectType` + `internal`; the UI never says "Built/Notebook". */
@@ -17,31 +17,17 @@ type SavedPromptRow = Database["public"]["Tables"]["saved_prompts"]["Row"];
 
 export type LibraryObjectType = "template" | "prompt";
 export type LibraryInternal = "notebook" | "user_template" | "saved_prompt";
-export type LibraryStatus = "draft" | "published" | "unlisted";
-export type LibraryFilter =
-  | "all"
-  | "templates"
-  | "prompts"
-  | "drafts"
-  | "published"
-  | "shared"
-  | "favorites";
+export type LibraryVisibility = "private" | "public";
+export type LibraryFilter = "all" | "templates" | "prompts" | "favorites";
 
-/** Every recognized filter (kept valid so old deep links / redirects still
- *  resolve). Status — draft/published/unlisted — surfaces as a chip on each card
- *  rather than its own tab, so the visible tab bar stays at four (PRIMARY_FILTERS). */
 export const LIBRARY_FILTERS: { id: LibraryFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "templates", label: "Templates" },
   { id: "prompts", label: "Prompts" },
   { id: "favorites", label: "Favorites" },
-  { id: "drafts", label: "Drafts" },
-  { id: "published", label: "Published" },
-  { id: "shared", label: "Shared" },
 ];
 
-/** The four tabs shown in the My Library bar (the rest stay valid as deep links). */
-export const PRIMARY_FILTERS: { id: LibraryFilter; label: string }[] = LIBRARY_FILTERS.slice(0, 4);
+export const PRIMARY_FILTERS: { id: LibraryFilter; label: string }[] = LIBRARY_FILTERS;
 
 export function isLibraryFilter(v: string | undefined): v is LibraryFilter {
   return !!v && LIBRARY_FILTERS.some((f) => f.id === v);
@@ -54,8 +40,7 @@ export type LibraryItem = {
   id: string;
   title: string;
   icon: IconName;
-  status: LibraryStatus;
-  shared: boolean;
+  visibility: LibraryVisibility;
   shareSlug: string | null;
   meta: string;
   updatedAt: string;
@@ -64,9 +49,8 @@ export type LibraryItem = {
   editHref: string | null;
   /** For Prompts created from a Template: "Created from {label}" + link. */
   source: { label: string; href: string } | null;
-  /** Prompt category (required to publish); null for Templates. */
+  /** Prompt category (required before making public); null for Templates. */
   category: string | null;
-  /* ── Inspector view-model (additive): structured fields for the detail panel ── */
   /** Short rendered snippet of the item's text; null when there's nothing to show. */
   preview: string | null;
   /** Human category label (Templates + categorized Prompts); null otherwise. */
@@ -81,16 +65,15 @@ function fmtDate(s: string): string {
   return new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Tidy a body into a one-glance snippet: collapse whitespace, trim to ~240 chars. */
 function makePreview(text: string | null | undefined): string | null {
   if (!text) return null;
   const clean = text.replace(/\s+/g, " ").trim();
   if (!clean) return null;
-  return clean.length > 240 ? `${clean.slice(0, 240).trimEnd()}…` : clean;
+  return clean.length > 240 ? `${clean.slice(0, 240).trimEnd()}...` : clean;
 }
 
-function statusOf(v: string | null | undefined): LibraryStatus {
-  return v === "published" ? "published" : v === "unlisted" ? "unlisted" : "draft";
+function visibilityOf(v: string | null | undefined): LibraryVisibility {
+  return v === "public" || v === "published" ? "public" : "private";
 }
 
 export function buildLibrary(input: {
@@ -110,10 +93,9 @@ export function buildLibrary(input: {
       id: n.id,
       title: n.name || "Untitled template",
       icon: "code",
-      status: statusOf(n.visibility),
-      shared: Boolean(n.share_slug),
+      visibility: visibilityOf(n.visibility),
       shareSlug: n.share_slug ?? null,
-      meta: `${blocks} ${blocks === 1 ? "block" : "blocks"} · ${fmtDate(n.updated_at)}`,
+      meta: `${blocks} ${blocks === 1 ? "block" : "blocks"} - ${fmtDate(n.updated_at)}`,
       updatedAt: n.updated_at,
       primaryHref: `/my/notebooks/${n.id}`,
       primaryLabel: "Open",
@@ -138,10 +120,9 @@ export function buildLibrary(input: {
       id: t.id,
       title: t.title,
       icon: (t.icon as IconName) ?? "star",
-      status: statusOf(t.visibility),
-      shared: Boolean(t.share_slug),
+      visibility: visibilityOf(t.visibility),
       shareSlug: t.share_slug ?? null,
-      meta: `${fieldCount} ${fieldCount === 1 ? "question" : "questions"} · ${fmtDate(t.updated_at)}`,
+      meta: `${fieldCount} ${fieldCount === 1 ? "question" : "questions"} - ${fmtDate(t.updated_at)}`,
       updatedAt: t.updated_at,
       primaryHref: `/my/templates/${t.id}`,
       primaryLabel: "Use",
@@ -180,10 +161,9 @@ export function buildLibrary(input: {
       id: p.id,
       title: p.name || "Untitled prompt",
       icon: "letter",
-      status: statusOf(p.visibility),
-      shared: Boolean(p.share_slug),
+      visibility: visibilityOf(p.visibility),
       shareSlug: p.share_slug ?? null,
-      meta: (source ? `from ${source.label} · ` : "") + fmtDate(p.updated_at),
+      meta: (source ? `from ${source.label} - ` : "") + fmtDate(p.updated_at),
       updatedAt: p.updated_at,
       primaryHref: `/my/prompts/${p.id}`,
       primaryLabel: "Open",
@@ -201,20 +181,13 @@ export function buildLibrary(input: {
   return items;
 }
 
-/** Filter the library. `favorites` is sourced from bookmarks, handled separately
- *  by the page, so it returns [] here. */
+/** Filter the library. `favorites` is sourced from bookmarks, handled separately. */
 export function filterLibrary(items: LibraryItem[], filter: LibraryFilter): LibraryItem[] {
   switch (filter) {
     case "templates":
       return items.filter((i) => i.objectType === "template");
     case "prompts":
       return items.filter((i) => i.objectType === "prompt");
-    case "drafts":
-      return items.filter((i) => i.status === "draft");
-    case "published":
-      return items.filter((i) => i.status === "published");
-    case "shared":
-      return items.filter((i) => i.shared);
     case "favorites":
       return [];
     case "all":

@@ -241,10 +241,10 @@ export async function duplicateSavedPromptAction(formData: FormData): Promise<vo
 }
 
 /* --------------------- "Use as starting point" (remix) ---------------------
- * Seed a NEW manual Prompt in the caller's library from a *published* community
+ * Seed a NEW manual Prompt in the caller's library from a public community
  * Prompt's text, recording a structured `remixed_from` pointer for attribution.
  * Form action → opens the new prompt in the editor. */
-export async function remixPublishedPromptAction(formData: FormData): Promise<void> {
+export async function remixPublicPromptAction(formData: FormData): Promise<void> {
   if (!isSupabaseConfigured()) redirect("/prompts");
   const slug = formData.get("share_slug");
   if (typeof slug !== "string" || !slug) redirect("/prompts");

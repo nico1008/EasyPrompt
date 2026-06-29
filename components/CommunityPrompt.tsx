@@ -1,7 +1,7 @@
 "use client";
 
-/* Public detail view for a *published* community Prompt (/prompts/<share_slug>).
- * Unlike SharedPrompt (the minimal /s/p private-link view), this is indexable and
+/* Public detail view for a community Prompt (/prompts/<share_slug>).
+ * Unlike SharedPrompt (the minimal /s/p compatibility view), this is indexable and
  * social: author chip, Uses count, source link, copy/open-in WITH usage tracking
  * (keyed user_prompt:<slug>), and a "Use as starting point" remix. Reuses the
  * curated-prompt detail styles (.prompt-detail / .pd-*) for visual parity. */

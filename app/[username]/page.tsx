@@ -22,14 +22,14 @@ export async function generateMetadata({
   }
   const profile = await getPublicProfile(username);
   if (!profile) return { title: "Profile not found", robots: { index: false, follow: false } };
-  const name = profile.displayName?.trim() || `@${profile.username}`;
+  const name = profile.displayName?.trim() || profile.username;
   return {
-    title: `${name} (@${profile.username})`,
-    description: profile.bio?.trim() || `${name}'s published prompts and templates on EasyPrompt.`,
+    title: `${name} - EasyPrompt creator profile`,
+    description: profile.bio?.trim() || `${name}'s public prompts and templates on EasyPrompt.`,
     alternates: { canonical: `/${profile.username}` },
     openGraph: {
       title: `${name} on EasyPrompt`,
-      description: profile.bio?.trim() || `Published prompts and templates by ${name}.`,
+      description: profile.bio?.trim() || `Public prompts and templates by ${name}.`,
       url: `/${profile.username}`,
       type: "profile",
     },

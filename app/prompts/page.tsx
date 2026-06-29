@@ -6,7 +6,7 @@ import { PromptsLibraryClient } from "./PromptsLibraryClient";
 
 /* The Prompts catalog. A "Prompt" is a finished, ready-to-paste instruction (the
  * counterpart to a reusable Template). This browses a curated set of example
- * Prompts; public discovery of community-published prompts is a follow-up (needs
+ * Prompts; public discovery of community prompts is a follow-up (needs
  * a listing RPC). Mirrors the Template library so the two read as one system. */
 export const metadata: Metadata = {
   title: "Prompt library — ready-to-use prompts",

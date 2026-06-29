@@ -1,10 +1,10 @@
 "use server";
 
-/* One publishing/sharing model for both objects (Templates: notebooks +
- * user_templates; Prompts: saved_prompts), following the 0007 state machine:
- *   - visibility ∈ draft | unlisted | published
- *   - share_slug is minted lazily on first Share/Publish and then PERSISTS, so a
- *     re-drafted item keeps a stable (but dormant) link.
+/* One visibility model for both objects (Templates: notebooks + user_templates;
+ * Prompts: saved_prompts):
+ *   - visibility is private or public
+ *   - share_slug is minted lazily on first public exposure and then persists, so
+ *     returning to private makes the link dormant without churning the slug.
  * RLS keeps every write owner-only. */
 
 import { revalidatePath } from "next/cache";
@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { makeShareSlug } from "@/lib/notebooks/share";
 import { buildPrompt } from "@/lib/buildPrompt";
 import { getTemplate } from "@/data/templates";
-import { normalizeCategory, promptPublishError } from "./publishGuard";
+import { normalizeCategory, promptPublicVisibilityError } from "./publishGuard";
 import { getNotebook } from "@/lib/notebooks/repo";
 import { getUserTemplate } from "@/lib/userTemplates/repo";
 import { rowToTemplate } from "@/lib/userTemplates/map";
@@ -23,7 +23,7 @@ import { rowToAnswers } from "@/lib/savedPrompts/map";
 const schema = z.object({
   internal: z.enum(["notebook", "user_template", "saved_prompt"]),
   id: z.string().uuid(),
-  visibility: z.enum(["draft", "published", "unlisted"]),
+  visibility: z.enum(["private", "public"]),
 });
 
 export type VisibilityState = { ok?: boolean; error?: string };
@@ -44,8 +44,7 @@ async function currentSlug(
   return { found: !!r, slug: r?.share_slug ?? null };
 }
 
-/** Recompute a Prompt's text so a published/unlisted copy renders without needing
- *  owner-scoped reads (frozen into saved_prompts.body). */
+/** Recompute a Prompt's text so a public copy renders without owner-scoped reads. */
 async function computePromptText(row: SavedPromptRow): Promise<string> {
   if (row.source_kind === "catalog" && row.catalog_slug) {
     const t = getTemplate(row.catalog_slug);
@@ -79,24 +78,18 @@ export async function setVisibilityAction(
   const category = normalizeCategory(formData.get("category"));
 
   const update: Record<string, unknown> = { visibility };
-  if (visibility !== "draft" && !slug) update.share_slug = makeShareSlug();
+  if (visibility === "public" && !slug) update.share_slug = makeShareSlug();
 
   if (internal === "saved_prompt") {
     const row = await getSavedPrompt(id);
     if (!row) return { error: "Not found." };
 
-    // A (re)selected category persists regardless of visibility, so it can be set
-    // before publishing.
     if (category) update.category = category;
 
-    if (visibility !== "draft") {
+    if (visibility === "public") {
       const body = await computePromptText(row);
-      // Publishing a Prompt to the community requires real content + a category;
-      // unlisted (private link) stays unrestricted.
-      if (visibility === "published") {
-        const err = promptPublishError(body, category ?? row.category);
-        if (err) return { error: err };
-      }
+      const err = promptPublicVisibilityError(body, category ?? row.category);
+      if (err) return { error: err };
       if (body.trim()) update.body = body;
     }
   }

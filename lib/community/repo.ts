@@ -1,6 +1,6 @@
 import "server-only";
 
-/* Server reads for community (user-published) content via the security-definer
+/* Server reads for community public content via the security-definer
  * community_* RPCs (exact-slug, visibility-gated). Used by the public detail
  * routes for rich, indexable rendering. Anon-safe. */
 
@@ -14,7 +14,7 @@ export type CommunityPromptDetail = {
   id: string;
   name: string;
   text: string;
-  visibility: "published" | "unlisted";
+  visibility: "public";
   /** Catalog template this prompt was filled from, if any. */
   sourceSlug: string | null;
   author: CommunityAuthor | null;
@@ -39,7 +39,7 @@ export async function getCommunityPrompt(slug: string): Promise<CommunityPromptD
     id: row.id,
     name: row.name,
     text,
-    visibility: row.visibility === "unlisted" ? "unlisted" : "published",
+    visibility: "public",
     sourceSlug: row.catalog_slug,
     author: row.author_username
       ? { username: row.author_username, displayName: row.author_display_name }
@@ -50,7 +50,7 @@ export async function getCommunityPrompt(slug: string): Promise<CommunityPromptD
 export type CommunityTemplateDetail = {
   title: string;
   text: string;
-  visibility: "published" | "unlisted";
+  visibility: "public";
   author: CommunityAuthor | null;
 };
 
@@ -72,7 +72,7 @@ export async function getCommunityTemplate(slug: string): Promise<CommunityTempl
   return {
     title: row.title,
     text,
-    visibility: row.visibility === "unlisted" ? "unlisted" : "published",
+    visibility: "public",
     author: row.author_username
       ? { username: row.author_username, displayName: row.author_display_name }
       : null,

@@ -186,8 +186,8 @@ export default function LandingPage() {
           <div className="workflow-row">
             <span className="num">3</span>
             <div>
-              <h3>Save and share your best work</h3>
-              <p>Keep it private, send an unlisted link, or publish when ready.</p>
+              <h3>Save and set visibility</h3>
+              <p>Keep work private or make it public when it should be discoverable.</p>
             </div>
           </div>
         </div>
@@ -195,10 +195,10 @@ export default function LandingPage() {
 
       <section className="support-section">
         <div className="support-copy">
-          <h2 className="h2">Save and share your best work.</h2>
+          <h2 className="h2">Save and set visibility.</h2>
           <p>
-            Keep reusable Templates and ready Prompts in one library. Share private
-            links, publish useful work, or come back to the prompts you use often.
+            Keep reusable Templates and ready Prompts in one library. Keep work private,
+            make useful work public, or come back to the prompts you use often.
           </p>
           <div className="support-actions">
             <Link className="btn btn-ghost btn-sm" href="/my">
@@ -209,7 +209,7 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
-        <div className="support-panel" aria-label="Library, sharing, and publishing">
+        <div className="support-panel" aria-label="Library and visibility">
           <div className="support-row">
             <span className="support-icon support-icon-template" aria-hidden="true">
               <Icon name="list" size={16} />
@@ -224,8 +224,8 @@ export default function LandingPage() {
               <Icon name="share" size={16} />
             </span>
             <div>
-              <strong>Share</strong>
-              <span>Send an unlisted link when ready</span>
+              <strong>Private</strong>
+              <span>Keep work owner-only</span>
             </div>
           </div>
           <div className="support-row">
@@ -233,7 +233,7 @@ export default function LandingPage() {
               <Icon name="megaphone" size={16} />
             </span>
             <div>
-              <strong>Publish</strong>
+              <strong>Public</strong>
               <span>Make useful work discoverable</span>
             </div>
           </div>

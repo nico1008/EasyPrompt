@@ -78,7 +78,6 @@ async function OwnedList({ filter }: { filter: LibraryFilter }) {
   return <MyLibraryGrid items={items} />;
 }
 
-/* Actionable, filter-aware empty states — never a bare panel. */
 function EmptyState({ filter }: { filter: LibraryFilter }) {
   if (filter === "templates") {
     return (
@@ -118,35 +117,13 @@ function EmptyState({ filter }: { filter: LibraryFilter }) {
       </CrosshairCard>
     );
   }
-  if (filter === "drafts" || filter === "published" || filter === "shared") {
-    const copy = {
-      drafts: "Work you haven’t published yet will collect here.",
-      published: "Publish a template or prompt to share it publicly — it’ll appear here.",
-      shared: "Share a template or prompt to mint a link; shared items show up here.",
-    }[filter];
-    return (
-      <CrosshairCard className="panel my-empty">
-        <span className="my-empty-ic">
-          <Icon name="note" size={22} />
-        </span>
-        <h3>Nothing here yet</h3>
-        <p>{copy}</p>
-        <div className="my-empty-actions">
-          <Link className="btn btn-primary btn-sm" href="/build">
-            <Icon name="plus" size={14} /> New
-          </Link>
-        </div>
-      </CrosshairCard>
-    );
-  }
-  // all
   return (
     <CrosshairCard className="panel my-empty">
       <span className="my-empty-ic">
         <Icon name="star" size={22} />
       </span>
       <h3>Your library is empty</h3>
-      <p>Create your first template or prompt — everything you make lives here.</p>
+      <p>Create your first template or prompt. Everything you make lives here.</p>
       <div className="my-empty-actions">
         <Link className="btn btn-primary btn-sm" href="/build/template">
           + New Template
@@ -160,8 +137,6 @@ function EmptyState({ filter }: { filter: LibraryFilter }) {
 }
 
 async function Favorites() {
-  // Bookmarks point at catalog Templates or curated example Prompts; drop any
-  // whose target was since removed.
   const items = (await listBookmarks())
     .map((row) => rowToBookmark(row))
     .filter((b) => b.template !== null || b.prompt !== null);
@@ -172,7 +147,7 @@ async function Favorites() {
         <p>No favorites yet. Tap the bookmark on any template or prompt to keep it here.</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <Link className="btn btn-primary btn-sm" href="/templates">
-            Browse templates →
+            Browse templates
           </Link>
           <Link className="btn btn-ghost btn-sm" href="/prompts">
             Browse prompts
@@ -205,7 +180,7 @@ async function Favorites() {
             </div>
             <div className="mct-foot">
               <span className="mct-meta">
-                {categoryLabel(b.template.category)} · {questionCount(b.template)} questions
+                {categoryLabel(b.template.category)} - {questionCount(b.template)} questions
               </span>
             </div>
           </article>
@@ -228,7 +203,7 @@ async function Favorites() {
               </h3>
             </div>
             <div className="mct-foot">
-              <span className="mct-meta">{categoryLabel(b.prompt!.category)} · ready to use</span>
+              <span className="mct-meta">{categoryLabel(b.prompt!.category)} - ready to use</span>
             </div>
           </article>
         )

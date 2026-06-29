@@ -1,6 +1,6 @@
-/* Pure mapping for community (user-published) content → a unified card model.
- * Shared by the client listing helpers and unit tests. A published Prompt's blurb
- * is derived from the first prose line of its frozen body (published prompts always
+/* Pure mapping for public community content -> a unified card model.
+ * Shared by the client listing helpers and unit tests. A public Prompt's blurb
+ * is derived from the first prose line of its frozen body (public prompts always
  * have `body`); Templates carry their own blurb/category/icon. */
 
 import type { IconName } from "@/components/iconNames";
@@ -48,7 +48,7 @@ function authorOf(username: string | null, displayName: string | null): Communit
   return username ? { username, displayName } : null;
 }
 
-export type PublishedPromptRow = {
+export type PublicPromptRow = {
   share_slug: string;
   name: string;
   /** First ~300 chars of the frozen body (full body is fetched lazily on Copy). */
@@ -59,7 +59,7 @@ export type PublishedPromptRow = {
   author_display_name: string | null;
 };
 
-export function promptRowToCard(row: PublishedPromptRow): CommunityCard {
+export function promptRowToCard(row: PublicPromptRow): CommunityCard {
   return {
     objectType: "prompt",
     slug: row.share_slug,
@@ -74,7 +74,7 @@ export function promptRowToCard(row: PublishedPromptRow): CommunityCard {
   };
 }
 
-export type PublishedTemplateRow = {
+export type PublicTemplateRow = {
   share_slug: string;
   title: string;
   category: string | null;
@@ -86,7 +86,7 @@ export type PublishedTemplateRow = {
   author_display_name: string | null;
 };
 
-export function templateRowToCard(row: PublishedTemplateRow): CommunityCard {
+export function templateRowToCard(row: PublicTemplateRow): CommunityCard {
   return {
     objectType: "template",
     slug: row.share_slug,

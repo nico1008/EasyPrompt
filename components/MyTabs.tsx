@@ -2,7 +2,7 @@
 
 /* Filter bar for the unified My Library. Each filter is a `?filter=` query on
  * /my (one server-rendered, RLS-scoped list); this just highlights the active
- * one. Object-type + status filters, never the internal storage concepts. */
+ * one. Object-type filters only; visibility is managed per item. */
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

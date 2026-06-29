@@ -5,7 +5,7 @@ import { getSharedPrompt } from "@/lib/savedPrompts/repo";
 import { shareSlugSchema } from "@/lib/notebooks/share";
 import { SharedPrompt } from "@/components/SharedPrompt";
 
-/* Public share link for a Prompt (published OR unlisted). Read-only, no auth:
+/* Public share link for a Prompt. Read-only, no auth:
  * data comes from the security-definer shared_prompt(slug) RPC (exact-slug,
  * visibility-gated). noindex — user content shouldn't be crawled. */
 export const metadata: Metadata = {

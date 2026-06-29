@@ -1,6 +1,6 @@
 /* Database types for the typed Supabase client.
  *
- * Hand-written to match supabase/migrations through 0015. If you wire up
+ * Hand-written to match supabase/migrations through 0016. If you wire up
  * the Supabase CLI you can regenerate this with:
  *   supabase gen types typescript --project-id <ref> > lib/supabase/types.ts
  * Keep the two in sync — the migration is the source of truth for the DB; this
@@ -18,8 +18,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-/** Shared visibility for Templates + Prompts (migration 0007). */
-export type ContentVisibility = "draft" | "published" | "unlisted";
+/** Shared visibility for Templates + Prompts (migration 0016). */
+export type ContentVisibility = "private" | "public";
 
 /* NOTE (internal ↔ external naming): in the UI, both `prompt_notebooks`
  * (block-built) and `user_templates` (form-based) are "Templates", and

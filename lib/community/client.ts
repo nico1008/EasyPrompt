@@ -1,6 +1,6 @@
 "use client";
 
-/* Client-side listing of community (user-published) content for the SSG /prompts
+/* Client-side listing of public community content for the SSG /prompts
  * and /templates pages — the pages stay static and this hydrates the "From the
  * community" section client-side (same pattern as lib/metrics/client.ts). Anon-safe
  * via the security-definer listing RPCs; fails soft to []. */

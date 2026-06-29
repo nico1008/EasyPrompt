@@ -8,7 +8,7 @@ import { objectMeta } from "@/lib/library/objectMeta";
 import { useImpression } from "@/lib/metrics/useImpression";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 
-/* A user-published Prompt/Template tile for the "From the community" sections and
+/* A public user Prompt/Template tile for the "From the community" sections and
  * profiles. Uses a stretched-link pattern (.cc-titlelink::after covers the card) so
  * the whole tile is clickable while the AuthorChip + UsesBadge stay independently
  * interactive — no nested <a>. An impression fires a `view`; `uses` is supplied by

@@ -73,7 +73,7 @@ export function PromptsClient() {
     };
   }, []);
 
-  // Published community Templates (+ their Uses), hydrated client-side. Empty-safe.
+  // Public community Templates (+ their Uses), hydrated client-side. Empty-safe.
   useEffect(() => {
     let active = true;
     void fetchCommunityTemplates(24, 0).then(async (cards) => {
@@ -118,7 +118,7 @@ export function PromptsClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // One unified list: curated (house) + published (community) templates on par.
+  // One unified list: curated (house) + public community templates on par.
   const results = useMemo(() => {
     const house = TEMPLATES.map(catalogTemplateToItem);
     const comm = community.map(communityTemplateToItem);
@@ -318,7 +318,7 @@ function EmptyTemplates({
   const msg = query.trim()
     ? `No templates match “${query.trim()}”.`
     : source === "community"
-      ? "No community templates have been published yet."
+      ? "No public community templates yet."
       : source === "official"
         ? "No official templates here — try All sources."
         : "Nothing matches these filters.";
