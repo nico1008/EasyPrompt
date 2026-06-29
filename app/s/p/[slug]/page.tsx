@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import "@/app/prompts/prompts.css";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getSharedPrompt } from "@/lib/savedPrompts/repo";
 import { shareSlugSchema } from "@/lib/notebooks/share";

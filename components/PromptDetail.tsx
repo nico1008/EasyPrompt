@@ -1,9 +1,7 @@
 "use client";
 
 /* Detail view for a curated example Prompt (/prompts/<slug>). Shows the prompt in
- * the shared dark code well with Copy, Open-in, Favorite, and a Customize action
- * that opens the picker modal. "Created from {Template}" links back to the source
- * Template when the example came from one. */
+ * the shared dark code well with Copy, Open-in, Favorite, and Customize actions. */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -14,6 +12,12 @@ import { BookmarkButton } from "@/components/BookmarkButton";
 import { UsesBadge } from "@/components/UsesBadge";
 import { CreatorChip } from "@/components/CreatorChip";
 import { CustomizeModal } from "@/components/CustomizeModal";
+import { DetailActions } from "@/components/detail/DetailActions";
+import { DetailShell } from "@/components/detail/DetailShell";
+import {
+  ProviderOpenActions,
+  type ProviderOpenLinks,
+} from "@/components/detail/ProviderOpenActions";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
 import { trackUse, trackView } from "@/lib/metrics/track";
@@ -34,7 +38,6 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
     [prompt.slug]
   );
 
-  // A detail view is the copy-through denominator.
   useEffect(() => {
     trackView(target);
   }, [target]);
@@ -55,81 +58,61 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
 
   const source = prompt.sourceTemplateSlug ? getTemplate(prompt.sourceTemplateSlug) : undefined;
   const fileName = `${prompt.slug}.md`;
+  const providerLinks: ProviderOpenLinks = {
+    chatgpt: {
+      href: openInUrl("chatgpt", text),
+      onClick: () => trackUse(target, "open_chatgpt"),
+    },
+    claude: {
+      href: openInUrl("claude", text),
+      onClick: () => trackUse(target, "open_claude"),
+    },
+    gemini: {
+      href: openInUrl("gemini", text),
+      onClick: () => trackUse(target, "open_gemini"),
+    },
+  };
 
   return (
-    <main className="prompt-detail">
+    <>
       <Toast show={Boolean(toast)} message={toast ?? ""} />
 
-      <div className="pd-wrap">
-        <div className="pd-topbar">
-          <div className="pd-topbar-left">
-            <Link className="pd-back" href="/prompts">
-              <Icon name="arrow-right" size={14} /> All prompts
-            </Link>
-          </div>
-          <div className="pd-topbar-meta">
-            <CreatorChip creator={{ kind: "house" }} />
-          </div>
-        </div>
-
-        <div className="pd-head">
-          <div className="pd-head-main">
-            <span className="pd-tag">{prompt.tag}</span>
-            <h1>{prompt.title}</h1>
-            <p>{prompt.blurb}</p>
+      <DetailShell
+        backHref="/prompts"
+        backLabel="All prompts"
+        creator={<CreatorChip creator={{ kind: "house" }} />}
+        badge={prompt.tag}
+        title={prompt.title}
+        description={prompt.blurb}
+        metadata={
+          <>
             {source && (
-              <p className="pd-source">
+              <span className="pd-source">
                 Created from <Link href={`/templates/${source.slug}`}>{displayTitle(source)}</Link>
-              </p>
+              </span>
             )}
-            <div className="pd-stats">
-              <UsesBadge target={target} />
-            </div>
-          </div>
-          <BookmarkButton target={{ kind: "example_prompt", key: prompt.slug }} />
-        </div>
-
-        <CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />
-
-        <div className="pd-actions">
-          <button className="btn btn-primary" onClick={() => void copy()}>
-            <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-            {copied ? "Copied!" : "Copy prompt"}
-          </button>
-          <button className="btn btn-ink" onClick={() => setModal(true)}>
-            <Icon name="wrench" size={15} /> Customize
-          </button>
-          <div className="pd-openin">
-            <a
-              className="btn btn-ghost"
-              href={openInUrl("chatgpt", text)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackUse(target, "open_chatgpt")}
-            >
-              <span className="pd-lg gpt">G</span> ChatGPT
-            </a>
-            <a
-              className="btn btn-ghost"
-              href={openInUrl("claude", text)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackUse(target, "open_claude")}
-            >
-              <span className="pd-lg cl">C</span> Claude
-            </a>
-            <a
-              className="btn btn-ghost"
-              href={openInUrl("gemini", text)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackUse(target, "open_gemini")}
-            >
-              <span className="pd-lg gem">★</span> Gemini
-            </a>
-          </div>
-        </div>
-      </div>
+            <UsesBadge target={target} />
+          </>
+        }
+        side={<BookmarkButton target={{ kind: "example_prompt", key: prompt.slug }} />}
+        preview={<CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />}
+        actions={
+          <DetailActions
+            primary={
+              <button className="btn btn-primary" onClick={() => void copy()}>
+                <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
+                {copied ? "Copied!" : "Copy prompt"}
+              </button>
+            }
+            secondary={
+              <button className="btn btn-ink" onClick={() => setModal(true)}>
+                <Icon name="wrench" size={15} /> Customize
+              </button>
+            }
+            providers={<ProviderOpenActions links={providerLinks} />}
+          />
+        }
+      />
 
       <CustomizeModal
         prompt={prompt}
@@ -137,6 +120,6 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
         onClose={() => setModal(false)}
         onCopied={() => flash("Prompt copied to clipboard")}
       />
-    </main>
+    </>
   );
 }

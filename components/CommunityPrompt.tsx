@@ -1,10 +1,6 @@
 "use client";
 
-/* Public detail view for a community Prompt (/prompts/<share_slug>).
- * Unlike SharedPrompt (the minimal /s/p compatibility view), this is indexable and
- * social: author chip, Uses count, source link, copy/open-in WITH usage tracking
- * (keyed user_prompt:<slug>), and a "Use as starting point" remix. Reuses the
- * curated-prompt detail styles (.prompt-detail / .pd-*) for visual parity. */
+/* Public detail view for a community Prompt (/prompts/<share_slug>). */
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -13,6 +9,12 @@ import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { UsesBadge } from "@/components/UsesBadge";
 import { CreatorChip } from "@/components/CreatorChip";
+import { DetailActions } from "@/components/detail/DetailActions";
+import { DetailShell } from "@/components/detail/DetailShell";
+import {
+  ProviderOpenActions,
+  type ProviderOpenLinks,
+} from "@/components/detail/ProviderOpenActions";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
 import { trackUse, trackView } from "@/lib/metrics/track";
@@ -32,8 +34,6 @@ export function CommunityPrompt({
   text: string;
   sourceSlug: string | null;
   author: CommunityAuthor | null;
-  /** Server-rendered "Use as starting point" form (RemixStarter), kept out of this
-   *  client component's module graph. */
   remixSlot?: ReactNode;
 }) {
   const [toast, setToast] = useState<string | null>(null);
@@ -64,79 +64,55 @@ export function CommunityPrompt({
 
   const source = sourceSlug ? getTemplate(sourceSlug) : undefined;
   const fileName = `${(name || "prompt").replace(/\s+/g, "-").toLowerCase()}.md`;
+  const providerLinks: ProviderOpenLinks = {
+    chatgpt: {
+      href: openInUrl("chatgpt", text),
+      onClick: () => trackUse(target, "open_chatgpt"),
+    },
+    claude: {
+      href: openInUrl("claude", text),
+      onClick: () => trackUse(target, "open_claude"),
+    },
+    gemini: {
+      href: openInUrl("gemini", text),
+      onClick: () => trackUse(target, "open_gemini"),
+    },
+  };
 
   return (
-    <main className="prompt-detail">
+    <>
       <Toast show={Boolean(toast)} message={toast ?? ""} />
 
-      <div className="pd-wrap">
-        <div className="pd-topbar">
-          <div className="pd-topbar-left">
-            <Link className="pd-back" href="/prompts">
-              <Icon name="arrow-right" size={14} /> All prompts
-            </Link>
-          </div>
-          {author && (
-            <div className="pd-topbar-meta">
-              <CreatorChip creator={{ kind: "community", author }} />
-            </div>
-          )}
-        </div>
-
-        <div className="pd-head">
-          <div className="pd-head-main">
-            <span className="pd-tag">Community</span>
-            <h1>{name || "Untitled prompt"}</h1>
+      <DetailShell
+        backHref="/prompts"
+        backLabel="All prompts"
+        creator={author ? <CreatorChip creator={{ kind: "community", author }} /> : null}
+        badge="Community prompt"
+        title={name || "Untitled prompt"}
+        metadata={
+          <>
             {source && (
-              <p className="pd-source">
+              <span className="pd-source">
                 Created from <Link href={`/templates/${source.slug}`}>{displayTitle(source)}</Link>
-              </p>
+              </span>
             )}
-            <div className="pd-stats">
-              <UsesBadge target={target} />
-            </div>
-          </div>
-        </div>
-
-        <CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />
-
-        <div className="pd-actions">
-          <button className="btn btn-primary" onClick={() => void copy()}>
-            <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-            {copied ? "Copied!" : "Copy prompt"}
-          </button>
-          {remixSlot}
-          <div className="pd-openin">
-            <a
-              className="btn btn-ghost"
-              href={openInUrl("chatgpt", text)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackUse(target, "open_chatgpt")}
-            >
-              <span className="pd-lg gpt">G</span> ChatGPT
-            </a>
-            <a
-              className="btn btn-ghost"
-              href={openInUrl("claude", text)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackUse(target, "open_claude")}
-            >
-              <span className="pd-lg cl">C</span> Claude
-            </a>
-            <a
-              className="btn btn-ghost"
-              href={openInUrl("gemini", text)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackUse(target, "open_gemini")}
-            >
-              <span className="pd-lg gem">★</span> Gemini
-            </a>
-          </div>
-        </div>
-      </div>
-    </main>
+            <UsesBadge target={target} />
+          </>
+        }
+        preview={<CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />}
+        actions={
+          <DetailActions
+            primary={
+              <button className="btn btn-primary" onClick={() => void copy()}>
+                <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
+                {copied ? "Copied!" : "Copy prompt"}
+              </button>
+            }
+            secondary={remixSlot}
+            providers={<ProviderOpenActions links={providerLinks} />}
+          />
+        }
+      />
+    </>
   );
 }

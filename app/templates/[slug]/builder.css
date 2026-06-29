@@ -229,14 +229,11 @@
 .tpl-reset:hover { border-color: var(--accent); color: var(--accent); }
 
 .tpl-prompt-buttons { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-.tpl-openin { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.tpl-open {
-  font: 600 12px var(--font-sans); color: var(--fg-2);
-  padding: 6px 10px; border-radius: 999px;
-  border: 1px solid var(--line-2); background: var(--bg-1);
-  transition: border-color 120ms, color 120ms, background 120ms;
+.tpl-openin.provider-open-actions { display: inline-flex; align-items: center; }
+.tpl-openin .provider-open:hover {
+  border-color: var(--prompt-accent);
+  background: var(--prompt-accent-soft);
 }
-.tpl-open:hover { border-color: var(--prompt-accent); color: var(--prompt-accent); background: var(--prompt-accent-soft); }
 .tpl-prompt-buttons .btn-primary { min-width: 92px; justify-content: center; }
 
 /* The editor surface scrolls inside the sticky column; the action row + save bar

@@ -35,6 +35,7 @@ import { trackUse, trackView } from "@/lib/metrics/track";
 import { UnlockForm } from "@/components/UnlockForm";
 import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
 import { SavePromptButton, type SaveSource } from "@/components/SavePromptButton";
+import { ProviderOpenActions } from "@/components/detail/ProviderOpenActions";
 import { useDraft } from "@/lib/drafts/useDraft";
 import { useLocalDraft } from "@/lib/drafts/useLocalDraft";
 import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
@@ -308,11 +309,30 @@ export function Builder({
   const proBoosters = config.premiumFeatures.proBoosters;
 
   const openIn = (
-    <div className="tpl-openin" aria-label="Open this prompt in">
-      <a className="tpl-open" href={openInUrl("chatgpt", effectiveText)} target="_blank" rel="noopener noreferrer" onClick={() => isCatalog && trackUse(metricsTarget, "open_chatgpt")}>ChatGPT</a>
-      <a className="tpl-open" href={openInUrl("claude", effectiveText)} target="_blank" rel="noopener noreferrer" onClick={() => isCatalog && trackUse(metricsTarget, "open_claude")}>Claude</a>
-      <a className="tpl-open" href={openInUrl("gemini", effectiveText)} target="_blank" rel="noopener noreferrer" onClick={() => isCatalog && trackUse(metricsTarget, "open_gemini")}>Gemini</a>
-    </div>
+    <ProviderOpenActions
+      className="tpl-openin"
+      compact
+      links={{
+        chatgpt: {
+          href: openInUrl("chatgpt", effectiveText),
+          onClick: () => {
+            if (isCatalog) trackUse(metricsTarget, "open_chatgpt");
+          },
+        },
+        claude: {
+          href: openInUrl("claude", effectiveText),
+          onClick: () => {
+            if (isCatalog) trackUse(metricsTarget, "open_claude");
+          },
+        },
+        gemini: {
+          href: openInUrl("gemini", effectiveText),
+          onClick: () => {
+            if (isCatalog) trackUse(metricsTarget, "open_gemini");
+          },
+        },
+      }}
+    />
   );
 
   // Pro Boosters — a collapsed affordance under the prompt (no longer wedged into
@@ -385,7 +405,7 @@ export function Builder({
                 </li>
                 <li>
                   <Icon name="check" size={15} strokeWidth={2.4} />
-                  Per-model tuning for ChatGPT, Claude &amp; Gemini
+                  Per-model tuning for supported AI tools
                 </li>
               </ul>
               <div className="pro-cta">

@@ -1,9 +1,6 @@
 "use client";
 
-/* Read-only renderer for a publicly shared prompt (/p/<slug>). Shows the
- * assembled prompt in the shared CodeWell with copy + open-in actions and a CTA
- * back into the builder. Receives the already-built segments/text from the server
- * page (the doc itself never reaches the client). */
+/* Read-only renderer for a publicly shared prompt (/s/p/<slug>). */
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
@@ -11,31 +8,14 @@ import "./SharedPrompt.css";
 import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
+import { DetailActions } from "@/components/detail/DetailActions";
+import { DetailShell } from "@/components/detail/DetailShell";
+import {
+  ProviderOpenActions,
+  type ProviderOpenLinks,
+} from "@/components/detail/ProviderOpenActions";
+import { copyText } from "@/lib/clipboard";
 import { openInUrl, type Segment } from "@/lib/buildPrompt";
-
-async function copyText(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    /* fall through */
-  }
-  try {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(ta);
-    return ok;
-  } catch {
-    return false;
-  }
-}
 
 export function SharedPrompt({
   name,
@@ -51,55 +31,57 @@ export function SharedPrompt({
   text: string;
 }) {
   const [toast, setToast] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const copy = useCallback(async () => {
     if (await copyText(text)) {
       setToast(true);
+      setCopied(true);
       window.setTimeout(() => setToast(false), 2400);
+      window.setTimeout(() => setCopied(false), 1600);
     }
   }, [text]);
 
   const fileName = `${(name || "prompt").replace(/\s+/g, "-").toLowerCase()}.md`;
+  const providerLinks: ProviderOpenLinks = {
+    chatgpt: { href: openInUrl("chatgpt", text) },
+    claude: { href: openInUrl("claude", text) },
+    gemini: { href: openInUrl("gemini", text) },
+  };
 
   return (
-    <main className="share-page">
+    <>
       <Toast show={toast} message="Prompt copied to clipboard" />
-      <div className="share-wrap">
-        <div className="share-head">
-          <span className="share-eyebrow">Shared prompt</span>
-          <h1>{name || "Untitled prompt"}</h1>
-          <p>A read-only prompt shared from EasyPrompt.</p>
-        </div>
-
-        <CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />
-
-        <div className="share-actions">
-          <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
-            <Icon name="copy" size={15} strokeWidth={2} /> Copy prompt
-          </button>
-          <div className="share-openin">
-            <a className="btn btn-ghost" href={openInUrl("chatgpt", text)} target="_blank" rel="noopener noreferrer">
-              <span className="share-lg gpt">G</span> ChatGPT
-            </a>
-            <a className="btn btn-ghost" href={openInUrl("claude", text)} target="_blank" rel="noopener noreferrer">
-              <span className="share-lg cl">C</span> Claude
-            </a>
-            <a className="btn btn-ghost" href={openInUrl("gemini", text)} target="_blank" rel="noopener noreferrer">
-              <span className="share-lg gem">★</span> Gemini
-            </a>
+      <DetailShell
+        backHref="/"
+        backLabel="EasyPrompt"
+        badge="Shared prompt"
+        title={name || "Untitled prompt"}
+        description="A read-only prompt shared from EasyPrompt."
+        preview={<CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />}
+        actions={
+          <DetailActions
+            primary={
+              <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
+                <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
+                {copied ? "Copied!" : "Copy prompt"}
+              </button>
+            }
+            providers={<ProviderOpenActions links={providerLinks} />}
+          />
+        }
+        footer={
+          <div className="share-cta panel">
+            <div>
+              <h2>Build your own prompt</h2>
+              <p>Compose a prompt block by block and share it like this.</p>
+            </div>
+            <Link className="btn btn-ink" href="/build">
+              Open the builder
+            </Link>
           </div>
-        </div>
-
-        <div className="share-cta panel">
-          <div>
-            <h2>Build your own prompt</h2>
-            <p>Compose a prompt block by block — role, objective, examples — and share it like this.</p>
-          </div>
-          <Link className="btn btn-ink" href="/build">
-            Open the builder →
-          </Link>
-        </div>
-      </div>
-    </main>
+        }
+      />
+    </>
   );
 }
