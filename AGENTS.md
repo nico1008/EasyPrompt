@@ -49,6 +49,8 @@ without Supabase, gated by `isSupabaseConfigured()`.
 - Do not commit if there are no repo changes, the task is blocked, tests/checks fail in a way that
   should block completion, or the user explicitly asks not to commit.
 - The commit subject must start with an emoji.
+- Keep commit subjects professional and user-safe. Do not expose critical mistakes, vulnerabilities,
+  secrets, embarrassing failures, or exploit details. Phrase the subject as the improvement shipped.
 - Example format: `✨ Add prompt editor autosave`.
 
 ### Docs
@@ -58,7 +60,8 @@ without Supabase, gated by `isSupabaseConfigured()`.
 - Use the most relevant doc: `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/ENGINEERING.md`, or
   `docs/DESIGN-SYSTEM.md`.
 - Project docs under `docs/` are local-only and must not be published to GitHub. Do not force-add
-  ignored docs. Repo-facing docs such as `README.md` and `SECURITY.md` are allowed.
+  ignored docs. `PRODUCT.md` is also local-only. Repo-facing docs such as `README.md` and
+  `SECURITY.md` are allowed.
 - If no docs need changes, say so in the final response.
 
 ### Final response
