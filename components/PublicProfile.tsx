@@ -91,7 +91,7 @@ export function PublicProfile({
   profile: Profile;
   items: PublicProfileItem[];
 }) {
-  const name = profile.displayName?.trim() || profile.username;
+  const name = profile.username;
   const since = formattedMonth(profile.createdAt);
   const totalUses = items.reduce((sum, i) => sum + (i.uses || 0), 0);
   const templateCount = items.filter((i) => i.objectType === "template").length;
@@ -101,50 +101,39 @@ export function PublicProfile({
     <main className="profile-page">
       <div className="profile-wrap">
         <header className="profile-head panel">
-          <div className="profile-avatar-wrap" aria-hidden="true">
-            <div className="profile-avatar">{initial(name)}</div>
-          </div>
-
-          <div className="profile-id">
-            <div className="profile-name-row">
-              <div>
-                <h1>{name}</h1>
-                <p className="profile-username">{profile.username}</p>
-              </div>
-              <ReputationBadge reputation={profile.reputation} />
+          <div className="profile-head-main">
+            <div className="profile-avatar-wrap" aria-hidden="true">
+              <div className="profile-avatar">{initial(name)}</div>
             </div>
 
-            {profile.bio?.trim() ? (
-              <p className="profile-bio">{profile.bio.trim()}</p>
-            ) : (
-              <p className="profile-bio is-muted">Creator profile on EasyPrompt.</p>
-            )}
-            <p className="profile-since">Member since {since}</p>
+            <div className="profile-id">
+              <div className="profile-name-row">
+                <h1>{name}</h1>
+                <ReputationBadge reputation={profile.reputation} />
+              </div>
+              <p className="profile-since">Member since {since}</p>
+            </div>
           </div>
 
-          <div className="profile-actions">
+          <div className="profile-head-side">
             <ShareProfileButton username={profile.username} />
           </div>
-        </header>
 
-        <section className="profile-stats-grid" aria-label="Creator stats">
-          <div className="profile-stat">
-            <strong>{items.length}</strong>
-            <span>Published {plural(items.length, "item", "items")}</span>
+          <div className="profile-stats-strip" aria-label="Creator stats">
+            <span>
+              <strong>{items.length}</strong> published
+            </span>
+            <span>
+              <strong>{compactNumber(totalUses)}</strong> {plural(totalUses, "use", "uses")}
+            </span>
+            <span>
+              <strong>{templateCount}</strong> {plural(templateCount, "template", "templates")}
+            </span>
+            <span>
+              <strong>{promptCount}</strong> {plural(promptCount, "prompt", "prompts")}
+            </span>
           </div>
-          <div className="profile-stat">
-            <strong>{compactNumber(totalUses)}</strong>
-            <span>Total {plural(totalUses, "use", "uses")}</span>
-          </div>
-          <div className="profile-stat">
-            <strong>{templateCount}</strong>
-            <span>{plural(templateCount, "Template", "Templates")}</span>
-          </div>
-          <div className="profile-stat">
-            <strong>{promptCount}</strong>
-            <span>{plural(promptCount, "Prompt", "Prompts")}</span>
-          </div>
-        </section>
+        </header>
 
         <section className="profile-work">
           <div className="profile-section-head">
