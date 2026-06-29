@@ -20,6 +20,7 @@ import {
   profileSchema,
   type ActionState,
 } from "./schemas";
+import { safeAuthRedirect } from "./redirects";
 
 const NOT_CONFIGURED: ActionState = {
   error: "Accounts aren't set up on this deployment yet.",
@@ -39,12 +40,6 @@ async function siteOrigin(): Promise<string> {
   const host = h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
   return host ? `${proto}://${host}` : "http://localhost:3000";
-}
-
-/** Only allow same-site, single-slash redirect targets (no open redirects). */
-function safeNext(value: FormDataEntryValue | null): string {
-  const s = typeof value === "string" ? value : "";
-  return s.startsWith("/") && !s.startsWith("//") ? s : "/my";
 }
 
 /** Map Supabase auth error messages to something a human wants to read. */
@@ -79,7 +74,7 @@ export async function signUpAction(
     return { fieldErrors };
   }
 
-  const next = safeNext(formData.get("next"));
+  const next = safeAuthRedirect(formData.get("next"));
   const supabase = await createClient();
   const { data: usernameAvailable, error: usernameError } = await supabase.rpc(
     "username_available",
@@ -150,7 +145,7 @@ export async function signInAction(
   if (error) return { error: friendlyAuthError(error.message) };
 
   revalidatePath("/", "layout");
-  redirect(safeNext(formData.get("next")));
+  redirect(safeAuthRedirect(formData.get("next")));
 }
 
 /* ----------------------------- request reset ------------------------------ */

@@ -79,7 +79,7 @@
 }
 
 .user-pop a,
-.user-pop-logout button {
+.user-pop-signout {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -95,12 +95,12 @@
   text-decoration: none;
 }
 .user-pop a svg,
-.user-pop-logout button svg {
+.user-pop-signout svg {
   flex-shrink: 0;
   color: var(--fg-3);
 }
 .user-pop a:hover,
-.user-pop-logout button:hover {
+.user-pop-signout:hover {
   background: var(--bg-2);
 }
 .user-pop a:hover svg {
@@ -118,12 +118,62 @@
   border-top: 1px solid var(--line-1);
   padding-top: 6px;
 }
-.user-pop-logout button {
+.user-pop-signout {
   color: #b23b30;
 }
-.user-pop-logout button:hover {
+.user-pop-signout:hover {
   background: #fdecea;
 }
-.user-pop-logout button:hover svg {
+.user-pop-signout:hover svg {
   color: #b23b30;
+}
+
+.user-pop-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px 9px;
+}
+.user-pop-confirm > span {
+  font: 600 13px var(--font-sans);
+  color: var(--fg-1);
+}
+.user-pop-confirm-actions {
+  display: flex;
+  gap: 6px;
+}
+.user-pop-confirm-actions button {
+  flex: 1;
+  min-height: 34px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--line-2);
+  background: var(--bg-1);
+  color: var(--fg-2);
+  font: 600 12px var(--font-sans);
+  cursor: pointer;
+}
+.user-pop-confirm-actions button:hover:not(:disabled) {
+  background: var(--bg-2);
+  color: var(--fg-1);
+}
+.user-pop-confirm-actions .user-pop-confirm-submit {
+  border-color: #c0362c;
+  background: #c0362c;
+  color: #fff;
+}
+.user-pop-confirm-actions .user-pop-confirm-submit:hover:not(:disabled) {
+  background: #a82d24;
+  color: #fff;
+}
+.user-pop-confirm-actions button:disabled {
+  opacity: 0.64;
+  cursor: wait;
+}
+
+@media (pointer: coarse) {
+  .user-pop a,
+  .user-pop-signout,
+  .user-pop-confirm-actions button {
+    min-height: 44px;
+  }
 }

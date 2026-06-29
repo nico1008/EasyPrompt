@@ -13,6 +13,7 @@ import {
   requestPasswordResetAction,
   updatePasswordAction,
 } from "@/lib/auth/actions";
+import { safeAuthRedirect } from "@/lib/auth/redirects";
 import type { ActionState } from "@/lib/auth/schemas";
 
 const EMPTY: ActionState = {};
@@ -53,13 +54,68 @@ function Success({ title, body }: { title: string; body: string }) {
   );
 }
 
+function authHref(path: "/login" | "/signup", next?: string): string {
+  return `${path}?next=${encodeURIComponent(safeAuthRedirect(next))}`;
+}
+
 /* --------------------------------- login ---------------------------------- */
 export function LoginForm({ next }: { next?: string }) {
   const [state, action] = useActionState(signInAction, EMPTY);
+  const nextPath = safeAuthRedirect(next);
   return (
     <form action={action} className="auth-form" noValidate>
       <TopError error={state.error} />
-      <input type="hidden" name="next" value={next ?? "/my"} />
+      <input type="hidden" name="next" value={nextPath} />
+      <div className="field">
+        <label htmlFor="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          className="input"
+          autoComplete="email"
+          required
+          aria-invalid={state.fieldErrors?.email ? true : undefined}
+          aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}
+        />
+        <FieldErr id="email-err" errs={state.fieldErrors?.email} />
+      </div>
+      <div className="field">
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          className="input"
+          autoComplete="current-password"
+          required
+          aria-invalid={state.fieldErrors?.password ? true : undefined}
+          aria-describedby={state.fieldErrors?.password ? "password-err" : undefined}
+        />
+        <FieldErr id="password-err" errs={state.fieldErrors?.password} />
+      </div>
+      <SubmitButton>Log in</SubmitButton>
+      <div className="auth-links">
+        <Link href="/forgot-password">Forgot password?</Link>
+        <span>
+          New here? <Link href={authHref("/signup", nextPath)}>Create an account</Link>
+        </span>
+      </div>
+    </form>
+  );
+}
+
+/* --------------------------------- signup --------------------------------- */
+export function SignupForm({ next }: { next?: string }) {
+  const [state, action] = useActionState(signUpAction, EMPTY);
+  const nextPath = safeAuthRedirect(next);
+  if (state.ok && state.message) {
+    return <Success title="Check your inbox" body={state.message} />;
+  }
+  return (
+    <form action={action} className="auth-form" noValidate>
+      <TopError error={state.error} />
+      <input type="hidden" name="next" value={nextPath} />
       <div className="field">
         <label htmlFor="email">Email</label>
         <input
@@ -99,55 +155,6 @@ export function LoginForm({ next }: { next?: string }) {
           name="password"
           type="password"
           className="input"
-          autoComplete="current-password"
-          required
-          aria-invalid={state.fieldErrors?.password ? true : undefined}
-          aria-describedby={state.fieldErrors?.password ? "password-err" : undefined}
-        />
-        <FieldErr id="password-err" errs={state.fieldErrors?.password} />
-      </div>
-      <SubmitButton>Log in</SubmitButton>
-      <div className="auth-links">
-        <Link href="/forgot-password">Forgot password?</Link>
-        <span>
-          New here? <Link href="/signup">Create an account</Link>
-        </span>
-      </div>
-    </form>
-  );
-}
-
-/* --------------------------------- signup --------------------------------- */
-export function SignupForm({ next }: { next?: string }) {
-  const [state, action] = useActionState(signUpAction, EMPTY);
-  if (state.ok && state.message) {
-    return <Success title="Check your inbox" body={state.message} />;
-  }
-  return (
-    <form action={action} className="auth-form" noValidate>
-      <TopError error={state.error} />
-      <input type="hidden" name="next" value={next ?? "/my"} />
-      <div className="field">
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          className="input"
-          autoComplete="email"
-          required
-          aria-invalid={state.fieldErrors?.email ? true : undefined}
-          aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}
-        />
-        <FieldErr id="email-err" errs={state.fieldErrors?.email} />
-      </div>
-      <div className="field">
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          className="input"
           autoComplete="new-password"
           required
           aria-invalid={state.fieldErrors?.password ? true : undefined}
@@ -161,7 +168,7 @@ export function SignupForm({ next }: { next?: string }) {
       <SubmitButton>Create account</SubmitButton>
       <div className="auth-links">
         <span>
-          Already have an account? <Link href="/login">Log in</Link>
+          Already have an account? <Link href={authHref("/login", nextPath)}>Log in</Link>
         </span>
       </div>
     </form>

@@ -9,12 +9,12 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { safeAuthRedirect } from "@/lib/auth/redirects";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const { searchParams, origin } = new URL(request.url);
 
-  const rawNext = searchParams.get("next") ?? "/my";
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/my";
+  const next = safeAuthRedirect(searchParams.get("next"));
 
   if (!isSupabaseConfigured()) return NextResponse.redirect(`${origin}/`);
 

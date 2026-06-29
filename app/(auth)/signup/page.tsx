@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { safeAuthRedirect } from "@/lib/auth/redirects";
 import { AuthShell, NotConfigured } from "../shell";
 import { SignupForm } from "../AuthForms";
 
@@ -18,8 +19,9 @@ export default async function SignupPage({
   if (!isSupabaseConfigured()) return <NotConfigured />;
 
   const { next } = await searchParams;
+  const nextPath = safeAuthRedirect(next);
   const user = await getServerUser();
-  if (user) redirect(next?.startsWith("/") ? next : "/my");
+  if (user) redirect(nextPath);
 
   return (
     <AuthShell
@@ -27,7 +29,7 @@ export default async function SignupPage({
       title="Create your account"
       subtitle="Choose your username, save prompts, and build your own templates."
     >
-      <SignupForm next={next} />
+      <SignupForm next={nextPath} />
     </AuthShell>
   );
 }

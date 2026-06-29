@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { safeAuthRedirect } from "@/lib/auth/redirects";
 import { AuthShell, NotConfigured } from "../shell";
 import { LoginForm } from "../AuthForms";
 
@@ -18,8 +19,9 @@ export default async function LoginPage({
   if (!isSupabaseConfigured()) return <NotConfigured />;
 
   const { next, error } = await searchParams;
+  const nextPath = safeAuthRedirect(next);
   const user = await getServerUser();
-  if (user) redirect(next?.startsWith("/") ? next : "/my");
+  if (user) redirect(nextPath);
 
   return (
     <AuthShell
@@ -32,7 +34,7 @@ export default async function LoginPage({
           That link didn&apos;t work or has expired. Log in, or request a new link.
         </p>
       )}
-      <LoginForm next={next} />
+      <LoginForm next={nextPath} />
     </AuthShell>
   );
 }
