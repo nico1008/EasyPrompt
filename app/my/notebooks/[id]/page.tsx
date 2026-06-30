@@ -27,6 +27,11 @@ export default async function EditPromptPage({
 
   const nb = rowToNotebook(row);
   return (
-    <PromptBuilder initialDoc={nb.doc} notebookId={nb.id} initialShareSlug={nb.shareSlug} />
+    <PromptBuilder
+      initialDoc={nb.doc}
+      notebookId={nb.id}
+      initialShareSlug={nb.shareSlug}
+      initialVisibility={nb.visibility}
+    />
   );
 }

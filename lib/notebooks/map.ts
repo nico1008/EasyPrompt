@@ -14,12 +14,19 @@ export type Notebook = {
   id: string;
   name: string;
   doc: BlockDoc;
-  /** Non-null when the prompt is publicly shared (the /p/<slug> token). */
+  visibility: "private" | "public";
+  /** Retained share token. It is active only when visibility is public. */
   shareSlug: string | null;
 };
 
 export function rowToNotebook(row: NotebookRow): Notebook {
   const parsed = validateBlockDoc(row.doc);
   const doc = parsed.ok ? parsed.value : emptyBlockDoc(row.name);
-  return { id: row.id, name: row.name, doc, shareSlug: row.share_slug ?? null };
+  return {
+    id: row.id,
+    name: row.name,
+    doc,
+    visibility: row.visibility,
+    shareSlug: row.share_slug ?? null,
+  };
 }

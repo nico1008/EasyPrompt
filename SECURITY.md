@@ -8,7 +8,7 @@ EasyPrompt follows a defense-in-depth approach:
 * Zod validation on all inputs
 * Server Actions and authenticated API routes for mutations
 * Strict security headers on every route
-* No service-role key required in production
+* Service-role key isolated to server-only validated writes
 
 ## Security Controls
 
@@ -22,8 +22,18 @@ EasyPrompt follows a defense-in-depth approach:
 
 * Supabase Authentication
 * Email verification support
-* Leaked password protection
 * User enumeration protection
+* Leaked password protection should be enabled in Supabase Auth settings; the security advisor must be checked after auth changes
+* No authorization decisions from `user_metadata`
+
+### Supabase Auth Contract
+
+* `user_metadata` is user-controlled and is never used for roles, ownership, Pro status, publishing, or permissions.
+* Permission sources must be server-controlled: RLS owner rows, signed server claims, `app_metadata`, or validated server-only provider checks.
+* Browser Supabase clients use only `NEXT_PUBLIC_SUPABASE_ANON_KEY` plus RLS.
+* `SUPABASE_SERVICE_ROLE_KEY` is server-only. It is used only after explicit checks, such as signed-code validation plus `getUser()` for entitlement redemption.
+* Entitlement rows are read by owners through RLS, but writes are blocked from normal authenticated clients.
+* Publishing writes to `visibility` and `share_slug` go through a narrow `SECURITY DEFINER` RPC that checks `auth.uid()`, target kind, owner, id, and allowed visibility values.
 
 ### Application Security
 
@@ -36,7 +46,8 @@ EasyPrompt follows a defense-in-depth approach:
 ## Access-Code Model
 
 Pro access codes use a stateless, HMAC-signed model. When a user is signed in, redemption binds the
-entitlement to the account through owner-scoped storage. Anonymous redemption is bearer-style and is
+entitlement to the account through a server-only privileged write after the code is validated and the
+user is resolved with `getUser()`. Anonymous redemption is bearer-style and is
 intended for low-friction access without account setup. It does not expose user data or weaken account
 isolation.
 

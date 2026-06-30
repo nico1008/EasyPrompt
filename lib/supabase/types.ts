@@ -475,6 +475,15 @@ export interface Database {
           uses: number;
         }[];
       };
+      set_content_visibility: {
+        Args: {
+          p_target_kind: "notebook" | "user_template" | "saved_prompt";
+          p_target_id: string;
+          p_visibility: ContentVisibility;
+          p_share_slug?: string | null;
+        };
+        Returns: string | null;
+      };
     };
     Enums: { content_visibility: ContentVisibility };
     CompositeTypes: Record<string, never>;

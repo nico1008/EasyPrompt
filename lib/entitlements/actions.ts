@@ -12,7 +12,8 @@
  * The anonymous code path (/api/entitlement → localStorage) is untouched. */
 
 import { revalidatePath } from "next/cache";
-import { createClient, getServerUser } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getProvider, DEFAULT_PROVIDER } from "@/lib/providers";
 import type { Env } from "@/lib/providers/types";
@@ -52,7 +53,13 @@ export async function redeemEntitlementAction(
     return { error: "That code didn't check out. Double-check and try again." };
   }
 
-  const supabase = await createClient();
+  let supabase;
+  try {
+    supabase = createServiceRoleClient();
+  } catch {
+    return { error: "Premium isn't configured here." };
+  }
+
   const code_hash = await hashCode(env.ACCESS_SIGNING_SECRET, code);
   const { error } = await supabase.from("entitlements").upsert(
     {

@@ -27,6 +27,7 @@ const schema = z.object({
 });
 
 export type VisibilityState = { ok?: boolean; error?: string };
+type InternalKind = z.infer<typeof schema>["internal"];
 
 async function currentSlug(
   internal: "notebook" | "user_template" | "saved_prompt",
@@ -60,6 +61,10 @@ async function computePromptText(row: SavedPromptRow): Promise<string> {
   return row.body ?? "";
 }
 
+function targetKindForRpc(internal: InternalKind): "notebook" | "user_template" | "saved_prompt" {
+  return internal;
+}
+
 export async function setVisibilityAction(
   _prev: VisibilityState,
   formData: FormData
@@ -72,38 +77,50 @@ export async function setVisibilityAction(
   if (!parsed.success) return { error: "Invalid request." };
   const { internal, id, visibility } = parsed.data;
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Please log in again." };
+
   const { found, slug } = await currentSlug(internal, id);
   if (!found) return { error: "Not found." };
 
   const category = normalizeCategory(formData.get("category"));
 
-  const update: Record<string, unknown> = { visibility };
-  if (visibility === "public" && !slug) update.share_slug = makeShareSlug();
+  const shareSlug = visibility === "public" && !slug ? makeShareSlug() : null;
 
   if (internal === "saved_prompt") {
     const row = await getSavedPrompt(id);
     if (!row) return { error: "Not found." };
 
-    if (category) update.category = category;
+    const promptPatch: { category?: string; body?: string } = {};
+    if (category) promptPatch.category = category;
 
     if (visibility === "public") {
       const body = await computePromptText(row);
       const err = promptPublicVisibilityError(body, category ?? row.category);
       if (err) return { error: err };
-      if (body.trim()) update.body = body;
+      if (body.trim()) promptPatch.body = body;
+    }
+
+    if (Object.keys(promptPatch).length > 0) {
+      const { error } = await supabase
+        .from("saved_prompts")
+        .update(promptPatch)
+        .eq("id", id);
+      if (error) return { error: "Couldn't update. Please try again." };
     }
   }
 
-  const supabase = await createClient();
-  const u = update as never; // one Update shape across a typed table union
-  const res =
-    internal === "notebook"
-      ? await supabase.from("prompt_notebooks").update(u).eq("id", id)
-      : internal === "user_template"
-        ? await supabase.from("user_templates").update(u).eq("id", id)
-        : await supabase.from("saved_prompts").update(u).eq("id", id);
+  const { error } = await supabase.rpc("set_content_visibility", {
+    p_target_kind: targetKindForRpc(internal),
+    p_target_id: id,
+    p_visibility: visibility,
+    p_share_slug: shareSlug,
+  });
 
-  if (res.error) return { error: "Couldn't update. Please try again." };
+  if (error) return { error: "Couldn't update. Please try again." };
   revalidatePath("/my");
   return { ok: true };
 }

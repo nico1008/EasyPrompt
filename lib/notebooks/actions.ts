@@ -17,7 +17,12 @@ import { recordVersion } from "./versions/repo";
 import { makeShareSlug } from "./share";
 
 export type NotebookSaveState = { ok?: boolean; error?: string; savedId?: string };
-export type ShareState = { ok?: boolean; error?: string; shareSlug?: string | null };
+export type ShareState = {
+  ok?: boolean;
+  error?: string;
+  shareSlug?: string | null;
+  visibility?: "private" | "public";
+};
 
 /* --------------------------------- create --------------------------------- */
 export async function createNotebookAction(
@@ -102,7 +107,7 @@ export async function updateNotebookAction(
 }
 
 /* ------------------------------- sharing ---------------------------------- */
-/** Turn public sharing on (mint/keep a slug) or off (clear it). RLS owner-only. */
+/** Turn public sharing on or off through the checked publishing RPC. */
 export async function setNotebookShareAction(
   _prev: ShareState,
   formData: FormData
@@ -130,15 +135,18 @@ export async function setNotebookShareAction(
     shareSlug = existing?.share_slug ?? makeShareSlug();
   }
 
-  const { error } = await supabase
-    .from("prompt_notebooks")
-    .update({ share_slug: shareSlug })
-    .eq("id", id);
+  const visibility = on ? "public" : "private";
+  const { data, error } = await supabase.rpc("set_content_visibility", {
+    p_target_kind: "notebook",
+    p_target_id: id,
+    p_visibility: visibility,
+    p_share_slug: shareSlug,
+  });
   if (error) return { error: "Couldn't update sharing." };
 
   revalidatePath("/my");
   revalidatePath(`/my/notebooks/${id}`);
-  return { ok: true, shareSlug };
+  return { ok: true, shareSlug: on ? data : null, visibility };
 }
 
 /* --------------------------------- delete --------------------------------- */

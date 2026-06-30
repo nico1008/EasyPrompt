@@ -80,12 +80,14 @@ export function PromptBuilder({
   notebookId,
   draftId = "new",
   initialShareSlug = null,
+  initialVisibility = "private",
 }: {
   initialDoc: BlockDoc;
   notebookId?: string;
   draftId?: string;
-  /** Current public-share slug when editing a saved prompt (null = private). */
+  /** Retained share slug when editing a saved prompt. Active only when public. */
   initialShareSlug?: string | null;
+  initialVisibility?: "private" | "public";
 }) {
   const router = useRouter();
   const [doc, setDoc] = useState<BlockDoc>(initialDoc);
@@ -280,7 +282,13 @@ export function PromptBuilder({
               }}
             />
           )}
-          {notebookId && <ShareControl notebookId={notebookId} initialSlug={initialShareSlug} />}
+          {notebookId && (
+            <ShareControl
+              notebookId={notebookId}
+              initialSlug={initialShareSlug}
+              initialVisibility={initialVisibility}
+            />
+          )}
           <ExportMenu text={built.text} onDownload={download} />
           <SaveControl
             notebookId={notebookId}
@@ -586,13 +594,25 @@ function ShareSubmit({ on }: { on: boolean }) {
   );
 }
 
-function ShareControl({ notebookId, initialSlug }: { notebookId: string; initialSlug: string | null }) {
+function ShareControl({
+  notebookId,
+  initialSlug,
+  initialVisibility,
+}: {
+  notebookId: string;
+  initialSlug: string | null;
+  initialVisibility: "private" | "public";
+}) {
   const { open, setOpen, ref } = usePopover();
-  const [state, formAction] = useActionState(setNotebookShareAction, { shareSlug: initialSlug } as ShareState);
+  const [state, formAction] = useActionState(setNotebookShareAction, {
+    shareSlug: initialSlug,
+    visibility: initialVisibility,
+  } as ShareState);
   const [copied, setCopied] = useState(false);
 
   const slug = state.shareSlug !== undefined ? state.shareSlug : initialSlug;
-  const on = Boolean(slug);
+  const visibility = state.visibility ?? initialVisibility;
+  const on = visibility === "public";
   const url = slug && typeof window !== "undefined" ? `${window.location.origin}/p/${slug}` : "";
 
   return (
