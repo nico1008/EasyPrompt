@@ -4,6 +4,7 @@
  * client read helper, and tests. */
 
 export type Aggregate = { avg: number; count: number };
+export type AggregateRecord = Record<string, Aggregate>;
 
 export const EMPTY_AGGREGATE: Aggregate = { avg: 0, count: 0 };
 

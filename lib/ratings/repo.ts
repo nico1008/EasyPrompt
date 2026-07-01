@@ -5,8 +5,9 @@ import "server-only";
  * security-definer rating_aggregate() RPC so it can read across all raters
  * without exposing individual rows. */
 
-import { createClient } from "@/lib/supabase/server";
-import { rowToAggregate, EMPTY_AGGREGATE, type Aggregate } from "./map";
+import { createClient, createPublicClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { rowToAggregate, EMPTY_AGGREGATE, type Aggregate, type AggregateRecord } from "./map";
 import type { RatingTarget } from "./schema";
 
 export async function getMyRating(target: RatingTarget): Promise<number | null> {
@@ -28,4 +29,28 @@ export async function getAggregate(target: RatingTarget): Promise<Aggregate> {
   });
   if (error || !data || !data[0]) return EMPTY_AGGREGATE;
   return rowToAggregate(data[0]);
+}
+
+export async function getPublicAggregate(target: RatingTarget): Promise<Aggregate> {
+  if (!isSupabaseConfigured()) return EMPTY_AGGREGATE;
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase.rpc("rating_aggregate", {
+      p_target_kind: target.kind,
+      p_target_key: target.key,
+    });
+    if (error || !data || !data[0]) return EMPTY_AGGREGATE;
+    return rowToAggregate(data[0]);
+  } catch {
+    return EMPTY_AGGREGATE;
+  }
+}
+
+export async function getPublicAggregates(
+  targets: RatingTarget[]
+): Promise<AggregateRecord> {
+  const pairs = await Promise.all(
+    targets.map(async (target) => [target.key, await getPublicAggregate(target)] as const)
+  );
+  return Object.fromEntries(pairs);
 }

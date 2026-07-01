@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { CATEGORIES, TEMPLATES, countFor } from "@/data/templates";
 import { TemplateCard } from "@/components/TemplateCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
-import type { Counts } from "@/lib/metrics/map";
+import type { Counts, CountsRecord } from "@/lib/metrics/map";
+import type { Aggregate, AggregateRecord } from "@/lib/ratings/map";
 import { fetchCommunityTemplates } from "@/lib/community/client";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import { fetchCategoryAffinity } from "@/lib/personalization/client";
@@ -29,19 +29,43 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   code: "code",
 };
 
-export function PromptsClient() {
-  const params = useSearchParams();
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>("all");
+function countsRecordToMap(record: CountsRecord): Map<string, Counts> {
+  return new Map(Object.entries(record));
+}
+
+function aggregateRecordToMap(record: AggregateRecord): Map<string, Aggregate> {
+  return new Map(Object.entries(record));
+}
+
+export function PromptsClient({
+  initialCounts = {},
+  initialCommunity = [],
+  initialCommunityUses = {},
+  initialRatings = {},
+  initialQuery = "",
+  initialCategory = "all",
+}: {
+  initialCounts?: CountsRecord;
+  initialCommunity?: CommunityCardModel[];
+  initialCommunityUses?: CountsRecord;
+  initialRatings?: AggregateRecord;
+  initialQuery?: string;
+  initialCategory?: string;
+}) {
+  const [query, setQuery] = useState(initialQuery);
+  const [category, setCategory] = useState<string>(initialCategory);
   const [sort, setSort] = useState<Sort>("popular");
   const [filter, setFilter] = useState<Filter>("none");
   const [source, setSource] = useState<Source>("all");
   const [isMac, setIsMac] = useState(false);
-  const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
-  const [countsLoaded, setCountsLoaded] = useState(false);
-  const [community, setCommunity] = useState<CommunityCardModel[]>([]);
-  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(new Map());
-  const [communityLoaded, setCommunityLoaded] = useState(false);
+  const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
+  const [countsLoaded, setCountsLoaded] = useState(true);
+  const [community, setCommunity] = useState<CommunityCardModel[]>(initialCommunity);
+  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(() =>
+    countsRecordToMap(initialCommunityUses)
+  );
+  const [communityLoaded, setCommunityLoaded] = useState(true);
+  const [ratings] = useState<Map<string, Aggregate>>(() => aggregateRecordToMap(initialRatings));
   const [affinity, setAffinity] = useState<Map<string, number>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -98,15 +122,17 @@ export function PromptsClient() {
     setIsMac(/mac|iphone|ipad/i.test(navigator.userAgent));
   }, []);
 
-  // Seed state from the URL (footer category links, landing chips).
+  // ⌘K / Ctrl+K focuses search.
   useEffect(() => {
+    // Read URL filters after mount without useSearchParams(), which would make
+    // the statically-rendered catalog fall back to client-only rendering.
+    const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const cat = params.get("category");
     if (q) setQuery(q);
     if (cat && CATEGORIES.some((c) => c.id === cat)) setCategory(cat);
-  }, [params]);
+  }, []);
 
-  // ⌘K / Ctrl+K focuses search.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -294,7 +320,12 @@ export function PromptsClient() {
                 <EmptyTemplates query={query} source={source} onClear={clearFilters} />
               ) : (
                 results.map((item) => (
-                  <TemplateCard key={item.key} item={item} uses={usesFor(item.origin, item.slug)} />
+                  <TemplateCard
+                    key={item.key}
+                    item={item}
+                    uses={usesFor(item.origin, item.slug)}
+                    rating={ratings.get(item.slug)}
+                  />
                 ))
               )}
             </div>

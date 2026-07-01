@@ -3,6 +3,11 @@ import type { Metadata } from "next";
 import "@/app/templates/picker.css";
 import "./prompts.css";
 import { PromptsLibraryClient } from "./PromptsLibraryClient";
+import { EXAMPLE_PROMPTS } from "@/data/prompts";
+import { listCommunityPrompts } from "@/lib/community/repo";
+import { getPublicCountsBatch } from "@/lib/metrics/repo";
+
+export const revalidate = 60;
 
 /* The Prompts catalog. A "Prompt" is a finished, ready-to-paste instruction (the
  * counterpart to a reusable Template). This browses a curated set of example
@@ -15,10 +20,26 @@ export const metadata: Metadata = {
   alternates: { canonical: "/prompts" },
 };
 
-export default function PromptsCatalogPage() {
+export default async function PromptsCatalogPage() {
+  const [initialCounts, initialCommunity] = await Promise.all([
+    getPublicCountsBatch(
+      "example_prompt",
+      EXAMPLE_PROMPTS.map((p) => p.slug)
+    ),
+    listCommunityPrompts(24, 0),
+  ]);
+  const initialCommunityUses = await getPublicCountsBatch(
+    "user_prompt",
+    initialCommunity.map((c) => c.slug)
+  );
+
   return (
     <Suspense fallback={<main className="picker-page" style={{ minHeight: "100dvh" }} />}>
-      <PromptsLibraryClient />
+      <PromptsLibraryClient
+        initialCounts={initialCounts}
+        initialCommunity={initialCommunity}
+        initialCommunityUses={initialCommunityUses}
+      />
     </Suspense>
   );
 }

@@ -3,14 +3,15 @@
 /* Bookmark toggle. Hydrates its on/off state client-side (RLS own row) so it
  * works on the static catalog, and toggles through the Zod-validated server
  * action with optimistic UI. Lives inside Link-wrapped cards, so it stops click
- * propagation. Gated by isSupabaseConfigured(); hidden for logged-out users on
- * cards (compact). */
+ * propagation. Gated by isSupabaseConfigured(); anonymous users see the same
+ * stable button chrome and get an account prompt on click. */
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { Icon } from "@/components/Icon";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { useSupabaseUser } from "@/lib/supabase/useUser";
+import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { fetchIsBookmarked } from "@/lib/bookmarks/client";
 import { toggleBookmarkAction } from "@/lib/bookmarks/actions";
 import type { BookmarkTarget } from "@/lib/bookmarks/schema";
@@ -25,8 +26,11 @@ export function BookmarkButton({
   const [on, setOn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pop, setPop] = useState(false);
-  const email = useSupabaseUser();
-  const loggedIn = Boolean(email);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const pathname = usePathname() || "/";
+  const { account, authLikely, loaded } = useSupabaseAccountState();
+  const loggedIn = Boolean(account);
+  const authPending = authLikely && !loaded;
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !loggedIn) {
@@ -60,35 +64,38 @@ export function BookmarkButton({
 
   if (!isSupabaseConfigured()) return null;
 
-  if (!loggedIn) {
-    if (compact) return null;
-    return (
-      <Link className="bookmark-btn" href="/login" aria-label="Log in to save to your library">
-        <Icon name="bookmark" size={16} />
-        {!compact && "Save"}
-      </Link>
-    );
-  }
+  const label = on ? "Remove from library" : "Save to library";
 
   return (
-    <button
-      type="button"
-      className={`bookmark-btn${on ? " on" : ""}`}
-      aria-pressed={on}
-      aria-label={on ? "Remove from library" : "Save to library"}
-      disabled={busy}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        void toggle();
-      }}
-    >
-      <Icon
-        name="bookmark"
-        size={16}
-        className={`${on ? "bookmark-on" : ""}${pop ? " bookmark-pop" : ""}`.trim() || undefined}
+    <>
+      <button
+        type="button"
+        className={`bookmark-btn${on ? " on" : ""}${authPending ? " is-pending" : ""}`}
+        aria-pressed={on}
+        aria-label={label}
+        disabled={busy || authPending}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!loggedIn) {
+            setAuthPromptOpen(true);
+            return;
+          }
+          void toggle();
+        }}
+      >
+        <Icon
+          name="bookmark"
+          size={16}
+          className={`${on ? "bookmark-on" : ""}${pop ? " bookmark-pop" : ""}`.trim() || undefined}
+        />
+        {!compact && (on ? "Saved" : "Save")}
+      </button>
+      <AuthPromptDialog
+        open={authPromptOpen}
+        next={pathname}
+        onClose={() => setAuthPromptOpen(false)}
       />
-      {!compact && (on ? "Saved" : "Save")}
-    </button>
+    </>
   );
 }

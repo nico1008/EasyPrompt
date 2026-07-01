@@ -8,7 +8,12 @@ import { createPublicClient } from "@/lib/supabase/server";
 import { buildPrompt, buildPromptFromBlocks, type Answers } from "@/lib/buildPrompt";
 import { getTemplate } from "@/data/templates";
 import type { BlockDoc } from "@/lib/blocks/types";
-import type { CommunityAuthor } from "./map";
+import {
+  promptRowToCard,
+  templateRowToCard,
+  type CommunityAuthor,
+  type CommunityCard,
+} from "./map";
 
 export type CommunityPromptDetail = {
   id: string;
@@ -19,6 +24,42 @@ export type CommunityPromptDetail = {
   sourceSlug: string | null;
   author: CommunityAuthor | null;
 };
+
+export async function listCommunityPrompts(
+  limit = 24,
+  offset = 0
+): Promise<CommunityCard[]> {
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase.rpc("published_prompts", {
+      p_limit: limit,
+      p_offset: offset,
+    });
+    if (error || !data) return [];
+    return data.map(promptRowToCard);
+  } catch {
+    return [];
+  }
+}
+
+export async function listCommunityTemplates(
+  limit = 24,
+  offset = 0,
+  category: string | null = null
+): Promise<CommunityCard[]> {
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase.rpc("published_templates", {
+      p_limit: limit,
+      p_offset: offset,
+      p_category: category,
+    });
+    if (error || !data) return [];
+    return data.map(templateRowToCard);
+  } catch {
+    return [];
+  }
+}
 
 export async function getCommunityPrompt(slug: string): Promise<CommunityPromptDetail | null> {
   const supabase = createPublicClient();

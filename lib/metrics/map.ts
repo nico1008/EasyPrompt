@@ -3,6 +3,7 @@
  * a clean { uses: int, views: int }. Shared by the client read helpers and tests. */
 
 export type Counts = { uses: number; views: number };
+export type CountsRecord = Record<string, Counts>;
 
 export const EMPTY_COUNTS: Counts = { uses: 0, views: 0 };
 

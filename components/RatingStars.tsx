@@ -20,11 +20,13 @@ import { displayRating, type Aggregate } from "@/lib/ratings/map";
 export function RatingStars({
   target,
   compact = false,
+  initialAggregate,
 }: {
   target: RatingTarget;
   compact?: boolean;
+  initialAggregate?: Aggregate;
 }) {
-  const [agg, setAgg] = useState<Aggregate | null>(null);
+  const [agg, setAgg] = useState<Aggregate | null>(initialAggregate ?? null);
   const [mine, setMine] = useState<number | null>(null);
   const [hover, setHover] = useState(0);
   const [busy, setBusy] = useState(false);

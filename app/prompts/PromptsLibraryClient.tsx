@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { CATEGORIES } from "@/data/templates";
 import { EXAMPLE_PROMPTS, promptCountFor } from "@/data/prompts";
 import { PromptCard } from "@/components/PromptCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
-import type { Counts } from "@/lib/metrics/map";
+import type { Counts, CountsRecord } from "@/lib/metrics/map";
 import { fetchCommunityPrompts } from "@/lib/community/client";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import { examplePromptToItem, communityPromptToItem, byOriginThenRecency } from "@/lib/browse/map";
@@ -27,18 +26,35 @@ const CATEGORY_ICONS: Record<string, IconName> = {
   code: "code",
 };
 
-export function PromptsLibraryClient() {
-  const params = useSearchParams();
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>("all");
+function countsRecordToMap(record: CountsRecord): Map<string, Counts> {
+  return new Map(Object.entries(record));
+}
+
+export function PromptsLibraryClient({
+  initialCounts = {},
+  initialCommunity = [],
+  initialCommunityUses = {},
+  initialQuery = "",
+  initialCategory = "all",
+}: {
+  initialCounts?: CountsRecord;
+  initialCommunity?: CommunityCardModel[];
+  initialCommunityUses?: CountsRecord;
+  initialQuery?: string;
+  initialCategory?: string;
+}) {
+  const [query, setQuery] = useState(initialQuery);
+  const [category, setCategory] = useState<string>(initialCategory);
   const [sort, setSort] = useState<Sort>("popular");
   const [source, setSource] = useState<Source>("all");
   const [isMac, setIsMac] = useState(false);
-  const [counts, setCounts] = useState<Map<string, Counts>>(new Map());
-  const [countsLoaded, setCountsLoaded] = useState(false);
-  const [community, setCommunity] = useState<CommunityCardModel[]>([]);
-  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(new Map());
-  const [communityLoaded, setCommunityLoaded] = useState(false);
+  const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
+  const [countsLoaded, setCountsLoaded] = useState(true);
+  const [community, setCommunity] = useState<CommunityCardModel[]>(initialCommunity);
+  const [communityUses, setCommunityUses] = useState<Map<string, Counts>>(() =>
+    countsRecordToMap(initialCommunityUses)
+  );
+  const [communityLoaded, setCommunityLoaded] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -83,15 +99,17 @@ export function PromptsLibraryClient() {
     };
   }, []);
 
-  // Seed state from the URL (landing links, category deep-links).
+  // ⌘K / Ctrl+K focuses search.
   useEffect(() => {
+    // Read URL filters after mount without useSearchParams(), which would make
+    // the statically-rendered catalog fall back to client-only rendering.
+    const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const cat = params.get("category");
     if (q) setQuery(q);
     if (cat && CATEGORIES.some((c) => c.id === cat)) setCategory(cat);
-  }, [params]);
+  }, []);
 
-  // ⌘K / Ctrl+K focuses search.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
