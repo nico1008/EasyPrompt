@@ -8,10 +8,11 @@
  * when accounts are off. */
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { currentAuthNext } from "@/components/AuthGatedButton";
 import { Icon } from "@/components/Icon";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { useSupabaseUser } from "@/lib/supabase/useUser";
+import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { fetchAggregate, fetchMyRating } from "@/lib/ratings/client";
 import { rateAction } from "@/lib/ratings/actions";
 import type { RatingTarget } from "@/lib/ratings/schema";
@@ -30,8 +31,11 @@ export function RatingStars({
   const [mine, setMine] = useState<number | null>(null);
   const [hover, setHover] = useState(0);
   const [busy, setBusy] = useState(false);
-  const email = useSupabaseUser();
-  const loggedIn = Boolean(email);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authNext, setAuthNext] = useState("/templates");
+  const { account, loaded } = useSupabaseAccountState();
+  const loggedIn = Boolean(account);
+  const authPending = !loaded;
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -60,7 +64,12 @@ export function RatingStars({
 
   const submit = useCallback(
     async (n: number) => {
-      if (!loggedIn || busy) return;
+      if (busy || authPending) return;
+      if (!loggedIn) {
+        setAuthNext(currentAuthNext("/templates"));
+        setAuthPromptOpen(true);
+        return;
+      }
       setBusy(true);
       setMine(n); // optimistic
       const res = await rateAction(target, n);
@@ -70,7 +79,7 @@ export function RatingStars({
       }
       setBusy(false);
     },
-    [loggedIn, busy, target]
+    [authPending, loggedIn, busy, target]
   );
 
   if (!isSupabaseConfigured()) return null;
@@ -97,7 +106,7 @@ export function RatingStars({
   const display = hover || mine || 0;
   return (
     <div className="rating">
-      <div className="rating-stars" aria-label="Rate this template">
+      <div className="rating-stars" aria-label="Rate this Template">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
@@ -105,7 +114,7 @@ export function RatingStars({
             className={`rating-star${n <= display ? " on" : ""}`}
             aria-label={`${n} star${n > 1 ? "s" : ""}`}
             aria-pressed={mine === n}
-            disabled={!loggedIn || busy}
+            disabled={busy || authPending}
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
             onFocus={() => setHover(n)}
@@ -129,13 +138,20 @@ export function RatingStars({
           <span>No ratings yet</span>
         )}
         {!loggedIn ? (
-          <Link className="rating-login" href="/login">
-            Log in to rate
-          </Link>
+          <span className="rating-login">Click a star to rate.</span>
         ) : mine ? (
           <span className="rating-mine">· your rating: {mine}</span>
         ) : null}
       </div>
+      <AuthPromptDialog
+        open={authPromptOpen}
+        next={authNext}
+        title="Create an account to rate this Template"
+        body="Your rating helps you keep track of useful Templates and helps the catalog improve."
+        icon="star"
+        dismissLabel="Keep browsing"
+        onClose={() => setAuthPromptOpen(false)}
+      />
     </div>
   );
 }

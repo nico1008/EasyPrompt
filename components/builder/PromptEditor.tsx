@@ -15,8 +15,9 @@ import { useActionState, useCallback, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
+import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl } from "@/lib/buildPrompt";
 import { MarkdownEditorSurface } from "@/components/builder/MarkdownEditorSurface";
@@ -55,31 +56,14 @@ export function PromptEditor({
 
   const [name, setName] = useState(initialName);
   const [body, setBody] = useState(initialBody);
-  const [auth, setAuth] = useState<"checking" | "anon" | "ready">("checking");
   const [toast, setToast] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { account } = useSupabaseAccountState();
 
   const [state, formAction] = useActionState(
     editing ? updateManualPromptAction : createManualPromptAction,
     EMPTY
   );
-
-  // Resolve auth client-side (page stays static/anon-safe).
-  useEffect(() => {
-    if (!isSupabaseConfigured()) {
-      setAuth("anon");
-      return;
-    }
-    let active = true;
-    createClient()
-      .auth.getSession()
-      .then(({ data }) => {
-        if (active) setAuth(data.session ? "ready" : "anon");
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   // Local draft autosave (new prompts only — a saved row wins when editing).
   const { clear } = useLocalDraft<{ name: string; body: string }>({
@@ -133,8 +117,11 @@ export function PromptEditor({
   }, [body]);
 
   const fileName = `${(name || "untitled").replace(/\s+/g, "-").toLowerCase()}.md`;
-  const loginNext =
-    typeof window !== "undefined" ? window.location.pathname + window.location.search : "/build/prompt";
+  const persistDraftNow = useCallback(() => {
+    if (editing || typeof window === "undefined" || !hasBody) return;
+    const raw = JSON.stringify({ name, body });
+    if (raw.length <= 24_000) window.localStorage.setItem(`easyprompt.promptdraft.${draftId}`, raw);
+  }, [body, draftId, editing, hasBody, name]);
 
   return (
     <main className="prompt-editor">
@@ -154,20 +141,28 @@ export function PromptEditor({
           >
             <Icon name={copied ? "check" : "copy"} size={14} /> {copied ? "Copied!" : "Copy"}
           </button>
-          {auth === "ready" ? (
+          {account ? (
             <form action={formAction} className="pe-save-form">
               <input type="hidden" name="name" value={name || "Untitled prompt"} />
               <input type="hidden" name="body" value={body} />
               {editing && <input type="hidden" name="id" value={savedPromptId} />}
               <SaveSubmit editing={editing} />
             </form>
-          ) : auth === "anon" && isSupabaseConfigured() ? (
-            <Link
+          ) : isSupabaseConfigured() ? (
+            <AuthGatedButton
               className="btn btn-primary btn-sm"
-              href={`/login?next=${encodeURIComponent(loginNext)}`}
+              disabled={!hasBody}
+              next={() => currentAuthNext("/build/prompt")}
+              prompt={{
+                title: "Create an account to save this Prompt",
+                body: "Save your Prompts and access them from My Library.",
+                icon: "code",
+                dismissLabel: "Keep editing",
+              }}
+              onBeforeAuthNavigate={persistDraftNow}
             >
-              Log in to save
-            </Link>
+              Save to library
+            </AuthGatedButton>
           ) : null}
         </div>
       </div>

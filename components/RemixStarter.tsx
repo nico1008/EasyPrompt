@@ -1,4 +1,4 @@
-import { Icon } from "./Icon";
+import { RemixStarterClient } from "@/components/RemixStarterClient";
 import { remixPublicPromptAction } from "@/lib/savedPrompts/actions";
 
 /* "Use as starting point" — the remix form for a community Prompt. A *server*
@@ -6,12 +6,5 @@ import { remixPublicPromptAction } from "@/lib/savedPrompts/actions";
  * enters the client component graph (importing it into the client CommunityPrompt
  * broke the route's server render). Passed into CommunityPrompt as a slot. */
 export function RemixStarter({ slug }: { slug: string }) {
-  return (
-    <form action={remixPublicPromptAction}>
-      <input type="hidden" name="share_slug" value={slug} />
-      <button type="submit" className="btn btn-ink">
-        <Icon name="wrench" size={15} /> Use as starting point
-      </button>
-    </form>
-  );
+  return <RemixStarterClient slug={slug} action={remixPublicPromptAction} />;
 }

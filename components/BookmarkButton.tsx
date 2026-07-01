@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { currentAuthNext } from "@/components/AuthGatedButton";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { Icon } from "@/components/Icon";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -27,6 +28,7 @@ export function BookmarkButton({
   const [busy, setBusy] = useState(false);
   const [pop, setPop] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authNext, setAuthNext] = useState("/");
   const pathname = usePathname() || "/";
   const { account, authLikely, loaded } = useSupabaseAccountState();
   const loggedIn = Boolean(account);
@@ -65,6 +67,18 @@ export function BookmarkButton({
   if (!isSupabaseConfigured()) return null;
 
   const label = on ? "Remove from library" : "Save to library";
+  const isPrompt = target.kind === "example_prompt";
+  const authCopy = isPrompt
+    ? {
+        title: "Create an account to save this Prompt",
+        body: "Save Prompts to Favorites and access them from My Library.",
+        icon: "code" as const,
+      }
+    : {
+        title: "Create an account to save this Template",
+        body: "Save Templates to Favorites and access them from My Library.",
+        icon: "list" as const,
+      };
 
   return (
     <>
@@ -78,6 +92,7 @@ export function BookmarkButton({
           e.preventDefault();
           e.stopPropagation();
           if (!loggedIn) {
+            setAuthNext(currentAuthNext(pathname));
             setAuthPromptOpen(true);
             return;
           }
@@ -93,7 +108,10 @@ export function BookmarkButton({
       </button>
       <AuthPromptDialog
         open={authPromptOpen}
-        next={pathname}
+        next={authNext}
+        title={authCopy.title}
+        body={authCopy.body}
+        icon={authCopy.icon}
         onClose={() => setAuthPromptOpen(false)}
       />
     </>

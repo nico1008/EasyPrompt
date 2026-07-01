@@ -3,17 +3,18 @@
 /* "Save to my prompts" control for the Builder payoff step.
  *
  * The catalog builder pages are statically generated, so we can't know the user
- * server-side. This island checks the session client-side (a UI hint only — the
+ * server-side. This island checks account state client-side (a UI hint only — the
  * server action re-verifies) and renders one of: nothing (Supabase off),
- * "Log in to save" (anonymous), a name+save form (signed in), or a saved
+ * a soft account prompt (anonymous), a name+save form (signed in), or a saved
  * confirmation. In edit mode (savedPromptId set) it re-saves that row instead. */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import {
   createManualPromptAction,
   createSavedPromptAction,
@@ -46,6 +47,8 @@ export function SavePromptButton({
   savedPromptId,
   customBody,
   onSaved,
+  onAuthGateNavigate,
+  authGateNext,
   variant = "primary",
 }: {
   source: SaveSource;
@@ -58,6 +61,10 @@ export function SavePromptButton({
   customBody?: string;
   /** Fired once when a save succeeds — lets the Builder clear its local draft. */
   onSaved?: () => void;
+  /** Fired before the user leaves for auth from the soft gate. */
+  onAuthGateNavigate?: () => void;
+  /** Same-site return path for the auth gate. Defaults to the current URL. */
+  authGateNext?: () => string;
   /** Visual weight of the submit button. "outline" demotes it below a primary Copy. */
   variant?: "primary" | "outline";
 }) {
@@ -72,40 +79,33 @@ export function SavePromptButton({
     : createSavedPromptAction;
   const [state, formAction] = useActionState(action, EMPTY);
   const saveLabel = custom ? (editing ? "Save as new prompt" : "Save") : editing ? "Update" : "Save";
-  const [auth, setAuth] = useState<"checking" | "anon" | "ready">("checking");
   const [name, setName] = useState(defaultName);
-
-  useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-    let active = true;
-    createClient()
-      .auth.getSession()
-      .then(({ data }) => {
-        if (active) setAuth(data.session ? "ready" : "anon");
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { account } = useSupabaseAccountState();
 
   // Once a save succeeds, let the parent drop its local draft.
   useEffect(() => {
     if (state.ok) onSaved?.();
   }, [state.ok, onSaved]);
 
-  if (!isSupabaseConfigured() || auth === "checking") return null;
+  if (!isSupabaseConfigured()) return null;
 
-  if (auth === "anon") {
-    const next =
-      typeof window !== "undefined"
-        ? window.location.pathname + window.location.search
-        : "/templates";
+  if (!account) {
     return (
       <div className="save-prompt">
-        <p className="save-hint">Want to keep this prompt?</p>
-        <Link className="btn btn-ink btn-sm" href={`/login?next=${encodeURIComponent(next)}`}>
-          Log in to save
-        </Link>
+        <p className="save-hint">Want to keep this Prompt?</p>
+        <AuthGatedButton
+          className="btn btn-ink btn-sm"
+          prompt={{
+            title: "Create an account to save this Prompt",
+            body: "Save your Prompts and access them from My Library.",
+            icon: "code",
+            dismissLabel: "Keep editing",
+          }}
+          next={authGateNext ?? (() => currentAuthNext("/templates"))}
+          onBeforeAuthNavigate={onAuthGateNavigate}
+        >
+          {saveLabel}
+        </AuthGatedButton>
       </div>
     );
   }

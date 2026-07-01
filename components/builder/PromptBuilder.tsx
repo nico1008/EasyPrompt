@@ -17,6 +17,7 @@ import { analyzeDoc, type HealthStatus } from "@/lib/blocks/health";
 import type { Block, BlockDoc } from "@/lib/blocks/types";
 import { newBlockId } from "@/lib/blocks/defaults";
 import { useNotebookDraft } from "@/lib/drafts/useNotebookDraft";
+import { notebookDraftKey, serializeNotebookDraft } from "@/lib/drafts/notebookDraft";
 import {
   createNotebookAction,
   updateNotebookAction,
@@ -33,11 +34,12 @@ import {
 } from "@/lib/notebooks/versions/actions";
 import type { NotebookVersion } from "@/lib/notebooks/versions/repo";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { Icon } from "@/components/Icon";
 import { Eyebrow } from "@/components/Eyebrow";
 import { Toast } from "@/components/Toast";
 import { CodeWell } from "@/components/CodeWell";
+import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
 import { BlockCard } from "./BlockCard";
 import { Outline } from "./Outline";
 import { BlockPalette } from "./BlockPalette";
@@ -248,6 +250,13 @@ export function PromptBuilder({
     URL.revokeObjectURL(url);
   }, [built.text, doc.title]);
 
+  const persistDraftNow = useCallback(() => {
+    if (notebookId !== undefined || typeof window === "undefined") return;
+    if (built.answered === 0 && doc.title.trim().length === 0) return;
+    const serialized = serializeNotebookDraft(doc);
+    if (serialized) window.localStorage.setItem(notebookDraftKey(draftId), serialized);
+  }, [built.answered, doc, draftId, notebookId]);
+
   return (
     <main className="pbuilder">
       <Toast show={Boolean(toast)} message={toast} />
@@ -296,6 +305,7 @@ export function PromptBuilder({
             doc={doc}
             onSaved={markSaved}
             onCreated={(id) => router.push(`/my/notebooks/${id}`)}
+            onAuthGateNavigate={persistDraftNow}
           />
           {/* Copy is the single primary action (the prompt → clipboard payoff): it
               alone is indigo, and sits in the rightmost/strongest position. */}
@@ -522,29 +532,18 @@ function SaveControl({
   doc,
   onSaved,
   onCreated,
+  onAuthGateNavigate,
 }: {
   notebookId?: string;
   name: string;
   doc: BlockDoc;
   onSaved: () => void;
   onCreated: (id: string) => void;
+  onAuthGateNavigate: () => void;
 }) {
   const editing = Boolean(notebookId);
   const [state, formAction] = useActionState(editing ? updateNotebookAction : createNotebookAction, EMPTY_SAVE);
-  const [auth, setAuth] = useState<"checking" | "anon" | "ready">("checking");
-
-  useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-    let active = true;
-    createClient()
-      .auth.getSession()
-      .then(({ data }) => {
-        if (active) setAuth(data.session ? "ready" : "anon");
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { account } = useSupabaseAccountState();
 
   useEffect(() => {
     if (state.ok) {
@@ -553,15 +552,23 @@ function SaveControl({
     }
   }, [state.ok, state.savedId, editing, onSaved, onCreated]);
 
-  if (!isSupabaseConfigured() || auth === "checking") return null;
+  if (!isSupabaseConfigured()) return null;
 
-  if (auth === "anon") {
-    const next =
-      typeof window !== "undefined" ? window.location.pathname + window.location.search : "/build";
+  if (!account) {
     return (
-      <Link className="btn btn-ink btn-sm" href={`/login?next=${encodeURIComponent(next)}`}>
-        Log in to save
-      </Link>
+      <AuthGatedButton
+        className="btn btn-ink btn-sm"
+        next={() => currentAuthNext("/build")}
+        prompt={{
+          title: "Create an account to save this Template",
+          body: "Save your Templates and access them from My Library.",
+          icon: "list",
+          dismissLabel: "Keep building",
+        }}
+        onBeforeAuthNavigate={onAuthGateNavigate}
+      >
+        {editing ? "Save" : "Save template"}
+      </AuthGatedButton>
     );
   }
 

@@ -37,6 +37,7 @@ import { usePremium, fetchBoosters, type Booster } from "@/lib/premium/client";
 import { SavePromptButton, type SaveSource } from "@/components/SavePromptButton";
 import { ProviderOpenActions } from "@/components/detail/ProviderOpenActions";
 import { useDraft } from "@/lib/drafts/useDraft";
+import { draftKey, serializeDraft } from "@/lib/drafts/draft";
 import { useLocalDraft } from "@/lib/drafts/useLocalDraft";
 import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
 import { notebookDraftKey, serializeNotebookDraft } from "@/lib/drafts/notebookDraft";
@@ -122,6 +123,10 @@ export function Builder({
   const [toast, setToast] = useState(false);
   const [copied, setCopied] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [authDraftRestore] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URL(window.location.href).searchParams.get("restoreDraft") === "1";
+  });
   /** Pro Boosters affordance open/closed (post-value upsell; opens for premium). */
   const [boostersOpen, setBoostersOpen] = useState(false);
   /** True after the first successful Copy — gates the post-value "keep this" panel. */
@@ -130,7 +135,15 @@ export function Builder({
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const built = useMemo(() => buildPrompt(template, answers), [template, answers]);
-  const draftsEnabled = restoreDrafts && initialAnswers === undefined;
+  const draftsEnabled = (restoreDrafts || authDraftRestore) && initialAnswers === undefined;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("restoreDraft") !== "1") return;
+    url.searchParams.delete("restoreDraft");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
 
   /* ---- Draft autosave (anon, no account): persist both the in-progress answers
      and any Custom edit so a refresh never loses work. Off when reopening a saved
@@ -153,14 +166,32 @@ export function Builder({
     onRestore: (v) => setCustomBody(v),
   });
   useEffect(() => {
-    if (initialAnswers !== undefined || restoreDrafts) return;
+    if (initialAnswers !== undefined || restoreDrafts || authDraftRestore) return;
     clearDraft();
     clearCustomDraft();
-  }, [clearCustomDraft, clearDraft, initialAnswers, restoreDrafts]);
+  }, [authDraftRestore, clearCustomDraft, clearDraft, initialAnswers, restoreDrafts]);
   const handleSaved = useCallback(() => {
     clearDraft();
     clearCustomDraft();
   }, [clearDraft, clearCustomDraft]);
+  const persistAuthDraft = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const serialized = built.answered > 0 ? serializeDraft(answers) : null;
+    if (serialized) window.localStorage.setItem(draftKey(template.id), serialized);
+    if (customBody !== null) {
+      if (customBody.trim() && customBody.length <= 24_000) {
+        window.localStorage.setItem(`easyprompt.promptcustom.${template.id}`, customBody);
+      } else {
+        window.localStorage.removeItem(`easyprompt.promptcustom.${template.id}`);
+      }
+    }
+  }, [answers, built.answered, customBody, template.id]);
+  const authGateNext = useCallback(() => {
+    if (typeof window === "undefined") return `/templates/${template.slug}?restoreDraft=1`;
+    const url = new URL(window.location.href);
+    url.searchParams.set("restoreDraft", "1");
+    return `${url.pathname}${url.search}${url.hash}`;
+  }, [template.slug]);
 
   /* ---- Pro Boosters (premium): server-held enhancement blocks appended to the
      built prompt. They feed the Synced prompt; in Custom mode they're already baked
@@ -615,6 +646,8 @@ export function Builder({
               savedPromptId={savedPromptId}
               customBody={custom ? effectiveText : undefined}
               onSaved={handleSaved}
+              onAuthGateNavigate={persistAuthDraft}
+              authGateNext={authGateNext}
               variant="outline"
             />
             {isCatalog && (

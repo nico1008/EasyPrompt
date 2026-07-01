@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 function withNext(path: "/login" | "/signup", next: string): string {
   return `${path}?next=${encodeURIComponent(next)}`;
@@ -12,10 +12,24 @@ export function AuthPromptDialog({
   open,
   next,
   onClose,
+  title = "Keep this in My Library",
+  body = "Create a free account to save Templates and Prompts across devices.",
+  icon = "bookmark",
+  signupLabel = "Create account",
+  loginLabel = "Log in",
+  dismissLabel = "Keep browsing",
+  onBeforeAuthNavigate,
 }: {
   open: boolean;
   next: string;
   onClose: () => void;
+  title?: string;
+  body?: string;
+  icon?: IconName;
+  signupLabel?: string;
+  loginLabel?: string;
+  dismissLabel?: string;
+  onBeforeAuthNavigate?: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -38,25 +52,33 @@ export function AuthPromptDialog({
       <div className="apd-inner">
         <div className="apd-head">
           <span className="apd-mark" aria-hidden="true">
-            <Icon name="bookmark" size={18} />
+            <Icon name={icon} size={18} />
           </span>
           <button type="button" className="apd-close" onClick={onClose} aria-label="Close">
             <Icon name="minus" size={16} />
           </button>
         </div>
         <div className="apd-copy">
-          <h2>Keep this in My Library</h2>
-          <p>Create a free account to save Templates and Prompts across devices.</p>
+          <h2>{title}</h2>
+          <p>{body}</p>
         </div>
         <div className="apd-actions">
-          <Link className="btn btn-primary btn-sm" href={withNext("/signup", next)}>
-            Create account
+          <Link
+            className="btn btn-primary btn-sm"
+            href={withNext("/signup", next)}
+            onClick={onBeforeAuthNavigate}
+          >
+            {signupLabel}
           </Link>
-          <Link className="btn btn-ghost btn-sm" href={withNext("/login", next)}>
-            Log in
+          <Link
+            className="btn btn-ghost btn-sm"
+            href={withNext("/login", next)}
+            onClick={onBeforeAuthNavigate}
+          >
+            {loginLabel}
           </Link>
           <button type="button" className="apd-tertiary" onClick={onClose}>
-            Keep browsing
+            {dismissLabel}
           </button>
         </div>
       </div>
