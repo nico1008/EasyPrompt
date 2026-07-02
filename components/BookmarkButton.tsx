@@ -69,7 +69,7 @@ export function BookmarkButton({
   const label = on ? "Remove from library" : "Save to library";
   const authCopy = {
     title: "Add this to your favorites",
-    body: "Sign up or log in to keep track of items you like.",
+    body: "Sign up or log in to keep this in your favorites.",
   };
 
   return (
