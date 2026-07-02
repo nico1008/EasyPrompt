@@ -147,7 +147,7 @@ export function RatingStars({
         open={authPromptOpen}
         next={authNext}
         title="Rate this template"
-        body="Sign up or log in to rate this template."
+        body="Create an account to rate this template."
         onClose={() => setAuthPromptOpen(false)}
       />
     </div>

@@ -155,7 +155,7 @@ export function PromptEditor({
               next={() => currentAuthNext("/build/prompt")}
               prompt={{
                 title: "Save this prompt",
-                body: "Sign up or log in to keep it in your library.",
+                body: "Create an account to save and reuse.",
               }}
               onBeforeAuthNavigate={persistDraftNow}
             >

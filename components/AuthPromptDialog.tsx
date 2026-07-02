@@ -13,7 +13,7 @@ export function AuthPromptDialog({
   next,
   onClose,
   title = "Create an account",
-  body = "Sign up or log in to keep your work.",
+  body = "Create an account to save your work.",
   signupLabel = "Sign up",
   loginLabel = "Log in",
   onBeforeAuthNavigate,
