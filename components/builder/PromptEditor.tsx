@@ -154,10 +154,9 @@ export function PromptEditor({
               disabled={!hasBody}
               next={() => currentAuthNext("/build/prompt")}
               prompt={{
-                title: "Save this Prompt",
-                body: "Create a free account to keep it in your library and come back to it anytime.",
+                title: "Save this prompt",
+                body: "Create an account to keep it in your library and come back to it anytime.",
                 icon: "bookmark",
-                dismissLabel: "Continue without saving",
               }}
               onBeforeAuthNavigate={persistDraftNow}
             >

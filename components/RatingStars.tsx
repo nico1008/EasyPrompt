@@ -146,10 +146,9 @@ export function RatingStars({
       <AuthPromptDialog
         open={authPromptOpen}
         next={authNext}
-        title="Rate this Template"
-        body="Create a free account to save your rating."
+        title="Rate this template"
+        body="Create an account to save your rating."
         icon="star"
-        dismissLabel="Continue without rating"
         onClose={() => setAuthPromptOpen(false)}
       />
     </div>

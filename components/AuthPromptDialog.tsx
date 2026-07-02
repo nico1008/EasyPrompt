@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, type KeyboardEvent } from "react";
 import { Icon, type IconName } from "./Icon";
 
 function withNext(path: "/login" | "/signup", next: string): string {
@@ -17,7 +17,6 @@ export function AuthPromptDialog({
   icon = "user",
   signupLabel = "Create account",
   loginLabel = "Log in",
-  dismissLabel = "Continue",
   onBeforeAuthNavigate,
 }: {
   open: boolean;
@@ -28,7 +27,6 @@ export function AuthPromptDialog({
   icon?: IconName;
   signupLabel?: string;
   loginLabel?: string;
-  dismissLabel?: string;
   onBeforeAuthNavigate?: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -38,9 +36,33 @@ export function AuthPromptDialog({
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    else if (!open && dialog.open) dialog.close();
+    if (open && !dialog.open) {
+      dialog.showModal();
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
   }, [open]);
+
+  function trapFocus(event: KeyboardEvent<HTMLDialogElement>) {
+    if (event.key !== "Tab") return;
+    const dialog = ref.current;
+    if (!dialog) return;
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   return (
     <dialog
@@ -49,6 +71,7 @@ export function AuthPromptDialog({
       aria-labelledby={titleId}
       aria-describedby={bodyId}
       onClose={onClose}
+      onKeyDown={trapFocus}
       onClick={(event) => {
         if (event.target === ref.current) onClose();
       }}
@@ -56,10 +79,10 @@ export function AuthPromptDialog({
       <div className="apd-inner">
         <div className="apd-head">
           <span className="apd-mark" aria-hidden="true">
-            <Icon name={icon} size={18} />
+            <Icon name={icon} size={20} />
           </span>
           <button type="button" className="apd-close" onClick={onClose} aria-label="Close">
-            <Icon name="plus" size={17} className="apd-x-glyph" />
+            <Icon name="x" size={18} />
           </button>
         </div>
         <div className="apd-copy">
@@ -68,22 +91,18 @@ export function AuthPromptDialog({
         </div>
         <div className="apd-actions">
           <Link
-            className="btn btn-primary btn-sm"
+            className="btn btn-primary apd-primary"
             href={withNext("/signup", next)}
             onClick={onBeforeAuthNavigate}
           >
             {signupLabel}
           </Link>
-          <Link
-            className="btn btn-ghost btn-sm"
-            href={withNext("/login", next)}
-            onClick={onBeforeAuthNavigate}
-          >
-            {loginLabel}
-          </Link>
-          <button type="button" className="apd-tertiary" onClick={onClose}>
-            {dismissLabel}
-          </button>
+          <p className="apd-login">
+            Already have an account?{" "}
+            <Link href={withNext("/login", next)} onClick={onBeforeAuthNavigate}>
+              {loginLabel}
+            </Link>
+          </p>
         </div>
       </div>
     </dialog>

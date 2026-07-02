@@ -27,6 +27,7 @@ export const ICON_NAMES = [
   "clock",
   "bookmark",
   "plus",
+  "x",
   "trash",
   "chevron",
   "list",

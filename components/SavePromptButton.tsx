@@ -96,10 +96,9 @@ export function SavePromptButton({
         <AuthGatedButton
           className="btn btn-ink btn-sm"
           prompt={{
-            title: "Save this Prompt",
-            body: "Create a free account to keep it in your library and come back to it anytime.",
+            title: "Save this prompt",
+            body: "Create an account to keep it in your library and come back to it anytime.",
             icon: "bookmark",
-            dismissLabel: "Continue without saving",
           }}
           next={authGateNext ?? (() => currentAuthNext("/templates"))}
           onBeforeAuthNavigate={onAuthGateNavigate}
