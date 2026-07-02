@@ -560,10 +560,10 @@ function SaveControl({
         className="btn btn-ink btn-sm"
         next={() => currentAuthNext("/build")}
         prompt={{
-          title: "Create an account to save this Template",
-          body: "Save your Templates and access them from My Library.",
-          icon: "list",
-          dismissLabel: "Keep building",
+          title: "Save this Template",
+          body: "Create a free account to keep it in your library and come back to it anytime.",
+          icon: "bookmark",
+          dismissLabel: "Continue without saving",
         }}
         onBeforeAuthNavigate={onAuthGateNavigate}
       >

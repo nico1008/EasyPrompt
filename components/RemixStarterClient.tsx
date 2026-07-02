@@ -20,10 +20,10 @@ export function RemixStarterClient({
         className="btn btn-ink"
         next={() => currentAuthNext(`/prompts/${slug}`)}
         prompt={{
-          title: "Create an account to save this Prompt",
-          body: "Use this Prompt as a starting point and keep your remix in My Library.",
-          icon: "wrench",
-          dismissLabel: "Keep reading",
+          title: "Save your remix",
+          body: "Create a free account to keep your Prompt in My Library.",
+          icon: "bookmark",
+          dismissLabel: "Continue reading",
         }}
       >
         <Icon name="wrench" size={15} /> Use as starting point

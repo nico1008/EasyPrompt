@@ -10,6 +10,8 @@ export type AuthGateCopy = {
   title: string;
   body: string;
   icon?: IconName;
+  signupLabel?: string;
+  loginLabel?: string;
   dismissLabel?: string;
 };
 
@@ -72,6 +74,8 @@ export function AuthGatedButton({
           title={prompt.title}
           body={prompt.body}
           icon={prompt.icon}
+          signupLabel={prompt.signupLabel}
+          loginLabel={prompt.loginLabel}
           dismissLabel={prompt.dismissLabel}
           onBeforeAuthNavigate={onBeforeAuthNavigate}
           onClose={() => setOpen(false)}

@@ -70,14 +70,16 @@ export function BookmarkButton({
   const isPrompt = target.kind === "example_prompt";
   const authCopy = isPrompt
     ? {
-        title: "Create an account to save this Prompt",
-        body: "Save Prompts to Favorites and access them from My Library.",
-        icon: "code" as const,
+        title: "Save this Prompt",
+        body: "Create a free account to keep favorite Prompts in My Library.",
+        icon: "bookmark" as const,
+        dismissLabel: "Continue without saving",
       }
     : {
-        title: "Create an account to save this Template",
-        body: "Save Templates to Favorites and access them from My Library.",
-        icon: "list" as const,
+        title: "Save this Template",
+        body: "Create a free account to keep favorite Templates in My Library.",
+        icon: "bookmark" as const,
+        dismissLabel: "Continue without saving",
       };
 
   return (
@@ -112,6 +114,7 @@ export function BookmarkButton({
         title={authCopy.title}
         body={authCopy.body}
         icon={authCopy.icon}
+        dismissLabel={authCopy.dismissLabel}
         onClose={() => setAuthPromptOpen(false)}
       />
     </>

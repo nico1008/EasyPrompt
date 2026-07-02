@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { Icon, type IconName } from "./Icon";
 
 function withNext(path: "/login" | "/signup", next: string): string {
@@ -12,12 +12,12 @@ export function AuthPromptDialog({
   open,
   next,
   onClose,
-  title = "Keep this in My Library",
-  body = "Create a free account to save Templates and Prompts across devices.",
-  icon = "bookmark",
+  title = "Create an account",
+  body = "Create a free account to keep your work and return anytime.",
+  icon = "user",
   signupLabel = "Create account",
   loginLabel = "Log in",
-  dismissLabel = "Keep browsing",
+  dismissLabel = "Continue",
   onBeforeAuthNavigate,
 }: {
   open: boolean;
@@ -32,6 +32,8 @@ export function AuthPromptDialog({
   onBeforeAuthNavigate?: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const bodyId = useId();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -44,6 +46,8 @@ export function AuthPromptDialog({
     <dialog
       ref={ref}
       className="auth-prompt-dialog"
+      aria-labelledby={titleId}
+      aria-describedby={bodyId}
       onClose={onClose}
       onClick={(event) => {
         if (event.target === ref.current) onClose();
@@ -55,12 +59,12 @@ export function AuthPromptDialog({
             <Icon name={icon} size={18} />
           </span>
           <button type="button" className="apd-close" onClick={onClose} aria-label="Close">
-            <Icon name="minus" size={16} />
+            <Icon name="plus" size={17} className="apd-x-glyph" />
           </button>
         </div>
         <div className="apd-copy">
-          <h2>{title}</h2>
-          <p>{body}</p>
+          <h2 id={titleId}>{title}</h2>
+          <p id={bodyId}>{body}</p>
         </div>
         <div className="apd-actions">
           <Link
