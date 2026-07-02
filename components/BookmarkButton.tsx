@@ -67,18 +67,10 @@ export function BookmarkButton({
   if (!isSupabaseConfigured()) return null;
 
   const label = on ? "Remove from library" : "Save to library";
-  const isPrompt = target.kind === "example_prompt";
-  const authCopy = isPrompt
-    ? {
-        title: "Save this prompt",
-        body: "Create an account to keep it in your library and come back to it anytime.",
-        icon: "bookmark" as const,
-      }
-    : {
-        title: "Save this template",
-        body: "Create an account to keep it in your library and come back to it anytime.",
-        icon: "bookmark" as const,
-      };
+  const authCopy = {
+    title: "Add this to your favorites",
+    body: "Sign up or log in to keep track of items you like.",
+  };
 
   return (
     <>
@@ -111,7 +103,6 @@ export function BookmarkButton({
         next={authNext}
         title={authCopy.title}
         body={authCopy.body}
-        icon={authCopy.icon}
         onClose={() => setAuthPromptOpen(false)}
       />
     </>

@@ -561,8 +561,7 @@ function SaveControl({
         next={() => currentAuthNext("/build")}
         prompt={{
           title: "Save this template",
-          body: "Create an account to keep it in your library and come back to it anytime.",
-          icon: "bookmark",
+          body: "Sign up or log in to keep it in your library.",
         }}
         onBeforeAuthNavigate={onAuthGateNavigate}
       >

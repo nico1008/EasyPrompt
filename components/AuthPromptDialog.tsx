@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, type KeyboardEvent } from "react";
-import { Icon, type IconName } from "./Icon";
+import { Icon } from "./Icon";
 
 function withNext(path: "/login" | "/signup", next: string): string {
   return `${path}?next=${encodeURIComponent(next)}`;
@@ -13,9 +13,8 @@ export function AuthPromptDialog({
   next,
   onClose,
   title = "Create an account",
-  body = "Create a free account to keep your work and return anytime.",
-  icon = "user",
-  signupLabel = "Create account",
+  body = "Sign up or log in to keep your work.",
+  signupLabel = "Sign up",
   loginLabel = "Log in",
   onBeforeAuthNavigate,
 }: {
@@ -24,7 +23,6 @@ export function AuthPromptDialog({
   onClose: () => void;
   title?: string;
   body?: string;
-  icon?: IconName;
   signupLabel?: string;
   loginLabel?: string;
   onBeforeAuthNavigate?: () => void;
@@ -78,9 +76,6 @@ export function AuthPromptDialog({
     >
       <div className="apd-inner">
         <div className="apd-head">
-          <span className="apd-mark" aria-hidden="true">
-            <Icon name={icon} size={20} />
-          </span>
           <button type="button" className="apd-close" onClick={onClose} aria-label="Close">
             <Icon name="x" size={18} />
           </button>
@@ -97,12 +92,13 @@ export function AuthPromptDialog({
           >
             {signupLabel}
           </Link>
-          <p className="apd-login">
-            Already have an account?{" "}
-            <Link href={withNext("/login", next)} onClick={onBeforeAuthNavigate}>
-              {loginLabel}
-            </Link>
-          </p>
+          <Link
+            className="btn btn-ghost apd-secondary"
+            href={withNext("/login", next)}
+            onClick={onBeforeAuthNavigate}
+          >
+            {loginLabel}
+          </Link>
         </div>
       </div>
     </dialog>

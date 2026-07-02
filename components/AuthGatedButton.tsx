@@ -2,14 +2,12 @@
 
 import { useState, type MouseEvent, type ReactNode } from "react";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
-import type { IconName } from "@/components/Icon";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 
 export type AuthGateCopy = {
   title: string;
   body: string;
-  icon?: IconName;
   signupLabel?: string;
   loginLabel?: string;
 };
@@ -72,7 +70,6 @@ export function AuthGatedButton({
           next={dialogNext}
           title={prompt.title}
           body={prompt.body}
-          icon={prompt.icon}
           signupLabel={prompt.signupLabel}
           loginLabel={prompt.loginLabel}
           onBeforeAuthNavigate={onBeforeAuthNavigate}

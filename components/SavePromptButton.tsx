@@ -97,8 +97,7 @@ export function SavePromptButton({
           className="btn btn-ink btn-sm"
           prompt={{
             title: "Save this prompt",
-            body: "Create an account to keep it in your library and come back to it anytime.",
-            icon: "bookmark",
+            body: "Sign up or log in to keep it in your library.",
           }}
           next={authGateNext ?? (() => currentAuthNext("/templates"))}
           onBeforeAuthNavigate={onAuthGateNavigate}
