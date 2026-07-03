@@ -1,6 +1,6 @@
 "use client";
 
-/* Visibility UI for the My Library detail panel. The backend is single-sourced:
+/* Visibility UI for the My Library action dialog. The backend is single-sourced:
  * both Templates and Prompts write through setVisibilityAction. Public rows get a
  * stable share slug; private rows are owner-only and any old slug stays dormant. */
 

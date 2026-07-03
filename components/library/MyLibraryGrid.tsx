@@ -1,81 +1,85 @@
 "use client";
 
-/* The owned-items browser for My Library. A responsive card grid whose cards are
- * pure browse/select (one cohesive skeleton, accent-swapped per type — Template
- * light/indigo, Prompt dark/green). Selecting a card opens the detail panel where
- * every action lives; the card face stays clean. State is the selected key only —
- * the selected item is derived from the live props, so a server revalidation
- * (duplicate/delete) flows through and auto-closes the panel when the item is gone. */
+/* The owned-items browser for My Library. Cards navigate to the item's real page;
+ * the secondary manage/settings control opens the item's action dialog. State is
+ * only the active key, derived from live props so delete revalidation closes the
+ * dialog when the item disappears. */
 
 import { useState } from "react";
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { objectMeta } from "@/lib/library/objectMeta";
 import type { LibraryItem } from "@/lib/library/list";
-import { LibraryDetailPanel } from "@/components/library/LibraryDetailPanel";
+import { LibraryActionDialog } from "@/components/library/LibraryActionDialog";
 
 function LibraryCard({
   item,
-  selected,
-  dimmed,
-  onSelect,
+  onManage,
 }: {
   item: LibraryItem;
-  selected: boolean;
-  dimmed: boolean;
-  onSelect: () => void;
+  onManage: () => void;
 }) {
   const meta = objectMeta(item.objectType);
   return (
-    <button
-      type="button"
-      className={`my-card-tile is-${item.objectType}${selected ? " selected" : ""}${
-        dimmed ? " dimmed" : ""
-      }`}
-      aria-haspopup="dialog"
-      aria-label={`${meta.label}: ${item.title}`}
-      onClick={onSelect}
-    >
+    <article className={`my-card-tile is-${item.objectType}`}>
       <div className="mct-bar">
         <span className="mct-glyph" aria-hidden="true">
           <Icon name={meta.icon} size={14} />
         </span>
         <span className="mct-type">{meta.label}</span>
-        {item.visibility === "public" && (
-          <span className="my-visibility my-visibility-public mct-status">Public</span>
-        )}
+        <span className="mct-card-actions">
+          {item.visibility === "public" && (
+            <span className="my-visibility my-visibility-public mct-status">Public</span>
+          )}
+          <button
+            type="button"
+            className="mct-manage"
+            aria-haspopup="dialog"
+            aria-label={`Manage ${meta.label}: ${item.title}`}
+            onClick={onManage}
+          >
+            <Icon name="wrench" size={14} />
+          </button>
+        </span>
       </div>
       <div className="mct-body">
-        <h3 className="mct-title">{item.title}</h3>
+        <h3 className="mct-title">
+          <Link
+            className="mct-link"
+            href={item.primaryHref}
+            aria-label={`${item.primaryLabel} ${meta.label}: ${item.title}`}
+          >
+            {item.title}
+          </Link>
+        </h3>
       </div>
       <div className="mct-foot">
         <span className="mct-meta">{item.meta}</span>
       </div>
-    </button>
+    </article>
   );
 }
 
 export function MyLibraryGrid({ items }: { items: LibraryItem[] }) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const selected = items.find((i) => i.key === selectedKey) ?? null;
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const activeItem = items.find((i) => i.key === activeKey) ?? null;
 
   return (
     <>
-      <div className={`my-grid${selectedKey ? " has-selection" : ""}`}>
+      <div className="my-grid">
         {items.map((it) => (
           <LibraryCard
             key={it.key}
             item={it}
-            selected={it.key === selectedKey}
-            dimmed={selectedKey !== null && it.key !== selectedKey}
-            onSelect={() => setSelectedKey(it.key)}
+            onManage={() => setActiveKey(it.key)}
           />
         ))}
       </div>
-      {selected && (
-        <LibraryDetailPanel
-          key={selected.id}
-          item={selected}
-          onClose={() => setSelectedKey(null)}
+      {activeItem && (
+        <LibraryActionDialog
+          key={activeItem.key}
+          item={activeItem}
+          onClose={() => setActiveKey(null)}
         />
       )}
     </>
