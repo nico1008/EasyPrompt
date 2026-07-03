@@ -27,10 +27,12 @@ export function ProviderOpenActions({
   links,
   className,
   compact = false,
+  disabled = false,
 }: {
   links: ProviderOpenLinks;
   className?: string;
   compact?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <div
@@ -43,10 +45,18 @@ export function ProviderOpenActions({
         <a
           key={provider}
           className={`provider-open provider-open-${provider}`}
-          href={links[provider].href}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={links[provider].onClick}
+          href={disabled ? "#" : links[provider].href}
+          target={disabled ? undefined : "_blank"}
+          rel={disabled ? undefined : "noopener noreferrer"}
+          onClick={(event) => {
+            if (disabled) {
+              event.preventDefault();
+              return;
+            }
+            links[provider].onClick?.(event);
+          }}
+          aria-disabled={disabled || undefined}
+          tabIndex={disabled ? -1 : undefined}
           aria-label={LABELS[provider]}
           title={LABELS[provider]}
         >

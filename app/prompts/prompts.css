@@ -110,13 +110,6 @@
 .pd-topbar-meta .ct-name { font-size: 13px; }
 .pd-topbar-meta .ct-verified { width: 14px; height: 14px; }
 
-.pd-back {
-  display: inline-flex; align-items: center; gap: 6px;
-  font: 600 13px var(--font-sans); color: var(--fg-2);
-}
-.pd-back:hover { color: var(--fg-1); }
-.pd-back svg { transform: rotate(180deg); }
-
 .pd-head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;
   padding: 18px 0 16px;
@@ -173,32 +166,6 @@
 }
 .prompt-detail .code-body { min-height: 250px; max-height: 58vh; overflow: auto; }
 
-.pd-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-  padding: 12px;
-  border: 1px solid var(--line-1);
-  border-radius: var(--r-3);
-  background: rgba(255, 255, 255, 0.78);
-}
-.pd-action-main {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  flex-wrap: wrap;
-}
-.pd-action-main form { display: inline-flex; }
-.pd-action-providers {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
 @media (max-width: 600px) {
   .pd-wrap { padding-top: 22px; }
   .pd-topbar { flex-wrap: wrap; gap: 10px; }
@@ -208,17 +175,6 @@
   .pd-head h1 { font-size: 28px; }
   .pd-head-side { padding-top: 0; }
   .prompt-detail .code-body { min-height: 220px; max-height: 54vh; }
-  .pd-actions { align-items: stretch; }
-  .pd-action-main, .pd-action-providers, .pd-action-providers .provider-open-actions {
-    width: 100%;
-  }
-  .pd-action-main .btn, .pd-action-main form, .pd-action-main form .btn {
-    flex: 1;
-    justify-content: center;
-  }
-  .pd-action-providers .provider-open {
-    flex: 1;
-  }
 }
 
 /* ---- Customize dialog ---- */

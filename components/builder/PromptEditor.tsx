@@ -4,10 +4,10 @@
  * <textarea> stacked over a syntax-highlighted <pre> mirror with identical
  * metrics, so headings/lists/code/bold color live AS YOU TYPE and the caret never
  * drifts (the highlighted-textarea technique — react-simple-code-editor pattern,
- * hand-rolled, no dep). The editor grows with content and the page scrolls; the
- * action bar is sticky so Copy / Open-in / Save stay reachable with no layout
- * shift while typing. Anon-safe (local draft + Copy/Open-in logged out; Save
- * prompts sign-in). Reused by /build/prompt (new) and /my/prompts/[id] (manual). */
+ * hand-rolled, no dep). The editor grows with content and the page scrolls.
+ * Actions sit directly below the markdown surface, matching published Prompt
+ * detail pages. Anon-safe (local draft + Copy/Open-in logged out; Save prompts
+ * sign-in). Reused by /build/prompt (new) and /my/prompts/[id] (manual). */
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,11 @@ import { useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
+import { DetailActions } from "@/components/detail/DetailActions";
+import {
+  ProviderOpenActions,
+  type ProviderOpenLinks,
+} from "@/components/detail/ProviderOpenActions";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { copyText } from "@/lib/clipboard";
@@ -31,11 +36,11 @@ import "./PromptEditor.css";
 
 const EMPTY: SaveState = {};
 
-function SaveSubmit({ editing }: { editing: boolean }) {
+function SaveSubmit() {
   const { pending } = useFormStatus();
   return (
-    <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>
-      {pending ? "Saving…" : editing ? "Save changes" : "Save to library"}
+    <button className="btn btn-ghost btn-sm" type="submit" disabled={pending}>
+      {pending ? "Saving..." : "Save"}
     </button>
   );
 }
@@ -122,56 +127,44 @@ export function PromptEditor({
     const raw = JSON.stringify({ name, body });
     if (raw.length <= 24_000) window.localStorage.setItem(`easyprompt.promptdraft.${draftId}`, raw);
   }, [body, draftId, editing, hasBody, name]);
+  const providerLinks: ProviderOpenLinks = {
+    chatgpt: { href: openInUrl("chatgpt", body) },
+    claude: { href: openInUrl("claude", body) },
+    gemini: { href: openInUrl("gemini", body) },
+  };
+  const saveControl = account ? (
+    <form action={formAction} className="pe-save-form">
+      <input type="hidden" name="name" value={name || "Untitled prompt"} />
+      <input type="hidden" name="body" value={body} />
+      {editing && <input type="hidden" name="id" value={savedPromptId} />}
+      <SaveSubmit />
+    </form>
+  ) : isSupabaseConfigured() ? (
+    <AuthGatedButton
+      className="btn btn-ghost btn-sm"
+      disabled={!hasBody}
+      next={() => currentAuthNext("/build/prompt")}
+      prompt={{
+        title: "Save this prompt",
+        body: "Create an account to save and reuse.",
+      }}
+      onBeforeAuthNavigate={persistDraftNow}
+    >
+      Save
+    </AuthGatedButton>
+  ) : null;
 
   return (
     <main className="prompt-editor">
       <Toast show={Boolean(toast)} message={toast ?? ""} />
 
-      <div className="pe-bar">
-        <div className="pe-crumbs">
-          <Link href="/build">Builder</Link>
-          <span aria-hidden="true">/</span>
-          <span>{editing ? "Edit prompt" : "New prompt"}</span>
-        </div>
-        <div className="pe-bar-actions">
-          <button
-            className={`btn btn-ghost btn-sm${copied ? " is-copied" : ""}`}
-            onClick={() => void copy()}
-            disabled={!hasBody}
-          >
-            <Icon name={copied ? "check" : "copy"} size={14} /> {copied ? "Copied!" : "Copy"}
-          </button>
-          {account ? (
-            <form action={formAction} className="pe-save-form">
-              <input type="hidden" name="name" value={name || "Untitled prompt"} />
-              <input type="hidden" name="body" value={body} />
-              {editing && <input type="hidden" name="id" value={savedPromptId} />}
-              <SaveSubmit editing={editing} />
-            </form>
-          ) : isSupabaseConfigured() ? (
-            <AuthGatedButton
-              className="btn btn-primary btn-sm"
-              disabled={!hasBody}
-              next={() => currentAuthNext("/build/prompt")}
-              prompt={{
-                title: "Save this prompt",
-                body: "Create an account to save and reuse.",
-              }}
-              onBeforeAuthNavigate={persistDraftNow}
-            >
-              Save to library
-            </AuthGatedButton>
-          ) : null}
-        </div>
-      </div>
-
-      {state.error && (
-        <p className="pe-err" role="alert">
-          {state.error}
-        </p>
-      )}
-
       <div className="pe-wrap">
+        <nav className="pe-nav" aria-label="Prompt editor navigation">
+          <Link className="pd-back" href={editing ? "/my" : "/build"}>
+            <Icon name="arrow-right" size={14} /> {editing ? "My Library" : "Builder"}
+          </Link>
+        </nav>
+
         <input
           className="pe-title"
           value={name}
@@ -181,19 +174,6 @@ export function PromptEditor({
           maxLength={120}
         />
 
-        <div className="pe-openin" aria-label="Open this prompt in">
-          <span className="pe-openin-label">Open in</span>
-          <a className="md-open" href={openInUrl("chatgpt", body)} target="_blank" rel="noopener noreferrer" aria-disabled={!hasBody}>
-            ChatGPT
-          </a>
-          <a className="md-open" href={openInUrl("claude", body)} target="_blank" rel="noopener noreferrer" aria-disabled={!hasBody}>
-            Claude
-          </a>
-          <a className="md-open" href={openInUrl("gemini", body)} target="_blank" rel="noopener noreferrer">
-            Gemini
-          </a>
-        </div>
-
         <MarkdownEditorSurface
           value={body}
           onChange={setBody}
@@ -202,6 +182,26 @@ export function PromptEditor({
           kb={kb}
           placeholder={"Write your prompt in markdown…\n\n# Role\nYou are a…\n\n# Task\n…"}
         />
+
+        <DetailActions
+          primary={
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => void copy()}
+              disabled={!hasBody}
+            >
+              <Icon name={copied ? "check" : "copy"} size={14} /> {copied ? "Copied!" : "Copy"}
+            </button>
+          }
+          secondary={saveControl}
+          providers={<ProviderOpenActions links={providerLinks} disabled={!hasBody} />}
+        />
+
+        {state.error && (
+          <p className="pe-err" role="alert">
+            {state.error}
+          </p>
+        )}
 
         <p className="pe-hint">
           Markdown is highlighted live — <code>#</code> headings, <code>- </code> lists,{" "}

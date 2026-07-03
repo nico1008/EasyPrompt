@@ -7,31 +7,15 @@
 
 .prompt-editor { min-height: 100dvh; background: transparent; }
 
-/* ---- Sticky action bar: Copy / Save stay reachable, no shift while typing ---- */
-.pe-bar {
-  position: sticky;
-  top: 0;
-  z-index: 5;
+.pe-wrap { max-width: 880px; margin: 0 auto; padding: 30px 24px 96px; }
+.pe-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 24px;
-  background: var(--bg-1);
-  border-bottom: 1px solid var(--line-1);
+  margin-bottom: 20px;
 }
-.pe-crumbs { display: flex; align-items: center; gap: 8px; font: 500 13px var(--font-sans); color: var(--fg-2); min-width: 0; }
-.pe-crumbs a { color: var(--fg-2); }
-.pe-crumbs a:hover { color: var(--accent); }
-.pe-crumbs span[aria-hidden] { color: var(--line-3); }
-.pe-crumbs > span:last-child { color: var(--fg-1); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pe-bar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .pe-save-form { display: inline-flex; }
-.btn.is-copied { color: var(--prompt-accent); border-color: var(--prompt-accent); }
 
-.pe-err { max-width: 880px; margin: 12px auto 0; padding: 0 24px; color: var(--danger); font: 500 13px var(--font-sans); }
-
-.pe-wrap { max-width: 880px; margin: 0 auto; padding: 22px 24px 96px; }
+.pe-err { margin: 10px 2px 0; color: var(--danger); font: 500 13px var(--font-sans); }
 
 .pe-title {
   width: 100%;
@@ -48,24 +32,10 @@
    input / .hl-*) now lives in MarkdownEditorSurface.css, imported by the shared
    component this page renders. */
 
-/* Open-in row — always visible (reachable on every viewport), on the light page. */
-.pe-openin { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-.pe-openin-label { font: 600 12px var(--font-sans); color: var(--fg-3); margin-right: 2px; }
-.md-open {
-  font: 600 12.5px var(--font-sans); color: var(--fg-2);
-  padding: 5px 11px; border-radius: 999px;
-  border: 1px solid var(--line-2); background: var(--bg-1);
-  transition: border-color 120ms, color 120ms;
-}
-.md-open:hover { border-color: var(--prompt-accent); color: var(--prompt-accent); }
-.md-open[aria-disabled="true"] { opacity: 0.45; pointer-events: none; }
-
 .pe-hint { font: 400 12px var(--font-sans); color: var(--fg-3); margin: 12px 2px 0; }
 .pe-hint code { font-family: var(--font-mono); background: var(--bg-3); padding: 1px 5px; border-radius: var(--r-1); color: var(--fg-2); }
 
 @media (max-width: 640px) {
-  .pe-bar { padding: 10px 14px; }
-  .pe-crumbs { display: none; }
-  .pe-bar-actions { width: 100%; justify-content: flex-end; }
   .pe-wrap { padding: 16px 14px 96px; }
+  .pe-nav { margin-bottom: 16px; }
 }

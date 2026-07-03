@@ -11,6 +11,11 @@ import Link from "next/link";
 import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
+import { DetailActions } from "@/components/detail/DetailActions";
+import {
+  ProviderOpenActions,
+  type ProviderOpenLinks,
+} from "@/components/detail/ProviderOpenActions";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, type Segment } from "@/lib/buildPrompt";
 import "./SavedPromptView.css";
@@ -45,12 +50,17 @@ export function SavedPromptView({
   }, [text]);
 
   const fileName = `${(name || "prompt").replace(/\s+/g, "-").toLowerCase()}.md`;
+  const providerLinks: ProviderOpenLinks = {
+    chatgpt: { href: openInUrl("chatgpt", text) },
+    claude: { href: openInUrl("claude", text) },
+    gemini: { href: openInUrl("gemini", text) },
+  };
 
   return (
     <main className="saved-view">
       <Toast show={toast} message="Prompt copied to clipboard" />
       <div className="sv-wrap">
-        <Link className="sv-back" href="/my">
+        <Link className="pd-back sv-back" href="/my">
           <Icon name="arrow-right" size={14} /> My Library
         </Link>
 
@@ -65,26 +75,20 @@ export function SavedPromptView({
 
         <CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />
 
-        <div className="sv-actions">
-          <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
-            <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-            {copied ? "Copied!" : "Copy prompt"}
-          </button>
-          <Link className="btn btn-ghost" href={editHref}>
-            <Icon name="list" size={15} /> Edit answers
-          </Link>
-          <div className="sv-openin">
-            <a className="btn btn-ghost" href={openInUrl("chatgpt", text)} target="_blank" rel="noopener noreferrer">
-              <span className="sv-lg gpt">G</span> ChatGPT
-            </a>
-            <a className="btn btn-ghost" href={openInUrl("claude", text)} target="_blank" rel="noopener noreferrer">
-              <span className="sv-lg cl">C</span> Claude
-            </a>
-            <a className="btn btn-ghost" href={openInUrl("gemini", text)} target="_blank" rel="noopener noreferrer">
-              <span className="sv-lg gem">★</span> Gemini
-            </a>
-          </div>
-        </div>
+        <DetailActions
+          primary={
+            <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
+              <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
+              {copied ? "Copied!" : "Copy prompt"}
+            </button>
+          }
+          secondary={
+            <Link className="btn btn-ghost" href={editHref}>
+              <Icon name="list" size={15} /> Edit answers
+            </Link>
+          }
+          providers={<ProviderOpenActions links={providerLinks} disabled={!text} />}
+        />
       </div>
     </main>
   );
