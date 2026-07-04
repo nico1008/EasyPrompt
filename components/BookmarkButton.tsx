@@ -67,9 +67,10 @@ export function BookmarkButton({
   if (!isSupabaseConfigured()) return null;
 
   const label = on ? "Remove from library" : "Save to library";
+  const objectLabel = target.kind === "example_prompt" ? "Prompt" : "Template";
   const authCopy = {
-    title: "Add to favorites",
-    body: "Create an account to add to favorites.",
+    title: `Save this ${objectLabel}`,
+    body: `Create an account to save this ${objectLabel} to My Library.`,
   };
 
   return (

@@ -42,7 +42,7 @@
 }
 
 .auth-page .auth-field-err {
-  color: #c0362c;
+  color: var(--danger);
   font-size: 12px;
 }
 
@@ -50,9 +50,9 @@
   margin: 0;
   padding: 10px 12px;
   font-size: 13px;
-  color: #b23b30;
-  background: #fdecea;
-  border: 1px solid #f5c6c0;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-line);
   border-radius: var(--r-2);
 }
 

@@ -19,7 +19,7 @@
 .save-err {
   margin: 0;
   font-size: 12px;
-  color: #b23b30;
+  color: var(--danger);
 }
 .save-done {
   flex-direction: row;

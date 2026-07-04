@@ -80,7 +80,7 @@ export function PromptCard({ item, uses }: { item: BrowsePromptItem; uses?: numb
           aria-label={`Copy the ${item.title} prompt`}
         >
           <Icon name={copied ? "check" : "copy"} size={13} />
-          {copied ? "Copied!" : busy ? "…" : "Copy"}
+          {copied ? "Copied" : busy ? "…" : "Copy"}
         </button>
       </div>
     </article>

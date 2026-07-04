@@ -40,7 +40,7 @@ function SaveSubmit() {
   const { pending } = useFormStatus();
   return (
     <button className="btn btn-ghost btn-sm" type="submit" disabled={pending}>
-      {pending ? "Saving..." : "Save"}
+      {pending ? "Saving…" : "Save"}
     </button>
   );
 }
@@ -157,6 +157,7 @@ export function PromptEditor({
   return (
     <main className="prompt-editor">
       <Toast show={Boolean(toast)} message={toast ?? ""} />
+      <h1 className="sr-only">Prompt editor</h1>
 
       <div className="pe-wrap">
         <nav className="pe-nav" aria-label="Prompt editor navigation">
@@ -190,7 +191,7 @@ export function PromptEditor({
               onClick={() => void copy()}
               disabled={!hasBody}
             >
-              <Icon name={copied ? "check" : "copy"} size={14} /> {copied ? "Copied!" : "Copy"}
+              <Icon name={copied ? "check" : "copy"} size={14} /> {copied ? "Copied" : "Copy"}
             </button>
           }
           secondary={saveControl}

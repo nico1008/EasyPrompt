@@ -54,7 +54,7 @@ export function Nav() {
         <span className="glyph-pixel" aria-hidden="true" /> EasyPrompt
       </Link>
 
-      <div className={`links nav-links${open ? " open" : ""}`}>
+      <div id="site-nav-links" className={`links nav-links${open ? " open" : ""}`}>
         {links.map((l) => (
           <Link
             key={l.href}
@@ -66,6 +66,16 @@ export function Nav() {
             {l.label}
           </Link>
         ))}
+        {accountsOn && !showAccountChrome && (
+          <div className="nav-menu-auth" aria-label="Account actions">
+            <Link className="nav-login" href="/login" onClick={() => setOpen(false)}>
+              Log in
+            </Link>
+            <Link className="btn btn-primary btn-sm" href="/signup" onClick={() => setOpen(false)}>
+              Sign up
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="right">
@@ -81,10 +91,10 @@ export function Nav() {
           </Link>
         ) : accountsOn ? (
           <>
-            <Link className="nav-login" href="/login">
+            <Link className="nav-login nav-top-auth" href="/login">
               Log in
             </Link>
-            <Link className="btn btn-primary btn-sm" href="/signup">
+            <Link className="btn btn-primary btn-sm nav-top-auth" href="/signup">
               Sign up
             </Link>
           </>
@@ -96,7 +106,8 @@ export function Nav() {
         <button
           ref={burgerRef}
           className="nav-burger"
-          aria-label="Toggle menu"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-controls="site-nav-links"
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
         >

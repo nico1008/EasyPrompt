@@ -47,6 +47,7 @@ export function PromptsLibraryClient({
   const [category, setCategory] = useState<string>(initialCategory);
   const [sort, setSort] = useState<Sort>("popular");
   const [source, setSource] = useState<Source>("all");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
   const [countsLoaded, setCountsLoaded] = useState(true);
@@ -159,7 +160,10 @@ export function PromptsLibraryClient({
     setQuery("");
     setCategory("all");
     setSource("all");
+    setFiltersOpen(false);
   }
+
+  const activeFilterCount = (category !== "all" ? 1 : 0) + (source !== "all" ? 1 : 0);
 
   // Only show categories that actually contain curated prompts.
   const cats = CATEGORIES.filter((c) => promptCountFor(c.id) > 0);
@@ -213,12 +217,34 @@ export function PromptsLibraryClient({
           </div>
         </div>
 
+        <div className="filter-mobile-bar">
+          <button
+            type="button"
+            className={`filter-toggle${filtersOpen ? " on" : ""}`}
+            aria-expanded={filtersOpen}
+            aria-controls="prompt-filter-panel"
+            onClick={() => setFiltersOpen((open) => !open)}
+          >
+            <Icon name="list" size={15} />
+            Filters
+            {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
+          </button>
+          {activeFilterCount > 0 && (
+            <button type="button" className="filter-clear" onClick={clearFilters}>
+              Clear filters
+            </button>
+          )}
+        </div>
+
         <div className="layout">
-          <aside className="side">
+          <aside className={`side filter-panel${filtersOpen ? " open" : ""}`} id="prompt-filter-panel">
             <div className="group">Browse by</div>
             <button
               className={category === "all" ? "on" : undefined}
-              onClick={() => setCategory("all")}
+              onClick={() => {
+                setCategory("all");
+                setFiltersOpen(false);
+              }}
             >
               <span>All prompts</span>
               <span className="ct">{promptCountFor("all")}</span>
@@ -227,7 +253,10 @@ export function PromptsLibraryClient({
               <button
                 key={c.id}
                 className={category === c.id ? "on" : undefined}
-                onClick={() => setCategory(c.id)}
+                onClick={() => {
+                  setCategory(c.id);
+                  setFiltersOpen(false);
+                }}
               >
                 <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} />
                 {c.label}
@@ -240,7 +269,10 @@ export function PromptsLibraryClient({
                 key={s}
                 className={source === s ? "on" : undefined}
                 aria-pressed={source === s}
-                onClick={() => setSource(s)}
+                onClick={() => {
+                  setSource(s);
+                  setFiltersOpen(false);
+                }}
               >
                 <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
                 <span>{s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}</span>
@@ -285,18 +317,8 @@ function EmptyPrompts({
   return (
     <div className="empty">
       {msg}{" "}
-      <button
-        onClick={onClear}
-        style={{
-          background: "none",
-          border: "none",
-          color: "var(--accent)",
-          font: "inherit",
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        clear filters
+      <button type="button" className="empty-clear" onClick={onClear}>
+        Clear filters
       </button>
       .
     </div>

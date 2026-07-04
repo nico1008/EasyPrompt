@@ -260,6 +260,7 @@ export function PromptBuilder({
   return (
     <main className="pbuilder">
       <Toast show={Boolean(toast)} message={toast} />
+      <h1 className="sr-only">Template builder</h1>
 
       {/* ---- top toolbar ---- */}
       <header className="pb-toolbar">

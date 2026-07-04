@@ -119,13 +119,13 @@
   padding-top: 6px;
 }
 .user-pop-signout {
-  color: #b23b30;
+  color: var(--danger);
 }
 .user-pop-signout:hover {
-  background: #fdecea;
+  background: var(--danger-soft);
 }
 .user-pop-signout:hover svg {
-  color: #b23b30;
+  color: var(--danger);
 }
 
 .user-pop-confirm {
@@ -157,13 +157,13 @@
   color: var(--fg-1);
 }
 .user-pop-confirm-actions .user-pop-confirm-submit {
-  border-color: #c0362c;
-  background: #c0362c;
-  color: #fff;
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--fg-inv);
 }
 .user-pop-confirm-actions .user-pop-confirm-submit:hover:not(:disabled) {
-  background: #a82d24;
-  color: #fff;
+  background: var(--danger-hover);
+  color: var(--fg-inv);
 }
 .user-pop-confirm-actions button:disabled {
   opacity: 0.64;

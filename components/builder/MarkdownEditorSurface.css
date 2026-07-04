@@ -11,6 +11,9 @@
   background: var(--bg-md);
   box-shadow: var(--shadow-3);
 }
+.md-editor:focus-within {
+  box-shadow: var(--shadow-3), 0 0 0 4px rgba(70, 214, 166, 0.18);
+}
 .md-bar {
   display: flex; align-items: center; gap: 10px;
   padding: 11px 16px;

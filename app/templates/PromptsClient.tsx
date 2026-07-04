@@ -57,6 +57,7 @@ export function PromptsClient({
   const [sort, setSort] = useState<Sort>("popular");
   const [filter, setFilter] = useState<Filter>("none");
   const [source, setSource] = useState<Source>("all");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
   const [countsLoaded, setCountsLoaded] = useState(true);
@@ -194,7 +195,11 @@ export function PromptsClient({
     setCategory("all");
     setSource("all");
     setFilter("none");
+    setFiltersOpen(false);
   }
+
+  const activeFilterCount =
+    (category !== "all" ? 1 : 0) + (source !== "all" ? 1 : 0) + (filter !== "none" ? 1 : 0);
 
   return (
     <main className="picker-page">
@@ -254,12 +259,34 @@ export function PromptsClient({
           </div>
         </div>
 
+        <div className="filter-mobile-bar">
+          <button
+            type="button"
+            className={`filter-toggle${filtersOpen ? " on" : ""}`}
+            aria-expanded={filtersOpen}
+            aria-controls="template-filter-panel"
+            onClick={() => setFiltersOpen((open) => !open)}
+          >
+            <Icon name="list" size={15} />
+            Filters
+            {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
+          </button>
+          {activeFilterCount > 0 && (
+            <button type="button" className="filter-clear" onClick={clearFilters}>
+              Clear filters
+            </button>
+          )}
+        </div>
+
         <div className="layout">
-          <aside className="side">
+          <aside className={`side filter-panel${filtersOpen ? " open" : ""}`} id="template-filter-panel">
             <div className="group">Browse by</div>
             <button
               className={category === "all" ? "on" : undefined}
-              onClick={() => setCategory("all")}
+              onClick={() => {
+                setCategory("all");
+                setFiltersOpen(false);
+              }}
             >
               <span>All templates</span>
               <span className="ct">{countFor("all")}</span>
@@ -268,7 +295,10 @@ export function PromptsClient({
               <button
                 key={c.id}
                 className={category === c.id ? "on" : undefined}
-                onClick={() => setCategory(c.id)}
+                onClick={() => {
+                  setCategory(c.id);
+                  setFiltersOpen(false);
+                }}
               >
                 <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} />
                 {c.label}
@@ -281,7 +311,10 @@ export function PromptsClient({
                 key={s}
                 className={source === s ? "on" : undefined}
                 aria-pressed={source === s}
-                onClick={() => setSource(s)}
+                onClick={() => {
+                  setSource(s);
+                  setFiltersOpen(false);
+                }}
               >
                 <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
                 <span>{s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}</span>
@@ -291,7 +324,10 @@ export function PromptsClient({
             <button
               className={filter === "top" ? "on" : undefined}
               aria-pressed={filter === "top"}
-              onClick={() => setFilter((f) => (f === "top" ? "none" : "top"))}
+              onClick={() => {
+                setFilter((f) => (f === "top" ? "none" : "top"));
+                setFiltersOpen(false);
+              }}
             >
               <Icon name="star" size={15} />
               <span>Top rated</span>
@@ -299,7 +335,10 @@ export function PromptsClient({
             <button
               className={filter === "small" ? "on" : undefined}
               aria-pressed={filter === "small"}
-              onClick={() => setFilter((f) => (f === "small" ? "none" : "small"))}
+              onClick={() => {
+                setFilter((f) => (f === "small" ? "none" : "small"));
+                setFiltersOpen(false);
+              }}
             >
               <Icon name="zap" size={15} />
               <span>Under 5 fields</span>
@@ -307,7 +346,10 @@ export function PromptsClient({
             <button
               className={filter === "fresh" ? "on" : undefined}
               aria-pressed={filter === "fresh"}
-              onClick={() => setFilter((f) => (f === "fresh" ? "none" : "fresh"))}
+              onClick={() => {
+                setFilter((f) => (f === "fresh" ? "none" : "fresh"));
+                setFiltersOpen(false);
+              }}
             >
               <Icon name="clock" size={15} />
               <span>Added this week</span>
@@ -356,18 +398,8 @@ function EmptyTemplates({
   return (
     <div className="empty">
       {msg}{" "}
-      <button
-        onClick={onClear}
-        style={{
-          background: "none",
-          border: "none",
-          color: "var(--accent)",
-          font: "inherit",
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        clear filters
+      <button type="button" className="empty-clear" onClick={onClear}>
+        Clear filters
       </button>
       .
     </div>

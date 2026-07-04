@@ -10,6 +10,18 @@
 /* Active category chip adopts the prompt accent. */
 .prompts-theme .side button.on { color: var(--prompt-accent); border-color: var(--prompt-accent); background: var(--prompt-accent-soft); }
 .prompts-theme .side button.on .ct { color: var(--prompt-accent); }
+.prompts-theme .filter-toggle.on {
+  border-color: var(--prompt-accent);
+  background: var(--prompt-accent-soft);
+  color: var(--prompt-accent);
+}
+.prompts-theme .filter-count {
+  background: var(--prompt-accent);
+}
+.prompts-theme .filter-clear,
+.prompts-theme .empty-clear {
+  color: var(--prompt-accent);
+}
 
 /* ---- Dark .md-file tile ---- */
 .prompt-tile {

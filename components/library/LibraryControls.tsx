@@ -30,7 +30,7 @@ function CopyLink({ url }: { url: string }) {
       }}
     >
       <Icon name={copied ? "check" : "copy"} size={14} />
-      {copied ? "Copied!" : "Copy link"}
+      {copied ? "Copied" : "Copy link"}
     </button>
   );
 }
@@ -49,7 +49,7 @@ function VisibilitySubmit({
   return (
     <button type="submit" className="btn btn-primary btn-block" disabled={pending}>
       <Icon name={selected === "public" ? "share" : "shield"} size={15} />
-      {pending ? "Saving..." : label}
+      {pending ? "Saving…" : label}
     </button>
   );
 }

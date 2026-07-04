@@ -59,12 +59,13 @@ export function SharedPrompt({
         title={name || "Untitled prompt"}
         description="A read-only prompt shared from EasyPrompt."
         preview={<CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />}
+        actionsPlacement="before-preview"
         actions={
           <DetailActions
             primary={
               <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
                 <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-                {copied ? "Copied!" : "Copy prompt"}
+                {copied ? "Copied" : "Copy prompt"}
               </button>
             }
             providers={<ProviderOpenActions links={providerLinks} />}

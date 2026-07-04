@@ -100,12 +100,13 @@ export function CommunityPrompt({
           </>
         }
         preview={<CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />}
+        actionsPlacement="before-preview"
         actions={
           <DetailActions
             primary={
               <button className="btn btn-primary" onClick={() => void copy()}>
                 <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-                {copied ? "Copied!" : "Copy prompt"}
+                {copied ? "Copied" : "Copy prompt"}
               </button>
             }
             secondary={remixSlot}

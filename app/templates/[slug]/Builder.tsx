@@ -617,7 +617,7 @@ export function Builder({
               </button>
               <button className={`btn btn-primary btn-sm${copied ? " is-copied" : ""}`} onClick={() => void copy()}>
                 <Icon name={copied ? "check" : "copy"} size={14} strokeWidth={2} />
-                {copied ? "Copied!" : "Copy"}
+                {copied ? "Copied" : "Copy"}
               </button>
             </div>
           </div>
@@ -708,7 +708,7 @@ export function Builder({
         </button>
         <button className={`btn btn-primary${copied ? " is-copied" : ""}`} onClick={() => void copy()}>
           <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />
-          {copied ? "Copied!" : "Copy prompt"}
+          {copied ? "Copied" : "Copy prompt"}
         </button>
       </div>
     </main>

@@ -23,6 +23,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 const SITE = "https://easyprompt.app";
+const ENABLE_ANALYTICS = process.env.NODE_ENV === "production" && Boolean(process.env.VERCEL);
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -80,7 +81,7 @@ export default function RootLayout({
         <Nav />
         {children}
         <Footer />
-        <Analytics />
+        {ENABLE_ANALYTICS && <Analytics />}
       </body>
     </html>
   );

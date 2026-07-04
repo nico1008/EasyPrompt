@@ -31,7 +31,7 @@ export default async function PromptsPage() {
   );
 
   return (
-    <Suspense fallback={<main className="picker-page" style={{ minHeight: "100dvh" }} />}>
+    <Suspense fallback={<main className="picker-page" />}>
       <PromptsClient
         initialCounts={initialCounts}
         initialCommunity={initialCommunity}

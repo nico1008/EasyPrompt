@@ -10,6 +10,7 @@
   --bg-2: #FAFAFA;        /* slight gray for input wells, inset code panels */
   --bg-3: #F4F4F2;        /* hover / chip backgrounds */
   --bg-ink: #262626;      /* dark surface for code blocks — softer than near-black */
+  --bg-ink-hover: #1F1F2A;
   --bg-md: #1E1E26;       /* markdown-file surface — Prompts cards + the prompt editor */
 
   /* -------- Foreground -------- */
@@ -56,6 +57,16 @@
 
   /* -------- Status -------- */
   --danger: #C0392B;
+  --danger-hover: #A82D24;
+  --danger-soft: #FDECEA;
+  --danger-line: #F0C8C4;
+  --danger-tint: rgba(192, 57, 43, 0.08);
+  --danger-ring: rgba(192, 57, 43, 0.12);
+  --success: #0F7B52;
+  --success-soft: #E6F6EE;
+  --warning: #8A5800;
+  --warning-mark: #B76E15;
+  --warning-soft: rgba(183, 110, 21, 0.10);
 
   /* -------- Z-scale (semantic; never use raw numbers in components) -------- */
   --z-field: -1;     /* background field (grid + cursor highlight) — behind all content */
@@ -114,13 +125,19 @@ button { font-family: inherit; cursor: pointer; }
   font: 500 14px/1 var(--font-sans);
   border: 1px solid transparent;
   border-radius: var(--r-3);
-  transition: all 140ms cubic-bezier(0.16,1,0.3,1);
+  transition:
+    background 140ms cubic-bezier(0.16,1,0.3,1),
+    border-color 140ms cubic-bezier(0.16,1,0.3,1),
+    color 140ms cubic-bezier(0.16,1,0.3,1),
+    box-shadow 140ms cubic-bezier(0.16,1,0.3,1),
+    opacity 140ms cubic-bezier(0.16,1,0.3,1),
+    transform 140ms cubic-bezier(0.16,1,0.3,1);
   letter-spacing: -0.005em;
   user-select: none;
 }
 .btn-primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--fg-inv);
   font-weight: 600;
   box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 1px 2px rgba(91,91,255,0.20);
 }
@@ -140,7 +157,7 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--fg-inv);
   font-weight: 600;
 }
-.btn-ink:hover { background: #1F1F2A; }
+.btn-ink:hover { background: var(--bg-ink-hover); }
 
 .btn-mono { font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: 0; }
 .btn-sm { height: 36px; padding: 0 14px; font-size: 13px; border-radius: var(--r-2); }
@@ -219,7 +236,7 @@ button { font-family: inherit; cursor: pointer; }
 .field .field-error { font: 500 12px var(--font-sans); color: var(--danger); margin-top: 2px; }
 .field .input[aria-invalid="true"],
 .field .textarea[aria-invalid="true"],
-.field .select[aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.12); }
+.field .select[aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 0 0 4px var(--danger-ring); }
 
 .input, .textarea, .select {
   background: var(--bg-1);
@@ -252,7 +269,12 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: var(--r-2);
   background: var(--bg-1);
   cursor: pointer;
-  transition: all 140ms;
+  transition:
+    background 140ms,
+    border-color 140ms,
+    color 140ms,
+    box-shadow 140ms,
+    transform 140ms;
 }
 .check:hover { border-color: var(--line-3); background: var(--bg-2); }
 .check.on { border-color: var(--accent); background: var(--accent-soft); }
@@ -337,16 +359,17 @@ button { font-family: inherit; cursor: pointer; }
 .nav .links a {
   padding: 6px 12px; border-radius: var(--r-2);
   font: 500 14px var(--font-sans); color: var(--fg-2);
-  transition: all 140ms;
+  transition: background 140ms, color 140ms;
 }
 .nav .links a:hover { color: var(--fg-1); background: var(--bg-2); }
 .nav .links a.on { color: var(--accent); background: var(--accent-soft); }
 .nav .right { justify-self: end; display: flex; align-items: center; gap: 10px; }
 .nav .nav-login {
   font: 500 14px var(--font-sans); color: var(--fg-2);
-  padding: 6px 10px; border-radius: var(--r-2); transition: all 140ms;
+  padding: 6px 10px; border-radius: var(--r-2); transition: background 140ms, color 140ms;
 }
 .nav .nav-login:hover { color: var(--fg-1); background: var(--bg-2); }
+.nav .nav-menu-auth { display: none; }
 
 /* Pixel glyph — indigo */
 .glyph-pixel {
@@ -413,21 +436,41 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center; justify-content: center;
   background: transparent; border: 1px solid var(--line-3);
   border-radius: var(--r-2); color: var(--fg-1);
+  transition: background 140ms, border-color 140ms, color 140ms;
 }
+.nav-burger:hover { background: var(--bg-2); border-color: var(--line-3); }
 
 @media (max-width: 860px) {
-  .nav { padding: 0 18px; }
+  .nav { padding: 0 18px; grid-template-columns: auto 1fr auto; }
   .nav .nav-links {
-    position: absolute; top: 64px; left: 0; right: 0;
+    position: absolute; top: 64px; left: -18px; right: -18px;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    width: auto;
     flex-direction: column; gap: 2px;
     background: rgba(255,255,255,0.98);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--line-1);
-    padding: 10px 14px;
+    box-shadow: 0 18px 38px rgba(15, 15, 30, 0.10);
+    padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
     display: none;
   }
   .nav .nav-links.open { display: flex; }
-  .nav .nav-links a { padding: 12px; border-radius: var(--r-2); }
+  .nav .nav-links a { width: 100%; padding: 12px; border-radius: var(--r-2); }
+  .nav .nav-menu-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line-1);
+  }
+  .nav .nav-menu-auth .btn,
+  .nav .nav-menu-auth .nav-login {
+    width: 100%;
+    justify-content: center;
+  }
+  .nav .nav-top-auth { display: none; }
   .nav-burger { display: inline-flex; }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 28px; }
   .footer-base { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -842,6 +885,15 @@ a.creator-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 .pd-back svg { transform: rotate(180deg); }
 
 /* Shared bottom action bar for prompt/detail surfaces. */
+.pd-actions-slot.is-before-preview {
+  margin-bottom: 14px;
+}
+.pd-actions-slot.is-after-preview {
+  margin-top: 14px;
+}
+.pd-actions-slot .pd-actions {
+  margin-top: 0;
+}
 .pd-actions {
   display: flex;
   align-items: center;

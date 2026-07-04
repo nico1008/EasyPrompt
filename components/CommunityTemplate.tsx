@@ -90,7 +90,7 @@ export function CommunityTemplate({
             primary={
               <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
                 <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-                {copied ? "Copied!" : "Copy template"}
+                {copied ? "Copied" : "Copy template"}
               </button>
             }
             providers={<ProviderOpenActions links={providerLinks} />}

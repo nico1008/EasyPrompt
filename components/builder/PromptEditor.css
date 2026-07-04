@@ -25,7 +25,12 @@
   border-bottom: 1px solid transparent;
   margin-bottom: 14px;
 }
-.pe-title:focus { outline: none; border-bottom-color: var(--accent); }
+.pe-title:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+  border-radius: var(--r-2);
+  box-shadow: 0 0 0 4px var(--accent-tint);
+}
 .pe-title::placeholder { color: var(--fg-3); }
 
 /* The dark .md-file editor surface (.md-editor / .md-bar / .md-surface / mirror +

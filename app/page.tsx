@@ -73,7 +73,7 @@ export default function LandingPage() {
               <div className="lp-tile-foot">
                 <span>Marketing</span>
                 <span className="lp-meta">
-                  <span>1.2k uses</span>
+                  <span>Template</span>
                   <span>4 questions</span>
                 </span>
               </div>
@@ -99,7 +99,7 @@ export default function LandingPage() {
               <div className="lp-tile-foot">
                 <span className="lp-meta">
                   <span>Work</span>
-                  <span>842 uses</span>
+                  <span>Ready markdown</span>
                 </span>
                 <span className="lp-copy">
                   <Icon name="copy" size={13} />
@@ -186,7 +186,7 @@ export default function LandingPage() {
           <div className="workflow-row">
             <span className="num">3</span>
             <div>
-              <h3>Save and set visibility</h3>
+              <h3>Keep useful work</h3>
               <p>Keep work private or make it public when it should be discoverable.</p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function LandingPage() {
 
       <section className="support-section">
         <div className="support-copy">
-          <h2 className="h2">Save and set visibility.</h2>
+          <h2 className="h2">Keep work in one library.</h2>
           <p>
             Keep reusable Templates and ready Prompts in one library. Keep work private,
             make useful work public, or come back to the prompts you use often.

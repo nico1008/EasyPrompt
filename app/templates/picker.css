@@ -2,7 +2,7 @@
    .picker-page because App Router injects every imported CSS file globally;
    scoping prevents generic names (.card, .layout, .foot) colliding with the builder. */
 
-.picker-page { min-height: 100vh; background: transparent; }
+.picker-page { min-height: 100dvh; background: transparent; }
 .picker-page .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 28px 60px; }
 
 .picker-page .page-head { margin-bottom: 24px; }
@@ -56,6 +56,62 @@
   cursor: pointer;
 }
 .picker-page .sort button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+.picker-page .filter-mobile-bar {
+  display: none;
+}
+
+.picker-page .filter-toggle,
+.picker-page .filter-clear,
+.picker-page .empty-clear {
+  border: none;
+  background: transparent;
+  font: inherit;
+}
+
+.picker-page .filter-toggle {
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--bg-1);
+  color: var(--fg-1);
+  font: 600 13px var(--font-sans);
+  transition:
+    background 140ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.picker-page .filter-toggle.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.picker-page .filter-count {
+  min-width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--fg-inv);
+  font: 700 10px var(--font-mono);
+}
+
+.picker-page .filter-clear,
+.picker-page .empty-clear {
+  color: var(--accent);
+  font: 600 13px var(--font-sans);
+  padding: 0;
+}
+
+.picker-page .empty-clear {
+  font: inherit;
+}
 
 .picker-page .layout { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: start; }
 
@@ -169,5 +225,21 @@
 @media (max-width: 640px) {
   .picker-page .toolbar { grid-template-columns: 1fr; }
   .picker-page .sort { overflow-x: auto; }
+  .picker-page .filter-mobile-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: -8px 0 16px;
+  }
+  .picker-page .filter-toggle {
+    display: inline-flex;
+  }
+  .picker-page .side.filter-panel {
+    display: none;
+  }
+  .picker-page .side.filter-panel.open {
+    display: flex;
+  }
   .picker-page .grid { grid-template-columns: 1fr; }
 }

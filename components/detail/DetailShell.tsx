@@ -13,6 +13,7 @@ export function DetailShell({
   side,
   preview,
   actions,
+  actionsPlacement = "after-preview",
   footer,
 }: {
   backHref: string;
@@ -25,8 +26,13 @@ export function DetailShell({
   side?: ReactNode;
   preview: ReactNode;
   actions?: ReactNode;
+  actionsPlacement?: "before-preview" | "after-preview";
   footer?: ReactNode;
 }) {
+  const actionsSlot = actions ? (
+    <div className={`pd-actions-slot is-${actionsPlacement}`}>{actions}</div>
+  ) : null;
+
   return (
     <main className="prompt-detail">
       <div className="pd-wrap">
@@ -49,8 +55,9 @@ export function DetailShell({
           {side && <div className="pd-head-side">{side}</div>}
         </section>
 
+        {actionsPlacement === "before-preview" && actionsSlot}
         <div className="pd-preview">{preview}</div>
-        {actions}
+        {actionsPlacement === "after-preview" && actionsSlot}
         {footer}
       </div>
     </main>
