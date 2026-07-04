@@ -352,9 +352,15 @@ button { font-family: inherit; cursor: pointer; }
   backdrop-filter: blur(12px);
   position: sticky; top: 0; z-index: var(--z-nav);
 }
-.nav .brand { display: flex; align-items: center; gap: 10px; justify-self: start;
-              font: 600 17px var(--font-sans); letter-spacing: -0.02em; color: var(--fg-1); }
-.nav .brand .glyph { width: 20px; height: 20px; }
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font: 600 17px var(--font-sans);
+  letter-spacing: 0;
+  color: var(--fg-1);
+}
+.nav .brand { justify-self: start; }
 .nav .links { display: flex; gap: 6px; justify-self: center; }
 .nav .links a {
   padding: 6px 12px; border-radius: var(--r-2);
@@ -371,23 +377,26 @@ button { font-family: inherit; cursor: pointer; }
 .nav .nav-login:hover { color: var(--fg-1); background: var(--bg-2); }
 .nav .nav-menu-auth { display: none; }
 
-/* Pixel glyph — indigo */
-.glyph-pixel {
-  display: inline-block; width: 20px; height: 20px;
-  background-image:
-    linear-gradient(var(--accent) 0 0),
-    linear-gradient(var(--accent) 0 0),
-    linear-gradient(var(--accent) 0 0),
-    linear-gradient(var(--accent) 0 0),
-    linear-gradient(var(--accent) 0 0);
-  background-repeat: no-repeat;
-  background-size: 4px 4px;
-  background-position:
-     0  0,
-     8px  0,
-     16px  0,
-     0  8px,
-     16px  8px;
+/* Brand mark */
+.brand-icon {
+  display: block;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  transform: translateY(-0.5px);
+  filter: drop-shadow(0 5px 12px rgba(15, 15, 30, 0.08));
+}
+.brand-icon-bg { fill: var(--bg-1); }
+.brand-icon-template { stroke: var(--accent); }
+.brand-icon-prompt { fill: var(--prompt-accent); }
+.brand-icon-edge {
+  fill: none;
+  stroke: rgba(15, 15, 30, 0.08);
+  vector-effect: non-scaling-stroke;
+}
+.footer-brand .brand {
+  display: flex;
+  width: fit-content;
 }
 
 /* ===== Footer (global — not in mockups, added per build plan) ===== */

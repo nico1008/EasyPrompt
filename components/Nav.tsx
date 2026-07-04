@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
+import { BrandIcon } from "./BrandIcon";
 import { UserMenu } from "./UserMenu";
 import { config } from "@/config";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -51,7 +52,7 @@ export function Nav() {
   return (
     <nav className="nav">
       <Link className="brand" href="/">
-        <span className="glyph-pixel" aria-hidden="true" /> EasyPrompt
+        <BrandIcon /> EasyPrompt
       </Link>
 
       <div id="site-nav-links" className={`links nav-links${open ? " open" : ""}`}>

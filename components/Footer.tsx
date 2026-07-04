@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandIcon } from "@/components/BrandIcon";
 import { CATEGORIES } from "@/data/templates";
 
 /* Global footer: category links, product links, and legal links. Built from the
@@ -9,7 +10,7 @@ export function Footer() {
       <div className="footer-inner">
         <div className="footer-brand">
           <Link className="brand" href="/">
-            <span className="glyph-pixel" aria-hidden="true" /> EasyPrompt
+            <BrandIcon /> EasyPrompt
           </Link>
           <p>
             Browse reusable Templates and ready-to-copy Prompts. Build your own when
