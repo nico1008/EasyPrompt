@@ -1,6 +1,0 @@
-sandbox_mode = "danger-full-access"
-[mcp_servers.supabase]
-url = "https://mcp.supabase.com/mcp?project_ref=ahybwmsyyhbwygzsxsgc"
-
-[sandbox_workspace_write]
-network_access = true
