@@ -5,8 +5,9 @@
  * only the active key, derived from live props so delete revalidation closes the
  * dialog when the item disappears. */
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import Link from "next/link";
+import { Settings } from "lucide-react";
 import { Icon } from "@/components/Icon";
 import { objectMeta } from "@/lib/library/objectMeta";
 import type { LibraryItem } from "@/lib/library/list";
@@ -20,29 +21,18 @@ function LibraryCard({
   onManage: () => void;
 }) {
   const meta = objectMeta(item.objectType);
+  const manage = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onManage();
+  };
+
   return (
     <article className={`my-card-tile is-${item.objectType}`}>
       <div className="mct-bar">
         <span className="mct-glyph" aria-hidden="true">
           <Icon name={meta.icon} size={14} />
         </span>
-        <span className="mct-type">{meta.label}</span>
-        <span className="mct-card-actions">
-          {item.visibility === "public" && (
-            <span className="my-visibility my-visibility-public mct-status">Public</span>
-          )}
-          <button
-            type="button"
-            className="mct-manage"
-            aria-haspopup="dialog"
-            aria-label={`Manage ${meta.label}: ${item.title}`}
-            onClick={onManage}
-          >
-            <Icon name="wrench" size={14} />
-          </button>
-        </span>
-      </div>
-      <div className="mct-body">
         <h3 className="mct-title">
           <Link
             className="mct-link"
@@ -52,6 +42,23 @@ function LibraryCard({
             {item.title}
           </Link>
         </h3>
+        <span className="mct-card-actions">
+          {item.visibility === "public" && (
+            <span className="my-visibility my-visibility-public mct-status">Public</span>
+          )}
+          <button
+            type="button"
+            className="mct-manage"
+            aria-haspopup="dialog"
+            aria-label={`Manage ${meta.label}: ${item.title}`}
+            onClick={manage}
+          >
+            <Settings size={15} strokeWidth={1.9} aria-hidden="true" />
+          </button>
+        </span>
+      </div>
+      <div className="mct-body">
+        {item.preview && <p className="mct-blurb">{item.preview}</p>}
       </div>
       <div className="mct-foot">
         <span className="mct-meta">{item.meta}</span>

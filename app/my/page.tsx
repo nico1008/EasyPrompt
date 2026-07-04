@@ -166,17 +166,17 @@ async function Favorites() {
               <span className="mct-glyph" aria-hidden="true">
                 <Icon name="list" size={14} />
               </span>
-              <span className="mct-type">Template</span>
-              <span className="mct-fav">
-                <BookmarkButton compact target={{ kind: "catalog", key: b.template.slug }} />
-              </span>
-            </div>
-            <div className="mct-body">
               <h3 className="mct-title">
                 <Link className="mct-link" href={`/templates/${b.template.slug}`}>
                   {displayTitle(b.template)}
                 </Link>
               </h3>
+              <span className="mct-fav">
+                <BookmarkButton compact target={{ kind: "catalog", key: b.template.slug }} />
+              </span>
+            </div>
+            <div className="mct-body">
+              <p className="mct-blurb">{b.template.blurb}</p>
             </div>
             <div className="mct-foot">
               <span className="mct-meta">
@@ -190,17 +190,17 @@ async function Favorites() {
               <span className="mct-glyph" aria-hidden="true">
                 <Icon name="code" size={14} />
               </span>
-              <span className="mct-type">Prompt</span>
-              <span className="mct-fav">
-                <BookmarkButton compact target={{ kind: "example_prompt", key: b.prompt!.slug }} />
-              </span>
-            </div>
-            <div className="mct-body">
               <h3 className="mct-title">
                 <Link className="mct-link" href={`/prompts/${b.prompt!.slug}`}>
                   {b.prompt!.title}
                 </Link>
               </h3>
+              <span className="mct-fav">
+                <BookmarkButton compact target={{ kind: "example_prompt", key: b.prompt!.slug }} />
+              </span>
+            </div>
+            <div className="mct-body">
+              <p className="mct-blurb">{b.prompt!.blurb}</p>
             </div>
             <div className="mct-foot">
               <span className="mct-meta">{categoryLabel(b.prompt!.category)} - ready to use</span>
