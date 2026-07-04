@@ -9,7 +9,7 @@
  * confirmation. In edit mode (savedPromptId set) it re-saves that row instead. */
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
@@ -30,11 +30,23 @@ export type SaveSource =
 
 const EMPTY: SaveState = {};
 
-function SaveSubmit({ label, variant }: { label: string; variant: "primary" | "outline" }) {
+function saveSnapshot(name: string, answers: Answers): string {
+  return JSON.stringify({ name: name.trim() || "Untitled prompt", answers });
+}
+
+function SaveSubmit({
+  label,
+  variant,
+  disabled = false,
+}: {
+  label: string;
+  variant: "primary" | "outline";
+  disabled?: boolean;
+}) {
   const { pending } = useFormStatus();
   const cls = variant === "outline" ? "btn btn-ghost btn-sm" : "btn btn-primary btn-sm";
   return (
-    <button className={cls} type="submit" disabled={pending}>
+    <button className={cls} type="submit" disabled={pending || disabled}>
       {pending ? "Saving…" : label}
     </button>
   );
@@ -80,12 +92,27 @@ export function SavePromptButton({
   const [state, formAction] = useActionState(action, EMPTY);
   const saveLabel = custom ? (editing ? "Save as new prompt" : "Save") : editing ? "Update" : "Save";
   const [name, setName] = useState(defaultName);
+  const currentSnapshot = useMemo(() => saveSnapshot(name, answers), [answers, name]);
+  const currentSnapshotRef = useRef(currentSnapshot);
+  const submittedSnapshotRef = useRef<string | null>(null);
+  const handledStateRef = useRef<SaveState | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(() =>
+    editing && !custom ? saveSnapshot(defaultName, answers) : null
+  );
   const { account } = useSupabaseAccountState();
+  currentSnapshotRef.current = currentSnapshot;
+  const saved = editing && !custom && savedSnapshot === currentSnapshot;
 
-  // Once a save succeeds, let the parent drop its local draft.
+  // Once a save succeeds, let the parent drop its local draft and record the
+  // payload that actually reached the server.
   useEffect(() => {
-    if (state.ok) onSaved?.();
-  }, [state.ok, onSaved]);
+    if (!state.ok || handledStateRef.current === state) return;
+    handledStateRef.current = state;
+    onSaved?.();
+    if (editing && !custom) {
+      setSavedSnapshot(submittedSnapshotRef.current ?? currentSnapshotRef.current);
+    }
+  }, [state, editing, custom, onSaved]);
 
   if (!isSupabaseConfigured()) return null;
 
@@ -108,7 +135,7 @@ export function SavePromptButton({
     );
   }
 
-  if (state.ok) {
+  if (state.ok && (!editing || custom)) {
     return (
       <div className="save-prompt save-done" role="status">
         <span className="save-ok">Saved ✓</span>
@@ -120,7 +147,17 @@ export function SavePromptButton({
   }
 
   return (
-    <form action={formAction} className="save-prompt">
+    <form
+      action={formAction}
+      className="save-prompt"
+      onSubmit={(e) => {
+        if (saved) {
+          e.preventDefault();
+          return;
+        }
+        submittedSnapshotRef.current = currentSnapshot;
+      }}
+    >
       {custom ? (
         // Manual save: the exact markdown body, no answers/source/id (forks a new row).
         <input type="hidden" name="body" value={customBody} />
@@ -151,7 +188,7 @@ export function SavePromptButton({
         aria-label="Name this prompt"
         maxLength={120}
       />
-      <SaveSubmit label={saveLabel} variant={variant} />
+      <SaveSubmit label={saved ? "Saved" : saveLabel} variant={variant} disabled={saved} />
       {state.error && (
         <p className="save-err" role="alert">
           {state.error}

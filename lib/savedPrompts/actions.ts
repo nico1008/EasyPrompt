@@ -13,6 +13,12 @@ import { nameSchema, parseAnswers, bodySchema, type AnswersInput } from "./schem
 
 export type SaveState = { ok?: boolean; error?: string; savedId?: string };
 
+function revalidateSavedPrompt(id: string): void {
+  revalidatePath("/my");
+  revalidatePath(`/my/prompts/${id}`);
+  revalidatePath(`/my/prompts/${id}/edit`);
+}
+
 /* ---------------------- create a manual (standalone) Prompt ---------------------
  * A Prompt written directly in the markdown editor — no source Template. Stores
  * the markdown in `body` (the source of truth for source_kind='manual'); answers
@@ -85,7 +91,7 @@ export async function updateManualPromptAction(
   const { error } = await supabase.from("saved_prompts").update(patch).eq("id", id);
   if (error) return { error: "Couldn't save your changes." };
 
-  revalidatePath("/my");
+  revalidateSavedPrompt(id);
   return { ok: true, savedId: id };
 }
 
@@ -180,7 +186,7 @@ export async function updateSavedPromptAnswersAction(
   const { error } = await supabase.from("saved_prompts").update(patch).eq("id", id);
   if (error) return { error: "Couldn't save your changes." };
 
-  revalidatePath("/my");
+  revalidateSavedPrompt(id);
   return { ok: true, savedId: id };
 }
 

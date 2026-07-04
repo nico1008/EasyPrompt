@@ -11,10 +11,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useCallback, useEffect, useState } from "react";
+import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
-import { Toast } from "@/components/Toast";
 import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
 import { DetailActions } from "@/components/detail/DetailActions";
 import {
@@ -36,11 +35,15 @@ import "./PromptEditor.css";
 
 const EMPTY: SaveState = {};
 
-function SaveSubmit() {
+function promptSnapshot(name: string, body: string): string {
+  return JSON.stringify({ name: name.trim() || "Untitled prompt", body });
+}
+
+function SaveSubmit({ saved }: { saved: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button className="btn btn-ghost btn-sm" type="submit" disabled={pending}>
-      {pending ? "Saving…" : "Save"}
+    <button className="btn btn-ghost btn-sm" type="submit" disabled={pending || saved}>
+      {pending ? "Saving…" : saved ? "Saved" : "Save"}
     </button>
   );
 }
@@ -61,9 +64,17 @@ export function PromptEditor({
 
   const [name, setName] = useState(initialName);
   const [body, setBody] = useState(initialBody);
-  const [toast, setToast] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { account } = useSupabaseAccountState();
+  const currentSnapshot = useMemo(() => promptSnapshot(name, body), [body, name]);
+  const currentSnapshotRef = useRef(currentSnapshot);
+  const submittedSnapshotRef = useRef<string | null>(null);
+  const handledStateRef = useRef<SaveState | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(() =>
+    editing ? promptSnapshot(initialName, initialBody) : null
+  );
+  currentSnapshotRef.current = currentSnapshot;
+  const saved = editing && savedSnapshot === currentSnapshot;
 
   const [state, formAction] = useActionState(
     editing ? updateManualPromptAction : createManualPromptAction,
@@ -98,17 +109,18 @@ export function PromptEditor({
     },
   });
 
-  // On a successful save: clear the draft, then route (create) or toast (edit).
+  // On a successful save: clear the draft, then route (create) or record the
+  // saved snapshot (edit).
   useEffect(() => {
-    if (!state.ok) return;
+    if (!state.ok || handledStateRef.current === state) return;
+    handledStateRef.current = state;
     clear();
     if (!editing && state.savedId) {
       router.push(`/my/prompts/${state.savedId}`);
     } else {
-      setToast("Changes saved");
-      window.setTimeout(() => setToast(null), 2200);
+      setSavedSnapshot(submittedSnapshotRef.current ?? currentSnapshotRef.current);
     }
-  }, [state.ok, state.savedId, editing, clear, router]);
+  }, [state, editing, clear, router]);
 
   const tokens = Math.max(1, Math.ceil(body.length / 4));
   const kb = (new TextEncoder().encode(body).length / 1024).toFixed(1);
@@ -133,11 +145,21 @@ export function PromptEditor({
     gemini: { href: openInUrl("gemini", body) },
   };
   const saveControl = account ? (
-    <form action={formAction} className="pe-save-form">
+    <form
+      action={formAction}
+      className="pe-save-form"
+      onSubmit={(e) => {
+        if (saved) {
+          e.preventDefault();
+          return;
+        }
+        submittedSnapshotRef.current = currentSnapshot;
+      }}
+    >
       <input type="hidden" name="name" value={name || "Untitled prompt"} />
       <input type="hidden" name="body" value={body} />
       {editing && <input type="hidden" name="id" value={savedPromptId} />}
-      <SaveSubmit />
+      <SaveSubmit saved={saved} />
     </form>
   ) : isSupabaseConfigured() ? (
     <AuthGatedButton
@@ -156,7 +178,6 @@ export function PromptEditor({
 
   return (
     <main className="prompt-editor">
-      <Toast show={Boolean(toast)} message={toast ?? ""} />
       <h1 className="sr-only">Prompt editor</h1>
 
       <div className="pe-wrap">

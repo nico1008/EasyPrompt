@@ -106,11 +106,10 @@ export function PromptBuilder({
   // outcome. Existing notebooks: dirty/saved vs the last save (snapshot below).
   const [draftStatus, setDraftStatus] = useState<"idle" | "saved" | "too-big">("idle");
   const [savedSnapshot, setSavedSnapshot] = useState(() => JSON.stringify(initialDoc));
-  const docRef = useRef(doc);
-  docRef.current = doc;
 
   const built = useMemo(() => buildPromptFromBlocks(doc), [doc]);
   const health = useMemo(() => analyzeDoc(doc, built), [doc, built]);
+  const docSnapshot = useMemo(() => JSON.stringify(doc), [doc]);
 
   /* Anonymous autosave — off in edit mode (the saved row is the source of truth). */
   const { clear: clearDraft } = useNotebookDraft({
@@ -123,12 +122,12 @@ export function PromptBuilder({
   });
 
   // On a successful save, clear the draft and reset the dirty baseline.
-  const markSaved = useCallback(() => {
+  const markSaved = useCallback((snapshot?: string) => {
     clearDraft();
-    setSavedSnapshot(JSON.stringify(docRef.current));
-  }, [clearDraft]);
+    setSavedSnapshot(snapshot ?? docSnapshot);
+  }, [clearDraft, docSnapshot]);
 
-  const dirty = notebookId !== undefined && JSON.stringify(doc) !== savedSnapshot;
+  const dirty = notebookId !== undefined && docSnapshot !== savedSnapshot;
   const tooBig = notebookId === undefined && draftStatus === "too-big";
   const saveLabel =
     notebookId !== undefined
@@ -304,6 +303,7 @@ export function PromptBuilder({
             notebookId={notebookId}
             name={doc.title}
             doc={doc}
+            saved={notebookId !== undefined && !dirty}
             onSaved={markSaved}
             onCreated={(id) => router.push(`/my/notebooks/${id}`)}
             onAuthGateNavigate={persistDraftNow}
@@ -517,12 +517,12 @@ function ExportMenu({ text, onDownload }: { text: string; onDownload: () => void
 /* ------------------------------- save control ----------------------------- */
 const EMPTY_SAVE: NotebookSaveState = {};
 
-function SaveSubmit({ editing }: { editing: boolean }) {
+function SaveSubmit({ editing, saved }: { editing: boolean; saved: boolean }) {
   const { pending } = useFormStatus();
   // Secondary (dark) so it doesn't compete with the indigo Copy primary.
   return (
-    <button className="btn btn-ink btn-sm" type="submit" disabled={pending}>
-      {pending ? "Saving…" : editing ? "Save" : "Save template"}
+    <button className="btn btn-ink btn-sm" type="submit" disabled={pending || saved}>
+      {pending ? "Saving…" : saved ? "Saved" : editing ? "Save" : "Save template"}
     </button>
   );
 }
@@ -531,6 +531,7 @@ function SaveControl({
   notebookId,
   name,
   doc,
+  saved,
   onSaved,
   onCreated,
   onAuthGateNavigate,
@@ -538,20 +539,26 @@ function SaveControl({
   notebookId?: string;
   name: string;
   doc: BlockDoc;
-  onSaved: () => void;
+  saved: boolean;
+  onSaved: (snapshot?: string) => void;
   onCreated: (id: string) => void;
   onAuthGateNavigate: () => void;
 }) {
   const editing = Boolean(notebookId);
   const [state, formAction] = useActionState(editing ? updateNotebookAction : createNotebookAction, EMPTY_SAVE);
   const { account } = useSupabaseAccountState();
+  const handledStateRef = useRef<NotebookSaveState | null>(null);
+  const currentSnapshot = JSON.stringify(doc);
+  const currentSnapshotRef = useRef(currentSnapshot);
+  const submittedSnapshotRef = useRef<string | null>(null);
+  currentSnapshotRef.current = currentSnapshot;
 
   useEffect(() => {
-    if (state.ok) {
-      onSaved();
-      if (!editing && state.savedId) onCreated(state.savedId);
-    }
-  }, [state.ok, state.savedId, editing, onSaved, onCreated]);
+    if (!state.ok || handledStateRef.current === state) return;
+    handledStateRef.current = state;
+    onSaved(submittedSnapshotRef.current ?? currentSnapshotRef.current);
+    if (!editing && state.savedId) onCreated(state.savedId);
+  }, [state, editing, onSaved, onCreated]);
 
   if (!isSupabaseConfigured()) return null;
 
@@ -571,16 +578,22 @@ function SaveControl({
     );
   }
 
-  if (editing && state.ok) {
-    return <span className="pb-saved" role="status">Saved ✓</span>;
-  }
-
   return (
-    <form action={formAction} className="pb-save-form">
-      <input type="hidden" name="doc" value={JSON.stringify(doc)} />
+    <form
+      action={formAction}
+      className="pb-save-form"
+      onSubmit={(e) => {
+        if (saved) {
+          e.preventDefault();
+          return;
+        }
+        submittedSnapshotRef.current = currentSnapshot;
+      }}
+    >
+      <input type="hidden" name="doc" value={currentSnapshot} />
       <input type="hidden" name="name" value={name} />
       {editing && <input type="hidden" name="id" value={notebookId} />}
-      <SaveSubmit editing={editing} />
+      <SaveSubmit editing={editing} saved={saved} />
       {state.error && (
         <span className="pb-save-err" role="alert">
           {state.error}

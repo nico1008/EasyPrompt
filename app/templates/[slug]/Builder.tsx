@@ -75,6 +75,7 @@ export function Builder({
   initialAnswers,
   source,
   savedPromptId,
+  saveDefaultName,
   crumbs,
   backHref = "/templates",
   restoreDrafts = false,
@@ -87,6 +88,8 @@ export function Builder({
   source?: SaveSource;
   /** When set, the Save button re-saves this existing saved_prompts row. */
   savedPromptId?: string;
+  /** Existing Prompt name when editing a saved Prompt. */
+  saveDefaultName?: string;
   /** Override the breadcrumb trail (user templates use "My Library / Title"). */
   crumbs?: { href?: string; label: string }[];
   /** Back-link target for the topbar's "← Back" button. */
@@ -642,7 +645,7 @@ export function Builder({
             <SavePromptButton
               source={saveSource}
               answers={answers}
-              defaultName={displayTitle(template)}
+              defaultName={saveDefaultName ?? displayTitle(template)}
               savedPromptId={savedPromptId}
               customBody={custom ? effectiveText : undefined}
               onSaved={handleSaved}

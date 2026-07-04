@@ -56,6 +56,7 @@ export default async function EditSavedPromptAnswersPage({
       initialAnswers={initialAnswers}
       source={source}
       savedPromptId={saved.id}
+      saveDefaultName={saved.name}
       crumbs={[
         { href: "/my", label: "My Library" },
         { href: `/my/prompts/${id}`, label: saved.name },

@@ -1,9 +1,9 @@
 "use server";
 
-/* Toggle a bookmark on/off. Authorizes with getUser(); RLS guarantees a user can
- * only touch their own rows and the unique (owner, target) constraint keeps it
- * idempotent. Returns the new state for optimistic UI and revalidates My Library
- * (/my — favorites render there under ?filter=favorites). */
+/* Set a bookmark on/off. Authorizes with getUser(); RLS guarantees a user can
+ * only touch their own rows and the unique (owner, target) constraint keeps the
+ * write idempotent. Returns the new state for optimistic UI and revalidates My
+ * Library (/my — favorites render there under ?filter=favorites). */
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -15,7 +15,10 @@ import { bookmarkTargetSchema, type BookmarkTarget } from "./schema";
 
 export type BookmarkState = { ok?: boolean; error?: string; bookmarked?: boolean };
 
-export async function toggleBookmarkAction(target: BookmarkTarget): Promise<BookmarkState> {
+export async function setBookmarkAction(
+  target: BookmarkTarget,
+  bookmarked: boolean
+): Promise<BookmarkState> {
   if (!isSupabaseConfigured()) return { error: "Accounts aren't set up here." };
 
   const t = bookmarkTargetSchema.safeParse(target);
@@ -40,17 +43,32 @@ export async function toggleBookmarkAction(target: BookmarkTarget): Promise<Book
     .eq("target_key", t.data.key)
     .maybeSingle();
 
-  if (existing) {
+  if (!bookmarked) {
+    if (!existing) {
+      revalidatePath("/my");
+      return { ok: true, bookmarked: false };
+    }
     const { error } = await supabase.from("bookmarks").delete().eq("id", existing.id);
     if (error) return { error: "Couldn't update your library." };
     revalidatePath("/my");
     return { ok: true, bookmarked: false };
   }
 
+  if (existing) {
+    revalidatePath("/my");
+    return { ok: true, bookmarked: true };
+  }
+
   const { error } = await supabase
     .from("bookmarks")
     .insert({ owner_id: user.id, target_kind: t.data.kind, target_key: t.data.key });
-  if (error) return { error: "Couldn't update your library." };
+  if (error) {
+    if (error.code === "23505") {
+      revalidatePath("/my");
+      return { ok: true, bookmarked: true };
+    }
+    return { error: "Couldn't update your library." };
+  }
   revalidatePath("/my");
   return { ok: true, bookmarked: true };
 }
