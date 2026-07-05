@@ -15,6 +15,7 @@ import { useEscape } from "@/lib/useEscape";
 const BASE_LINKS = [
   { href: "/templates", label: "Templates" },
   { href: "/prompts", label: "Prompts" },
+  { href: "/workflows", label: "Workflows" },
   { href: "/build", label: "Builder" },
 ];
 

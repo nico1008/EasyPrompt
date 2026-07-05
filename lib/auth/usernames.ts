@@ -18,6 +18,7 @@ export const RESERVED_USERNAMES = [
   "templates",
   "terms",
   "u",
+  "workflows",
 ] as const;
 
 export const USERNAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

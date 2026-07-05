@@ -485,6 +485,11 @@
   font: 400 14.5px/1.5 var(--font-sans);
 }
 
+.workflow-row p a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .support-section {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.72fr);

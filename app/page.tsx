@@ -162,32 +162,35 @@ export default function LandingPage() {
 
       <section className="workflow">
         <div className="section-copy">
-          <h2 className="h2">Browse, copy, save.</h2>
+          <h2 className="h2">Use the right starting point.</h2>
           <p>
-            EasyPrompt stays close to the way people already work with ChatGPT, Claude,
-            Gemini, and Codex.
+            Templates, Prompts, and Workflows cover different jobs without making one
+            replace the others.
           </p>
         </div>
         <div className="workflow-list">
           <div className="workflow-row">
             <span className="num">1</span>
             <div>
-              <h3>Choose a starting point</h3>
-              <p>Use a catalog Template or Prompt that already matches the job.</p>
+              <h3>Use a Template for repeat work</h3>
+              <p>Answer a few fields when the prompt needs your specific situation.</p>
             </div>
           </div>
           <div className="workflow-row">
             <span className="num">2</span>
             <div>
-              <h3>Copy to any AI</h3>
-              <p>Take the finished text into the tool you already use.</p>
+              <h3>Use a Prompt when it is ready now</h3>
+              <p>Copy finished instructions into the AI tool you already use.</p>
             </div>
           </div>
           <div className="workflow-row">
             <span className="num">3</span>
             <div>
-              <h3>Keep useful work</h3>
-              <p>Keep work private or make it public when it should be discoverable.</p>
+              <h3>Use a Workflow for bigger tasks</h3>
+              <p>
+                Follow a guided sequence when one prompt is not enough.{" "}
+                <Link href="/workflows">Browse workflows</Link>.
+              </p>
             </div>
           </div>
         </div>

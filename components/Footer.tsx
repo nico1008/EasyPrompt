@@ -13,8 +13,8 @@ export function Footer() {
             <BrandIcon /> EasyPrompt
           </Link>
           <p>
-            Browse reusable Templates and ready-to-copy Prompts. Build your own when
-            the catalog does not fit.
+            Browse reusable Templates, ready-to-copy Prompts, and guided Workflows.
+            Build your own when the catalog does not fit.
           </p>
         </div>
 
@@ -27,10 +27,12 @@ export function Footer() {
           ))}
           <Link href="/templates">All templates</Link>
           <Link href="/prompts">All prompts</Link>
+          <Link href="/workflows">All workflows</Link>
         </nav>
 
         <nav className="footer-col" aria-label="Product">
           <h4>Product</h4>
+          <Link href="/workflows">Workflows</Link>
           <Link href="/how-it-works">How it works</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/submit-template">Submit a template</Link>
@@ -45,7 +47,7 @@ export function Footer() {
 
       <div className="footer-base">
         <span>&copy; {new Date().getFullYear()} EasyPrompt</span>
-        <span className="footer-free">Templates + Prompts / Core browsing free</span>
+        <span className="footer-free">Templates + Prompts + Workflows / Core browsing free</span>
       </div>
     </footer>
   );

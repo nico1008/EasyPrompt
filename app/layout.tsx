@@ -32,27 +32,28 @@ export const metadata: Metadata = {
     template: "%s - EasyPrompt",
   },
   description:
-    "Browse reusable AI prompt Templates and ready-to-copy Prompts for ChatGPT, Claude, Gemini, and Codex. Build your own when the catalog does not fit.",
+    "Browse reusable AI prompt Templates, ready-to-copy Prompts, and guided Workflows for ChatGPT, Claude, Gemini, and Codex.",
   keywords: [
     "AI prompt templates",
     "reusable prompts",
     "ChatGPT prompts",
     "Claude prompts",
     "ready-to-copy prompts",
+    "AI workflow prompts",
   ],
   openGraph: {
     type: "website",
     siteName: "EasyPrompt",
     title: "EasyPrompt - Reusable prompt workspace",
     description:
-      "Browse reusable Templates, copy ready Prompts, and build your own when nothing fits.",
+      "Browse reusable Templates, copy ready Prompts, and follow guided Workflows for bigger tasks.",
     url: SITE,
   },
   twitter: {
     card: "summary_large_image",
     title: "EasyPrompt - Reusable prompt workspace",
     description:
-      "Browse reusable Templates, copy ready Prompts, and build your own when nothing fits.",
+      "Browse reusable Templates, copy ready Prompts, and follow guided Workflows for bigger tasks.",
   },
 };
 
