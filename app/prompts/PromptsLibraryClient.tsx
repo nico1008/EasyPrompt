@@ -176,7 +176,6 @@ export function PromptsLibraryClient({
           <h1>Ready to paste, right now.</h1>
           <p>
             Finished prompts you can copy as-is — or customize one to fit your situation.
-            Each is written to work with ChatGPT, Claude, or Gemini.
           </p>
         </div>
 

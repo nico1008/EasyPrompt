@@ -209,7 +209,7 @@ export function PromptsClient({
           <h1>Pick a starting point.</h1>
           <p>
             Pick a ready-made template, answer a few short questions, and get a
-            polished prompt for ChatGPT, Claude, or Gemini.
+            polished prompt.
           </p>
         </div>
 
