@@ -10,6 +10,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Toast } from "@/components/Toast";
 import { DetailActions } from "@/components/detail/DetailActions";
 import {
@@ -60,9 +61,13 @@ export function SavedPromptView({
     <main className="saved-view">
       <Toast show={toast} message="Prompt copied to clipboard" />
       <div className="sv-wrap">
-        <Link className="pd-back sv-back" href="/my">
-          <Icon name="arrow-right" size={14} /> My Library
-        </Link>
+        <Breadcrumbs
+          className="sv-breadcrumbs"
+          items={[
+            { href: "/my", label: "My Library" },
+            { label: name || "Untitled prompt" },
+          ]}
+        />
 
         <div className="sv-head">
           <h1>{name || "Untitled prompt"}</h1>

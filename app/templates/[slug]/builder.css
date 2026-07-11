@@ -21,22 +21,12 @@
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding-top: 24px; padding-bottom: 18px;
 }
-.tpl-topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.tpl-back { flex-shrink: 0; }
+.tpl-topbar-left { min-width: 0; flex: 1 1 auto; }
 .tpl-topbar-meta { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-shrink: 0; }
 .tpl-topbar-meta .creator-tag { padding: 3px 0; }
 .tpl-topbar-meta .ct-avatar { width: 24px; height: 24px; }
 .tpl-topbar-meta .ct-name { font-size: 13px; }
 .tpl-topbar-meta .ct-verified { width: 14px; height: 14px; }
-.tpl-dual .crumbs {
-  display: flex; align-items: center; gap: 8px; min-width: 0;
-  font: 500 12.5px var(--font-sans); color: var(--fg-3); overflow: hidden;
-}
-.tpl-dual .crumbs a { color: var(--fg-2); white-space: nowrap; }
-.tpl-dual .crumbs a:hover { color: var(--accent); }
-.tpl-dual .crumbs .sep { opacity: 0.4; }
-.tpl-dual .crumbs .here { color: var(--fg-1); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
 /* ===================== SEGMENTED VIEW SWITCH (mobile only) ===================== */
 .tpl-seg { display: none; gap: 4px; padding-bottom: 14px; }
 .tpl-seg-btn {

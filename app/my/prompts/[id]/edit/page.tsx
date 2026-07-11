@@ -62,7 +62,6 @@ export default async function EditSavedPromptAnswersPage({
         { href: `/my/prompts/${id}`, label: saved.name },
         { label: "Edit answers" },
       ]}
-      backHref={`/my/prompts/${id}`}
     />
   );
 }

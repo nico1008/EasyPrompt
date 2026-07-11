@@ -4,7 +4,7 @@
 .saved-view { min-height: 100dvh; background: transparent; }
 .sv-wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
 
-.sv-back { display: flex; width: fit-content; margin-bottom: 18px; }
+.sv-breadcrumbs { margin-bottom: 18px; }
 
 .sv-head { margin-bottom: 16px; }
 .sv-head h1 { font: 700 clamp(24px, 4vw, 32px) / 1.12 var(--font-sans); letter-spacing: -0.025em; color: var(--fg-1); margin: 0; text-wrap: balance; }

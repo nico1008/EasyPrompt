@@ -58,7 +58,6 @@ export default async function CommunityTemplatePage({
         creator={tpl.author ? { kind: "community", author: tpl.author } : undefined}
         bookmarkTarget={{ kind: "user_template", key: slug }}
         crumbs={[{ href: "/templates", label: "Templates" }, { label: tpl.title }]}
-        backHref="/templates"
       />
     );
   }

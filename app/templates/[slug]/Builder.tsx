@@ -12,8 +12,9 @@
  * Nothing is pre-selected (state seeds from `blankAnswers`). Anon-safe (Copy /
  * Open-in / Download work logged out; Save prompts sign-in). */
 
-import { Fragment, useMemo, useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
 import Link from "next/link";
+import { Breadcrumbs, type BreadcrumbItem } from "@/components/Breadcrumbs";
 import type { Template } from "@/data/types";
 import { WorkflowContextBar } from "@/components/WorkflowContextBar";
 import type { WorkflowReturnContext } from "@/lib/workflows/context";
@@ -83,7 +84,6 @@ export function Builder({
   savedPromptId,
   saveDefaultName,
   crumbs,
-  backHref = "/templates",
   restoreDrafts = false,
   workflowContext,
   ecosystemLinks = [],
@@ -102,9 +102,7 @@ export function Builder({
   /** Existing Prompt name when editing a saved Prompt. */
   saveDefaultName?: string;
   /** Override the breadcrumb trail (user templates use "My Library / Title"). */
-  crumbs?: { href?: string; label: string }[];
-  /** Back-link target for the topbar's "← Back" button. */
-  backHref?: string;
+  crumbs?: BreadcrumbItem[];
   /** Explicit opt-in for local draft restore/autosave. Catalog template pages stay blank. */
   restoreDrafts?: boolean;
   /** Present when this Template was opened from a Workflow step. */
@@ -479,20 +477,10 @@ export function Builder({
     <main className="builder-page tpl-dual">
       <Toast show={toast} message="Prompt copied to clipboard" />
 
-      {/* ---- Topbar: breadcrumbs + back + progress ---- */}
+      {/* ---- Topbar: breadcrumbs + creator context ---- */}
       <div className="tpl-topbar">
         <div className="tpl-topbar-left">
-          <Link className="btn btn-ghost btn-sm tpl-back" href={backHref}>
-            ← Back
-          </Link>
-          <nav className="crumbs" aria-label="Breadcrumb">
-            {trail.map((c, i) => (
-              <Fragment key={i}>
-                {i > 0 && <span className="sep">/</span>}
-                {c.href ? <Link href={c.href}>{c.label}</Link> : <span className="here">{c.label}</span>}
-              </Fragment>
-            ))}
-          </nav>
+          <Breadcrumbs items={trail} />
         </div>
         {(isCatalog || creator || bookmarkTarget) && (
           <div className="tpl-topbar-meta">

@@ -9,11 +9,11 @@
  * detail pages. Anon-safe (local draft + Copy/Open-in logged out; Save prompts
  * sign-in). Reused by /build/prompt (new) and /my/prompts/[id] (manual). */
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
 import { DetailActions } from "@/components/detail/DetailActions";
 import {
@@ -181,11 +181,14 @@ export function PromptEditor({
       <h1 className="sr-only">Prompt editor</h1>
 
       <div className="pe-wrap">
-        <nav className="pe-nav" aria-label="Prompt editor navigation">
-          <Link className="pd-back" href={editing ? "/my" : "/build"}>
-            <Icon name="arrow-right" size={14} /> {editing ? "My Library" : "Builder"}
-          </Link>
-        </nav>
+        <div className="pe-nav">
+          <Breadcrumbs
+            items={[
+              { href: editing ? "/my" : "/build", label: editing ? "My Library" : "Builder" },
+              { label: name || (editing ? "Untitled prompt" : "New prompt") },
+            ]}
+          />
+        </div>
 
         <input
           className="pe-title"

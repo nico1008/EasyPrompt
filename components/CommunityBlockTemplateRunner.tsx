@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { CreatorChip } from "@/components/CreatorChip";
@@ -84,14 +84,7 @@ export function CommunityBlockTemplateRunner({
       <Toast show={toast} message="Prompt copied to clipboard" />
       <div className="tpl-topbar">
         <div className="tpl-topbar-left">
-          <Link className="btn btn-ghost btn-sm tpl-back" href="/templates">
-            ← Back
-          </Link>
-          <nav className="crumbs" aria-label="Breadcrumb">
-            <Link href="/templates">Templates</Link>
-            <span className="sep">/</span>
-            <span className="here">{title}</span>
-          </nav>
+          <Breadcrumbs items={[{ href: "/templates", label: "Templates" }, { label: title }]} />
         </div>
         <div className="tpl-topbar-meta">
           {author && <CreatorChip creator={{ kind: "community", author }} />}

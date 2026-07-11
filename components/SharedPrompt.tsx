@@ -53,8 +53,7 @@ export function SharedPrompt({
     <>
       <Toast show={toast} message="Prompt copied to clipboard" />
       <DetailShell
-        backHref="/"
-        backLabel="EasyPrompt"
+        breadcrumbItems={[{ label: name || "Untitled prompt" }]}
         badge="Shared prompt"
         title={name || "Untitled prompt"}
         description="A read-only prompt shared from EasyPrompt."

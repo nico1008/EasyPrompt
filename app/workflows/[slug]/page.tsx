@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import "../workflows.css";
 import { Icon } from "@/components/Icon";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { WorkflowInlinePrompt } from "@/components/WorkflowInlinePrompt";
 import {
   WorkflowMobileProgress,
@@ -76,9 +77,12 @@ export default async function WorkflowDetailPage({
     <main className="workflow-detail">
       <div className="wd-wrap">
         <div className="wd-topbar">
-          <Link className="pd-back" href="/workflows">
-            <Icon name="arrow-right" size={14} /> All workflows
-          </Link>
+          <Breadcrumbs
+            items={[
+              { href: "/workflows", label: "Workflows" },
+              { label: workflow.title },
+            ]}
+          />
         </div>
 
         <section className="wd-head">

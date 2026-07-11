@@ -85,8 +85,10 @@ export function CommunityPrompt({
       <Toast show={Boolean(toast)} message={toast ?? ""} />
 
       <DetailShell
-        backHref="/prompts"
-        backLabel="All prompts"
+        breadcrumbItems={[
+          { href: "/prompts", label: "Prompts" },
+          { label: name || "Untitled prompt" },
+        ]}
         creator={author ? <CreatorChip creator={{ kind: "community", author }} /> : null}
         badge="Community prompt"
         title={name || "Untitled prompt"}

@@ -88,8 +88,10 @@ export function PromptDetail({
       <Toast show={Boolean(toast)} message={toast ?? ""} />
 
       <DetailShell
-        backHref="/prompts"
-        backLabel="All prompts"
+        breadcrumbItems={[
+          { href: "/prompts", label: "Prompts" },
+          { label: prompt.title },
+        ]}
         context={workflowContext ? <WorkflowContextBar context={workflowContext} /> : undefined}
         creator={<CreatorChip creator={{ kind: "house" }} />}
         badge={prompt.tag}

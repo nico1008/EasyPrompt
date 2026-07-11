@@ -1,10 +1,8 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { Icon } from "@/components/Icon";
+import { Breadcrumbs, type BreadcrumbItem } from "@/components/Breadcrumbs";
 
 export function DetailShell({
-  backHref,
-  backLabel,
+  breadcrumbItems,
   creator,
   badge,
   title,
@@ -17,8 +15,7 @@ export function DetailShell({
   actionsPlacement = "after-preview",
   footer,
 }: {
-  backHref: string;
-  backLabel: string;
+  breadcrumbItems: BreadcrumbItem[];
   creator?: ReactNode;
   badge: string;
   title: string;
@@ -40,9 +37,7 @@ export function DetailShell({
       <div className="pd-wrap">
         <div className="pd-topbar">
           <div className="pd-topbar-left">
-            <Link className="pd-back" href={backHref}>
-              <Icon name="arrow-right" size={14} /> {backLabel}
-            </Link>
+            <Breadcrumbs items={breadcrumbItems} />
           </div>
           {creator && <div className="pd-topbar-meta">{creator}</div>}
         </div>

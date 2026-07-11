@@ -35,7 +35,6 @@ export default async function RunUserTemplatePage({
         related={[]}
         source={{ kind: "user", userTemplateId: row.id }}
         crumbs={[{ href: "/my", label: "My Library" }, { label: template.seo_title }]}
-        backHref="/my"
       />
     </>
   );
