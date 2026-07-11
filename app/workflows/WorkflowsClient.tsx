@@ -10,8 +10,11 @@ import {
   workflowCountFor,
   workflowToolMix,
 } from "@/data/workflows";
+import { useCatalogUrlState } from "@/lib/browse/useCatalogUrlState";
 
 type Sort = "popular" | "new" | "az";
+
+const URL_DEFAULTS = { q: "", category: "all", sort: "popular" };
 
 const CATEGORY_ICONS: Record<string, IconName> = {
   life: "meal",
@@ -34,6 +37,7 @@ export function WorkflowsClient({
   const [category, setCategory] = useState(initialCategory);
   const [sort, setSort] = useState<Sort>("popular");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [urlReady, setUrlReady] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -45,9 +49,18 @@ export function WorkflowsClient({
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const cat = params.get("category");
+    const sortParam = params.get("sort");
     if (q) setQuery(q);
     if (cat && workflowCategories().some((c) => c.id === cat)) setCategory(cat);
+    if (sortParam === "new" || sortParam === "az") setSort(sortParam);
+    setUrlReady(true);
   }, []);
+
+  const urlValues = useMemo(
+    () => ({ q: query, category, sort }),
+    [category, query, sort]
+  );
+  useCatalogUrlState({ ready: urlReady, values: urlValues, defaults: URL_DEFAULTS });
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

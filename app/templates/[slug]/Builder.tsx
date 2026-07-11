@@ -15,6 +15,8 @@
 import { Fragment, useMemo, useState, useCallback, useEffect, useRef, type KeyboardEvent } from "react";
 import Link from "next/link";
 import type { Template } from "@/data/types";
+import { WorkflowContextBar } from "@/components/WorkflowContextBar";
+import type { WorkflowReturnContext } from "@/lib/workflows/context";
 import { displayTitle, categoryLabel } from "@/data/templates";
 import {
   buildPrompt,
@@ -42,6 +44,10 @@ import { useLocalDraft } from "@/lib/drafts/useLocalDraft";
 import { blockDocFromTemplate } from "@/lib/blocks/fromTemplate";
 import { notebookDraftKey, serializeNotebookDraft } from "@/lib/drafts/notebookDraft";
 import { config } from "@/config";
+import { EcosystemLinks } from "@/components/EcosystemLinks";
+import type { EcosystemLink } from "@/data/ecosystem";
+import type { Creator } from "@/lib/browse/types";
+import type { BookmarkTarget } from "@/lib/bookmarks/schema";
 
 type RelatedLite = { slug: string; title: string; category: string; questions: number };
 
@@ -79,6 +85,11 @@ export function Builder({
   crumbs,
   backHref = "/templates",
   restoreDrafts = false,
+  workflowContext,
+  ecosystemLinks = [],
+  creator,
+  bookmarkTarget,
+  saveAsStandalone = false,
 }: {
   template: Template;
   related: RelatedLite[];
@@ -96,6 +107,14 @@ export function Builder({
   backHref?: string;
   /** Explicit opt-in for local draft restore/autosave. Catalog template pages stay blank. */
   restoreDrafts?: boolean;
+  /** Present when this Template was opened from a Workflow step. */
+  workflowContext?: WorkflowReturnContext | null;
+  /** Direct Prompt, Workflow, and Template connections derived from static content. */
+  ecosystemLinks?: EcosystemLink[];
+  creator?: Creator;
+  bookmarkTarget?: BookmarkTarget;
+  /** Public community Templates save their generated text as a standalone Prompt. */
+  saveAsStandalone?: boolean;
 }) {
   // Nothing is pre-selected: the fill-in starts blank (authored defaults are a
   // suggestion reference only — see lib/buildPrompt.blankAnswers).
@@ -475,12 +494,15 @@ export function Builder({
             ))}
           </nav>
         </div>
-        {isCatalog && (
+        {(isCatalog || creator || bookmarkTarget) && (
           <div className="tpl-topbar-meta">
-            <CreatorChip creator={{ kind: "house" }} />
+            <CreatorChip creator={creator ?? { kind: "house" }} />
+            {bookmarkTarget && <BookmarkButton compact target={bookmarkTarget} />}
           </div>
         )}
       </div>
+
+      {workflowContext && <WorkflowContextBar context={workflowContext} />}
 
       {/* ---- Mobile segmented view switch (desktop shows both columns) ---- */}
       <div className="tpl-seg" role="tablist" aria-label="Switch view">
@@ -647,7 +669,7 @@ export function Builder({
               answers={answers}
               defaultName={saveDefaultName ?? displayTitle(template)}
               savedPromptId={savedPromptId}
-              customBody={custom ? effectiveText : undefined}
+              customBody={saveAsStandalone || custom ? effectiveText : undefined}
               onSaved={handleSaved}
               onAuthGateNavigate={persistAuthDraft}
               authGateNext={authGateNext}
@@ -663,7 +685,7 @@ export function Builder({
       </div>
 
       {/* ===================== FOOTER ===================== */}
-      {((isCatalog && everCopied) || related.length > 0) && (
+      {((isCatalog && everCopied) || ecosystemLinks.length > 0 || related.length > 0) && (
         <footer className="tpl-footer">
           {isCatalog && everCopied && (
             <CrosshairCard className="tpl-rate">
@@ -678,12 +700,18 @@ export function Builder({
               </div>
             </CrosshairCard>
           )}
+          {ecosystemLinks.length > 0 && (
+            <EcosystemLinks
+              links={ecosystemLinks}
+              currentWorkflowSlug={workflowContext?.workflowSlug}
+            />
+          )}
           {related.length > 0 && (
             <CrosshairCard className="tpl-next">
               <div className="tpl-next-head">
                 <div>
                   <h3>Keep going — try a related template</h3>
-                  <p>Your answers carry over where they make sense.</p>
+                  <p>Choose another reusable starting point.</p>
                 </div>
                 <Link className="more" href="/templates">
                   Browse all →

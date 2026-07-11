@@ -4,18 +4,14 @@ import { CrosshairCard } from "@/components/CrosshairCard";
 import { Icon } from "@/components/Icon";
 import { config } from "@/config";
 
-const CHIPS: { label: string; slug?: string }[] = [
-  { label: "Weekly meal planner", slug: "weekly-meal-planner" },
-  { label: "Cover letter", slug: "tailored-cover-letter" },
-  { label: "Lesson plan", slug: "k12-lesson-plan" },
-  { label: "Customer email reply", slug: "customer-email-reply" },
-  { label: "React component scaffold", slug: "react-component-scaffold" },
-  { label: "Performance review", slug: "performance-review" },
-];
-
-function chipHref(c: { label: string; slug?: string }) {
-  return c.slug ? `/templates/${c.slug}` : `/templates?q=${encodeURIComponent(c.label)}`;
-}
+const CHIPS = [
+  { label: "Weekly meal planner", type: "Template", href: "/templates/weekly-meal-planner" },
+  { label: "Cover letter example", type: "Prompt", href: "/prompts/swe-cover-letter" },
+  { label: "Job application pack", type: "Workflow", href: "/workflows/job-application-pack" },
+  { label: "Website UX pass", type: "Workflow", href: "/workflows/website-ux-improvement" },
+  { label: "React data table", type: "Prompt", href: "/prompts/react-table-scaffold" },
+  { label: "Workout plan", type: "Template", href: "/templates/workout-plan" },
+] as const;
 
 export default function LandingPage() {
   return (
@@ -42,9 +38,14 @@ export default function LandingPage() {
               Browse prompts
             </Link>
           </div>
-          <Link className="hero-build-link" href="/build">
-            Build your own <Icon name="arrow-right" size={14} />
-          </Link>
+          <div className="hero-secondary-links">
+            <Link className="hero-build-link" href="/workflows">
+              Bigger outcome? Follow a Workflow <Icon name="arrow-right" size={14} />
+            </Link>
+            <Link className="hero-build-link" href="/build">
+              Build your own <Icon name="arrow-right" size={14} />
+            </Link>
+          </div>
 
           <CrosshairCard
             className="catalog-preview"
@@ -121,8 +122,9 @@ export default function LandingPage() {
         </div>
         <div className="chips" aria-label="Popular starting points">
           {CHIPS.map((c) => (
-            <Link key={c.label} className="chip" href={chipHref(c)}>
-              {c.label}
+            <Link key={c.label} className="chip" href={c.href}>
+              <span>{c.label}</span>
+              <small>{c.type}</small>
             </Link>
           ))}
         </div>

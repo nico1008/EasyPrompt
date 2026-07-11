@@ -2,10 +2,6 @@
 
 .workflows-page,
 .workflow-detail {
-  --workflow-accent: #345f98;
-  --workflow-accent-hover: #274d7e;
-  --workflow-soft: #eaf1fa;
-  --workflow-line: rgba(52, 95, 152, 0.24);
   background: transparent;
 }
 
@@ -171,8 +167,21 @@
 }
 
 .workflows-page .wt-mix {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   color: var(--fg-3);
   font: 600 11px/1.45 var(--font-sans);
+}
+
+.workflows-page .wt-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  color: var(--workflow-accent);
+  font: 700 10px var(--font-mono);
 }
 
 .workflow-detail {
@@ -237,7 +246,7 @@
   box-shadow: var(--shadow-1);
 }
 
-.workflow-detail .wd-summary span {
+.workflow-detail .wd-summary > span {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -249,9 +258,55 @@
   font: 600 12px/1.35 var(--font-sans);
 }
 
-.workflow-detail .wd-summary svg {
+.workflow-detail .wd-summary > span svg {
   color: var(--workflow-accent);
   flex-shrink: 0;
+}
+
+.workflow-detail .wd-progress-summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line-1);
+}
+
+.workflow-detail .wd-progress-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.workflow-detail .wd-progress-copy strong {
+  color: var(--fg-1);
+  font: 700 12px var(--font-mono);
+}
+
+.workflow-detail .wd-progress-copy span {
+  color: var(--fg-3);
+  font: 500 11px var(--font-sans);
+}
+
+.workflow-detail .wd-progress-track {
+  grid-column: 1 / -1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--bg-3);
+}
+
+.workflow-detail .wd-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--workflow-accent);
+  transition: width 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workflow-detail .wd-progress-summary .btn {
+  align-self: center;
+  color: var(--workflow-accent);
 }
 
 .workflow-detail .wd-prereqs {
@@ -292,6 +347,7 @@
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 14px;
+  scroll-margin-top: 74px;
 }
 
 .workflow-detail .wd-step-marker {
@@ -467,6 +523,24 @@
   color: var(--prompt-accent-on-dark);
 }
 
+.workflow-detail .wd-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.workflow-detail .wd-inline-actions .provider-open-actions {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.workflow-detail .wd-inline-actions .provider-open {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: transparent;
+}
+
 .workflow-detail .wd-inline-prompt .code-well {
   border: none;
   border-radius: 0;
@@ -491,6 +565,39 @@
   color: var(--fg-1);
   font: 700 13px var(--font-sans);
 }
+
+.workflow-detail .wd-step-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-1);
+}
+
+.workflow-detail .wd-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--bg-1);
+  color: var(--fg-2);
+  font: 600 12px var(--font-sans);
+  cursor: pointer;
+}
+
+.workflow-detail .wd-complete:hover,
+.workflow-detail .wd-complete.is-complete {
+  border-color: var(--workflow-line);
+  background: var(--workflow-soft);
+  color: var(--workflow-accent);
+}
+
+.workflow-detail .wd-complete:disabled { opacity: 0.55; cursor: wait; }
+
+.workflow-detail .wd-mobile-progress { display: none; }
 
 @media (max-width: 780px) {
   .workflow-detail .wd-head {
@@ -531,4 +638,40 @@
     justify-content: center;
     width: 100%;
   }
+
+  .workflow-detail .wd-inline-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .workflow-detail .wd-inline-actions .provider-open-actions { justify-content: center; }
+
+  .workflow-detail .wd-complete {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .workflow-detail .wd-mobile-progress {
+    position: fixed;
+    z-index: var(--z-copybar);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 62px;
+    padding: 9px 16px calc(9px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line-2);
+    background: var(--bg-1);
+    box-shadow: 0 -4px 8px rgba(14, 14, 20, 0.06);
+    color: var(--fg-2);
+    font: 700 11px var(--font-mono);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workflow-detail .wd-progress-track > span { transition: none; }
 }

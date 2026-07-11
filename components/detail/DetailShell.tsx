@@ -13,6 +13,7 @@ export function DetailShell({
   side,
   preview,
   actions,
+  context,
   actionsPlacement = "after-preview",
   footer,
 }: {
@@ -26,6 +27,7 @@ export function DetailShell({
   side?: ReactNode;
   preview: ReactNode;
   actions?: ReactNode;
+  context?: ReactNode;
   actionsPlacement?: "before-preview" | "after-preview";
   footer?: ReactNode;
 }) {
@@ -44,6 +46,8 @@ export function DetailShell({
           </div>
           {creator && <div className="pd-topbar-meta">{creator}</div>}
         </div>
+
+        {context}
 
         <section className="pd-head">
           <div className="pd-head-main">

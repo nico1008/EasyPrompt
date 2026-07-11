@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import "./builder.css";
-import {
-  TEMPLATES,
-  getTemplate,
-  displayTitle,
-  relatedTemplates,
-  questionCount,
-} from "@/data/templates";
+import { TEMPLATES, getTemplate } from "@/data/templates";
 import { Builder } from "./Builder";
+import { resolveWorkflowContext } from "@/lib/workflows/context";
+import { ecosystemLinksForTemplate } from "@/data/ecosystem";
 
 /* Statically generate one page per template — the SEO growth engine. */
 export function generateStaticParams() {
@@ -40,19 +36,22 @@ export async function generateMetadata({
 
 export default async function BuilderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ workflow?: string; step?: string }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
   const template = getTemplate(slug);
   if (!template) notFound();
 
-  const related = relatedTemplates(slug).map((r) => ({
-    slug: r.slug,
-    title: displayTitle(r),
-    category: r.category,
-    questions: questionCount(r),
-  }));
-
-  return <Builder template={template} related={related} />;
+  return (
+    <Builder
+      template={template}
+      related={[]}
+      ecosystemLinks={ecosystemLinksForTemplate(slug)}
+      workflowContext={resolveWorkflowContext(query.workflow, query.step)}
+    />
+  );
 }

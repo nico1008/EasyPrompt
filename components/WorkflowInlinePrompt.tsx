@@ -5,8 +5,12 @@ import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { copyText } from "@/lib/clipboard";
-import { segmentMarkdown } from "@/lib/buildPrompt";
+import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
 import type { WorkflowInlinePrompt as WorkflowInlinePromptModel } from "@/data/workflows";
+import {
+  ProviderOpenActions,
+  type ProviderOpenLinks,
+} from "@/components/detail/ProviderOpenActions";
 
 function textKb(text: string): string {
   const bytes =
@@ -21,6 +25,11 @@ export function WorkflowInlinePrompt({ prompt }: { prompt: WorkflowInlinePromptM
   const [toast, setToast] = useState<string | null>(null);
   const segments = useMemo(() => segmentMarkdown(prompt.body), [prompt.body]);
   const tokens = Math.max(1, Math.ceil(prompt.body.length / 4));
+  const providerLinks: ProviderOpenLinks = {
+    chatgpt: { href: openInUrl("chatgpt", prompt.body) },
+    claude: { href: openInUrl("claude", prompt.body) },
+    gemini: { href: openInUrl("gemini", prompt.body) },
+  };
 
   const copy = useCallback(async () => {
     if (await copyText(prompt.body)) {
@@ -39,10 +48,13 @@ export function WorkflowInlinePrompt({ prompt }: { prompt: WorkflowInlinePromptM
           <span>Inline prompt text</span>
           <h4>{prompt.title}</h4>
         </div>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => void copy()}>
-          <Icon name={copied ? "check" : "copy"} size={14} />
-          {copied ? "Copied" : "Copy inline prompt"}
-        </button>
+        <div className="wd-inline-actions">
+          <ProviderOpenActions links={providerLinks} compact />
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => void copy()}>
+            <Icon name={copied ? "check" : "copy"} size={14} />
+            {copied ? "Copied" : "Copy inline prompt"}
+          </button>
+        </div>
       </div>
       <CodeWell
         title={`${prompt.id}.md`}

@@ -26,6 +26,7 @@ export function BookmarkButton({
 }) {
   const [on, setOn] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [bookmarkLoaded, setBookmarkLoaded] = useState(false);
   const [pop, setPop] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authNext, setAuthNext] = useState("/");
@@ -41,8 +42,10 @@ export function BookmarkButton({
   useEffect(() => {
     if (!isSupabaseConfigured() || !loggedIn) {
       setOn(false);
+      setBookmarkLoaded(true);
       return;
     }
+    setBookmarkLoaded(false);
     const hydrationId = hydrationRef.current + 1;
     const mutationAtStart = mutationRef.current;
     hydrationRef.current = hydrationId;
@@ -54,7 +57,10 @@ export function BookmarkButton({
         mutationRef.current === mutationAtStart
       ) {
         setOn(b);
+        setBookmarkLoaded(true);
       }
+    }).catch(() => {
+      if (active && hydrationRef.current === hydrationId) setBookmarkLoaded(true);
     });
     return () => {
       active = false;
@@ -95,21 +101,22 @@ export function BookmarkButton({
 
   if (!isSupabaseConfigured()) return null;
 
-  const label = on ? "Remove from library" : "Save to library";
-  const objectLabel = target.kind === "example_prompt" ? "Prompt" : "Template";
+  const label = on ? "Remove from favorites" : "Add to favorites";
+  const objectLabel =
+    target.kind === "example_prompt" || target.kind === "user_prompt" ? "Prompt" : "Template";
   const authCopy = {
-    title: `Save this ${objectLabel}`,
-    body: `Create an account to save this ${objectLabel} to My Library.`,
+    title: `Favorite this ${objectLabel}`,
+    body: `Create an account to add this ${objectLabel} to Favorites in My Library.`,
   };
 
   return (
     <>
       <button
         type="button"
-        className={`bookmark-btn${on ? " on" : ""}${authPending ? " is-pending" : ""}`}
+        className={`bookmark-btn${on ? " on" : ""}${authPending || !bookmarkLoaded ? " is-pending" : ""}`}
         aria-pressed={on}
         aria-label={label}
-        disabled={busy || authPending}
+        disabled={busy || authPending || !bookmarkLoaded}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -126,7 +133,7 @@ export function BookmarkButton({
           size={16}
           className={`${on ? "bookmark-on" : ""}${pop ? " bookmark-pop" : ""}`.trim() || undefined}
         />
-        {!compact && (on ? "Saved" : "Save")}
+        {!compact && (on ? "Favorited" : "Favorite")}
       </button>
       <AuthPromptDialog
         open={authPromptOpen}

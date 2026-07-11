@@ -26,7 +26,8 @@ import "./SavePromptButton.css";
 
 export type SaveSource =
   | { kind: "catalog"; slug: string }
-  | { kind: "user"; userTemplateId: string };
+  | { kind: "user"; userTemplateId: string }
+  | { kind: "community"; slug: string };
 
 const EMPTY: SaveState = {};
 
@@ -90,7 +91,13 @@ export function SavePromptButton({
     ? updateSavedPromptAnswersAction
     : createSavedPromptAction;
   const [state, formAction] = useActionState(action, EMPTY);
-  const saveLabel = custom ? (editing ? "Save as new prompt" : "Save") : editing ? "Update" : "Save";
+  const saveLabel = custom
+    ? editing
+      ? "Save as new Prompt"
+      : "Save Prompt"
+    : editing
+      ? "Update Prompt"
+      : "Save Prompt";
   const [name, setName] = useState(defaultName);
   const currentSnapshot = useMemo(() => saveSnapshot(name, answers), [answers, name]);
   const currentSnapshotRef = useRef(currentSnapshot);
@@ -123,7 +130,7 @@ export function SavePromptButton({
         <AuthGatedButton
           className="btn btn-ink btn-sm"
           prompt={{
-            title: "Save this prompt",
+            title: "Save this Prompt",
             body: "Create an account to save and reuse.",
           }}
           next={authGateNext ?? (() => currentAuthNext("/templates"))}
@@ -140,7 +147,7 @@ export function SavePromptButton({
       <div className="save-prompt save-done" role="status">
         <span className="save-ok">Saved ✓</span>
         <Link className="save-view" href="/my">
-          View in My prompts →
+          View in My Library →
         </Link>
       </div>
     );
@@ -171,12 +178,12 @@ export function SavePromptButton({
               <input type="hidden" name="source_kind" value="catalog" />
               <input type="hidden" name="catalog_slug" value={source.slug} />
             </>
-          ) : (
+          ) : source.kind === "user" ? (
             <>
               <input type="hidden" name="source_kind" value="user" />
               <input type="hidden" name="user_template_id" value={source.userTemplateId} />
             </>
-          )}
+          ) : null}
         </>
       )}
       <input

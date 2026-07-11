@@ -218,19 +218,19 @@ export interface Database {
           id: string;
           owner_id: string;
           // text column — "catalog" (Template) or "example_prompt" (curated Prompt)
-          target_kind: "catalog" | "example_prompt";
+          target_kind: "catalog" | "example_prompt" | "user_template" | "user_prompt";
           target_key: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           owner_id: string;
-          target_kind: "catalog" | "example_prompt";
+          target_kind: "catalog" | "example_prompt" | "user_template" | "user_prompt";
           target_key: string;
           created_at?: string;
         };
         Update: {
-          target_kind?: "catalog" | "example_prompt";
+          target_kind?: "catalog" | "example_prompt" | "user_template" | "user_prompt";
           target_key?: string;
         };
         Relationships: [];

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import "@/app/prompts/prompts.css";
+import "@/app/templates/[slug]/builder.css";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getCommunityTemplate } from "@/lib/community/repo";
 import { blurbFromBody } from "@/lib/community/map";
 import { shareSlugSchema } from "@/lib/notebooks/share";
-import { CommunityTemplate } from "@/components/CommunityTemplate";
+import { Builder } from "@/app/templates/[slug]/Builder";
+import { CommunityBlockTemplateRunner } from "@/components/CommunityBlockTemplateRunner";
 
 /* A community Template by share slug. Data comes from the security-definer
  * community_template(slug) RPC (exact-slug, visibility-gated, author-gated). A
@@ -26,7 +27,7 @@ export async function generateMetadata({
     if (tpl) {
       return {
         title: `${tpl.title || "Community template"} — community template`,
-        description: blurbFromBody(tpl.text, "A community template on EasyPrompt."),
+        description: tpl.blurb || blurbFromBody(tpl.text, "A community Template on EasyPrompt."),
         alternates: { canonical: `/p/${slug}` },
       };
     }
@@ -47,7 +48,27 @@ export default async function CommunityTemplatePage({
   const tpl = await getCommunityTemplate(slug);
   if (!tpl) notFound();
 
+  if (tpl.kind === "user_template") {
+    return (
+      <Builder
+        template={tpl.template}
+        related={[]}
+        source={{ kind: "community", slug }}
+        saveAsStandalone
+        creator={tpl.author ? { kind: "community", author: tpl.author } : undefined}
+        bookmarkTarget={{ kind: "user_template", key: slug }}
+        crumbs={[{ href: "/templates", label: "Templates" }, { label: tpl.title }]}
+        backHref="/templates"
+      />
+    );
+  }
+
   return (
-    <CommunityTemplate slug={slug} title={tpl.title} text={tpl.text} author={tpl.author} />
+    <CommunityBlockTemplateRunner
+      slug={slug}
+      title={tpl.title}
+      doc={tpl.doc}
+      author={tpl.author}
+    />
   );
 }

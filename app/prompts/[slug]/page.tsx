@@ -11,6 +11,7 @@ import { shareSlugSchema } from "@/lib/notebooks/share";
 import { PromptDetail } from "@/components/PromptDetail";
 import { CommunityPrompt } from "@/components/CommunityPrompt";
 import { RemixStarter } from "@/components/RemixStarter";
+import { resolveWorkflowContext } from "@/lib/workflows/context";
 
 /* `/prompts/[slug]` resolves, in order:
  *   1. a legacy catalog slug → 308 to its new home /templates/[slug] (the path
@@ -62,15 +63,19 @@ export async function generateMetadata({
 
 export default async function PromptDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ workflow?: string; step?: string }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
+  const workflowContext = resolveWorkflowContext(query.workflow, query.step);
 
   if (LEGACY_TEMPLATE_SLUGS.has(slug)) permanentRedirect(`/templates/${slug}`);
 
   const example = getExamplePrompt(slug);
-  if (example) return <PromptDetail prompt={example} />;
+  if (example) return <PromptDetail prompt={example} workflowContext={workflowContext} />;
 
   // Otherwise it can only be a public community Prompt by share slug.
   if (!isSupabaseConfigured()) notFound();

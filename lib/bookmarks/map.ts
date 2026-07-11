@@ -10,7 +10,7 @@ import { getExamplePrompt, type ExamplePrompt } from "@/data/prompts";
 
 export type BookmarkRow = Database["public"]["Tables"]["bookmarks"]["Row"];
 
-export type BookmarkKind = "catalog" | "example_prompt";
+export type BookmarkKind = "catalog" | "example_prompt" | "user_template" | "user_prompt";
 
 export type Bookmark = {
   id: string;
@@ -22,7 +22,13 @@ export type Bookmark = {
 };
 
 export function rowToBookmark(row: BookmarkRow): Bookmark {
-  const kind = (row.target_kind === "example_prompt" ? "example_prompt" : "catalog") as BookmarkKind;
+  const kind = (
+    row.target_kind === "example_prompt" ||
+    row.target_kind === "user_template" ||
+    row.target_kind === "user_prompt"
+      ? row.target_kind
+      : "catalog"
+  ) as BookmarkKind;
   return {
     id: row.id,
     target: { kind, key: row.target_key },

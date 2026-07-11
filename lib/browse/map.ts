@@ -52,7 +52,7 @@ export function communityPromptToItem(c: CommunityCard): BrowsePromptItem {
     category: c.category,
     metricKind: "user_prompt",
     body: null,
-    bookmark: null,
+    bookmark: { kind: "user_prompt", key: c.slug },
     creator: { kind: "community", author: c.author },
     recency: Date.parse(c.createdAt) || 0,
     popular: false,
@@ -95,7 +95,7 @@ export function communityTemplateToItem(c: CommunityCard): BrowseTemplateItem {
     popular: false,
     questionCount: null,
     showRating: false,
-    bookmark: null,
+    bookmark: { kind: "user_template", key: c.slug },
     creator: { kind: "community", author: c.author },
     recency: Date.parse(c.createdAt) || 0,
   };

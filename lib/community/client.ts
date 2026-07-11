@@ -3,7 +3,8 @@
 /* Client-side listing of public community content for the SSG /prompts
  * and /templates pages — the pages stay static and this hydrates the "From the
  * community" section client-side (same pattern as lib/metrics/client.ts). Anon-safe
- * via the security-definer listing RPCs; fails soft to []. */
+ * via the security-definer listing RPCs. Listing failures are surfaced so
+ * catalog clients can distinguish an empty community from an unavailable one. */
 
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -17,10 +18,11 @@ export async function fetchCommunityPrompts(limit = 24, offset = 0): Promise<Com
       p_limit: limit,
       p_offset: offset,
     });
-    if (error || !data) return [];
+    if (error) throw error;
+    if (!data) return [];
     return data.map(promptRowToCard);
   } catch {
-    return [];
+    throw new Error("Community Prompts could not load.");
   }
 }
 
@@ -37,10 +39,11 @@ export async function fetchCommunityTemplates(
       p_offset: offset,
       p_category: category,
     });
-    if (error || !data) return [];
+    if (error) throw error;
+    if (!data) return [];
     return data.map(templateRowToCard);
   } catch {
-    return [];
+    throw new Error("Community Templates could not load.");
   }
 }
 

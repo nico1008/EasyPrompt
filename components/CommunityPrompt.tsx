@@ -9,6 +9,7 @@ import { Icon } from "@/components/Icon";
 import { Toast } from "@/components/Toast";
 import { UsesBadge } from "@/components/UsesBadge";
 import { CreatorChip } from "@/components/CreatorChip";
+import { BookmarkButton } from "@/components/BookmarkButton";
 import { DetailActions } from "@/components/detail/DetailActions";
 import { DetailShell } from "@/components/detail/DetailShell";
 import {
@@ -99,6 +100,7 @@ export function CommunityPrompt({
             <UsesBadge target={target} />
           </>
         }
+        side={<BookmarkButton target={{ kind: "user_prompt", key: slug }} />}
         preview={<CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />}
         actionsPlacement="before-preview"
         actions={

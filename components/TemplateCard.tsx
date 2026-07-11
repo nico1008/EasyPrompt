@@ -9,6 +9,7 @@ import { objectMeta } from "@/lib/library/objectMeta";
 import { useImpression } from "@/lib/metrics/useImpression";
 import type { Aggregate } from "@/lib/ratings/map";
 import type { BrowseTemplateItem } from "@/lib/browse/types";
+import { CreatorChip } from "./CreatorChip";
 
 /* Light picker tile for the Templates grid — one shape for both house and community
    templates. The title is a stretched link (the whole tile navigates: house → the
@@ -54,6 +55,7 @@ export function TemplateCard({
       <div className="tt-foot">
         <span className="tt-tag">{item.tag}</span>
         <span className="tt-meta">
+          {item.origin === "community" && <CreatorChip creator={item.creator} compact />}
           <UsesBadge target={{ kind: item.metricKind, key: item.slug }} count={uses} managed />
           {item.showRating && (
             <RatingStars

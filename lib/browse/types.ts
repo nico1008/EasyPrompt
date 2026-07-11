@@ -4,6 +4,7 @@
 
 import type { IconName } from "@/components/iconNames";
 import type { CommunityAuthor } from "@/lib/community/map";
+import type { BookmarkTarget } from "@/lib/bookmarks/schema";
 
 export type Origin = "house" | "community";
 
@@ -30,7 +31,7 @@ export type BrowsePromptItem = {
   metricKind: PromptMetricKind;
   /** Full body when known up-front (house). Community resolves it lazily on Copy. */
   body: string | null;
-  bookmark: { kind: "example_prompt"; key: string } | null;
+  bookmark: BookmarkTarget | null;
   creator: Creator;
   /** Sort recency in each origin's own scale (house = authored ordinal; community
    *  = created_at epoch ms). Compared only within an origin bucket. */
@@ -53,7 +54,7 @@ export type BrowseTemplateItem = {
   /** House only — community templates carry neither. */
   questionCount: number | null;
   showRating: boolean;
-  bookmark: { kind: "catalog"; key: string } | null;
+  bookmark: BookmarkTarget | null;
   creator: Creator;
   recency: number;
 };

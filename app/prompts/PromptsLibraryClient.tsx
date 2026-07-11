@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES } from "@/data/templates";
-import { EXAMPLE_PROMPTS, promptCountFor } from "@/data/prompts";
+import { EXAMPLE_PROMPTS } from "@/data/prompts";
 import { PromptCard } from "@/components/PromptCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
@@ -10,9 +10,12 @@ import type { Counts, CountsRecord } from "@/lib/metrics/map";
 import { fetchCommunityPrompts } from "@/lib/community/client";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import { examplePromptToItem, communityPromptToItem, byOriginThenRecency } from "@/lib/browse/map";
+import { useCatalogUrlState } from "@/lib/browse/useCatalogUrlState";
 
 type Sort = "popular" | "new" | "az";
 type Source = "all" | "official" | "community";
+
+const URL_DEFAULTS = { q: "", category: "all", source: "all", sort: "popular" };
 
 /* Sidebar icon per category — same vocabulary as the Templates picker so the two
    libraries read as one system. */
@@ -48,6 +51,7 @@ export function PromptsLibraryClient({
   const [sort, setSort] = useState<Sort>("popular");
   const [source, setSource] = useState<Source>("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [urlReady, setUrlReady] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
   const [countsLoaded, setCountsLoaded] = useState(true);
@@ -56,6 +60,8 @@ export function PromptsLibraryClient({
     countsRecordToMap(initialCommunityUses)
   );
   const [communityLoaded, setCommunityLoaded] = useState(true);
+  const [communityError, setCommunityError] = useState(false);
+  const [communityRetry, setCommunityRetry] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -83,22 +89,27 @@ export function PromptsLibraryClient({
   // stays static. Empty-safe when nobody has made one public yet.
   useEffect(() => {
     let active = true;
-    void fetchCommunityPrompts(24, 0).then(async (cards) => {
-      if (!active) return;
-      setCommunity(cards);
-      if (cards.length) {
-        const m = await fetchCountsBatch(
-          "user_prompt",
-          cards.map((c) => c.slug)
-        );
-        if (active) setCommunityUses(m);
-      }
-      if (active) setCommunityLoaded(true);
-    });
+    setCommunityError(false);
+    void fetchCommunityPrompts(24, 0)
+      .then(async (cards) => {
+        if (!active) return;
+        setCommunity(cards);
+        if (cards.length) {
+          const m = await fetchCountsBatch(
+            "user_prompt",
+            cards.map((c) => c.slug)
+          );
+          if (active) setCommunityUses(m);
+        }
+        if (active) setCommunityLoaded(true);
+      })
+      .catch(() => {
+        if (active) setCommunityError(true);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [communityRetry]);
 
   // ⌘K / Ctrl+K focuses search.
   useEffect(() => {
@@ -107,9 +118,20 @@ export function PromptsLibraryClient({
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const cat = params.get("category");
+    const sourceParam = params.get("source");
+    const sortParam = params.get("sort");
     if (q) setQuery(q);
     if (cat && CATEGORIES.some((c) => c.id === cat)) setCategory(cat);
+    if (sourceParam === "official" || sourceParam === "community") setSource(sourceParam);
+    if (sortParam === "new" || sortParam === "az") setSort(sortParam);
+    setUrlReady(true);
   }, []);
+
+  const urlValues = useMemo(
+    () => ({ q: query, category, source, sort }),
+    [category, query, sort, source]
+  );
+  useCatalogUrlState({ ready: urlReady, values: urlValues, defaults: URL_DEFAULTS });
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -123,10 +145,25 @@ export function PromptsLibraryClient({
   }, []);
 
   // One unified list: curated (house) + public community prompts on par.
+  const allItems = useMemo(
+    () => [...EXAMPLE_PROMPTS.map(examplePromptToItem), ...community.map(communityPromptToItem)],
+    [community]
+  );
+
+  const countItems = useMemo(() => {
+    if (source === "all") return allItems;
+    const origin = source === "official" ? "house" : "community";
+    return allItems.filter((item) => item.origin === origin);
+  }, [allItems, source]);
+
+  function countForCategory(categoryId: string | "all") {
+    return categoryId === "all"
+      ? countItems.length
+      : countItems.filter((item) => item.category === categoryId).length;
+  }
+
   const results = useMemo(() => {
-    const house = EXAMPLE_PROMPTS.map(examplePromptToItem);
-    const comm = community.map(communityPromptToItem);
-    let list = [...house, ...comm];
+    let list = [...allItems];
 
     if (source !== "all") {
       const want = source === "official" ? "house" : "community";
@@ -149,7 +186,7 @@ export function PromptsLibraryClient({
       if (a.popular !== b.popular) return a.popular ? -1 : 1;
       return b.recency - a.recency;
     });
-  }, [community, source, category, query, sort]);
+  }, [allItems, source, category, query, sort]);
 
   function usesFor(origin: "house" | "community", slug: string): number | undefined {
     if (origin === "house") return countsLoaded ? counts.get(slug)?.uses ?? 0 : undefined;
@@ -166,7 +203,7 @@ export function PromptsLibraryClient({
   const activeFilterCount = (category !== "all" ? 1 : 0) + (source !== "all" ? 1 : 0);
 
   // Only show categories that actually contain curated prompts.
-  const cats = CATEGORIES.filter((c) => promptCountFor(c.id) > 0);
+  const cats = CATEGORIES.filter((c) => countForCategory(c.id) > 0);
 
   return (
     <main className="picker-page prompts-theme">
@@ -204,7 +241,7 @@ export function PromptsLibraryClient({
               aria-pressed={sort === "new"}
               onClick={() => setSort("new")}
             >
-              New
+              Curated first
             </button>
             <button
               className={sort === "az" ? "on" : undefined}
@@ -246,7 +283,7 @@ export function PromptsLibraryClient({
               }}
             >
               <span>All prompts</span>
-              <span className="ct">{promptCountFor("all")}</span>
+              <span className="ct">{countForCategory("all")}</span>
             </button>
             {cats.map((c) => (
               <button
@@ -259,7 +296,7 @@ export function PromptsLibraryClient({
               >
                 <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} />
                 {c.label}
-                <span className="ct">{promptCountFor(c.id)}</span>
+                <span className="ct">{countForCategory(c.id)}</span>
               </button>
             ))}
             <div className="group">Source</div>
@@ -281,7 +318,9 @@ export function PromptsLibraryClient({
 
           <div>
             <div className="grid">
-              {results.length === 0 ? (
+              {communityError && source === "community" && community.length === 0 ? (
+                <CommunityLoadError onRetry={() => setCommunityRetry((value) => value + 1)} />
+              ) : results.length === 0 ? (
                 <EmptyPrompts query={query} source={source} onClear={clearFilters} />
               ) : (
                 results.map((item) => (
@@ -297,6 +336,18 @@ export function PromptsLibraryClient({
 }
 
 /* Filter-aware empty state — never a bare grid. */
+function CommunityLoadError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="empty" role="alert">
+      Community Prompts could not load.{" "}
+      <button type="button" className="empty-clear" onClick={onRetry}>
+        Retry
+      </button>
+      .
+    </div>
+  );
+}
+
 function EmptyPrompts({
   query,
   source,

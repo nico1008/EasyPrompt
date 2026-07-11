@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CATEGORIES, TEMPLATES, countFor } from "@/data/templates";
+import { CATEGORIES, TEMPLATES } from "@/data/templates";
 import { TemplateCard } from "@/components/TemplateCard";
 import { Icon, type IconName } from "@/components/Icon";
 import { fetchCountsBatch } from "@/lib/metrics/client";
@@ -12,10 +12,13 @@ import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import { fetchCategoryAffinity } from "@/lib/personalization/client";
 import { affinityScore } from "@/lib/personalization/affinity";
 import { catalogTemplateToItem, communityTemplateToItem, byOriginThenRecency } from "@/lib/browse/map";
+import { useCatalogUrlState } from "@/lib/browse/useCatalogUrlState";
 
 type Sort = "foryou" | "popular" | "new" | "az";
 type Filter = "none" | "top" | "small" | "fresh";
 type Source = "all" | "official" | "community";
+
+const URL_DEFAULTS = { q: "", category: "all", source: "all", sort: "popular", filter: "none" };
 
 /* Sidebar icon per category — keeps the picker on the Icon system instead of
    mixing emoji into an otherwise stroked-icon UI. */
@@ -58,6 +61,7 @@ export function PromptsClient({
   const [filter, setFilter] = useState<Filter>("none");
   const [source, setSource] = useState<Source>("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [urlReady, setUrlReady] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
   const [countsLoaded, setCountsLoaded] = useState(true);
@@ -66,6 +70,8 @@ export function PromptsClient({
     countsRecordToMap(initialCommunityUses)
   );
   const [communityLoaded, setCommunityLoaded] = useState(true);
+  const [communityError, setCommunityError] = useState(false);
+  const [communityRetry, setCommunityRetry] = useState(0);
   const [ratings] = useState<Map<string, Aggregate>>(() => aggregateRecordToMap(initialRatings));
   const [affinity, setAffinity] = useState<Map<string, number>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
@@ -101,22 +107,27 @@ export function PromptsClient({
   // Public community Templates (+ their Uses), hydrated client-side. Empty-safe.
   useEffect(() => {
     let active = true;
-    void fetchCommunityTemplates(24, 0).then(async (cards) => {
-      if (!active) return;
-      setCommunity(cards);
-      if (cards.length) {
-        const m = await fetchCountsBatch(
-          "user_template",
-          cards.map((c) => c.slug)
-        );
-        if (active) setCommunityUses(m);
-      }
-      if (active) setCommunityLoaded(true);
-    });
+    setCommunityError(false);
+    void fetchCommunityTemplates(24, 0)
+      .then(async (cards) => {
+        if (!active) return;
+        setCommunity(cards);
+        if (cards.length) {
+          const m = await fetchCountsBatch(
+            "user_template",
+            cards.map((c) => c.slug)
+          );
+          if (active) setCommunityUses(m);
+        }
+        if (active) setCommunityLoaded(true);
+      })
+      .catch(() => {
+        if (active) setCommunityError(true);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [communityRetry]);
 
   // Show the platform-correct shortcut hint (⌘K on Mac, Ctrl K elsewhere).
   useEffect(() => {
@@ -130,9 +141,22 @@ export function PromptsClient({
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     const cat = params.get("category");
+    const sourceParam = params.get("source");
+    const sortParam = params.get("sort");
+    const filterParam = params.get("filter");
     if (q) setQuery(q);
     if (cat && CATEGORIES.some((c) => c.id === cat)) setCategory(cat);
+    if (sourceParam === "official" || sourceParam === "community") setSource(sourceParam);
+    if (sortParam === "foryou" || sortParam === "new" || sortParam === "az") setSort(sortParam);
+    if (filterParam === "top" || filterParam === "small" || filterParam === "fresh") setFilter(filterParam);
+    setUrlReady(true);
   }, []);
+
+  const urlValues = useMemo(
+    () => ({ q: query, category, source, sort, filter }),
+    [category, filter, query, sort, source]
+  );
+  useCatalogUrlState({ ready: urlReady, values: urlValues, defaults: URL_DEFAULTS });
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -146,10 +170,25 @@ export function PromptsClient({
   }, []);
 
   // One unified list: curated (house) + public community templates on par.
+  const allItems = useMemo(
+    () => [...TEMPLATES.map(catalogTemplateToItem), ...community.map(communityTemplateToItem)],
+    [community]
+  );
+
+  const countItems = useMemo(() => {
+    if (source === "all") return allItems;
+    const origin = source === "official" ? "house" : "community";
+    return allItems.filter((item) => item.origin === origin);
+  }, [allItems, source]);
+
+  function countForCategory(categoryId: string | "all") {
+    return categoryId === "all"
+      ? countItems.length
+      : countItems.filter((item) => item.category === categoryId).length;
+  }
+
   const results = useMemo(() => {
-    const house = TEMPLATES.map(catalogTemplateToItem);
-    const comm = community.map(communityTemplateToItem);
-    let list = [...house, ...comm];
+    let list = [...allItems];
 
     if (source !== "all") {
       const want = source === "official" ? "house" : "community";
@@ -183,7 +222,7 @@ export function PromptsClient({
       if (a.popular !== b.popular) return a.popular ? -1 : 1;
       return b.recency - a.recency;
     });
-  }, [community, source, category, filter, query, sort, affinity]);
+  }, [allItems, source, category, filter, query, sort, affinity]);
 
   function usesFor(origin: "house" | "community", slug: string): number | undefined {
     if (origin === "house") return countsLoaded ? counts.get(slug)?.uses ?? 0 : undefined;
@@ -247,7 +286,7 @@ export function PromptsClient({
               aria-pressed={sort === "new"}
               onClick={() => setSort("new")}
             >
-              New
+              Curated first
             </button>
             <button
               className={sort === "az" ? "on" : undefined}
@@ -289,7 +328,7 @@ export function PromptsClient({
               }}
             >
               <span>All templates</span>
-              <span className="ct">{countFor("all")}</span>
+              <span className="ct">{countForCategory("all")}</span>
             </button>
             {CATEGORIES.map((c) => (
               <button
@@ -302,7 +341,7 @@ export function PromptsClient({
               >
                 <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} />
                 {c.label}
-                <span className="ct">{countFor(c.id)}</span>
+                <span className="ct">{countForCategory(c.id)}</span>
               </button>
             ))}
             <div className="group">Source</div>
@@ -358,7 +397,9 @@ export function PromptsClient({
 
           <div>
             <div className="grid">
-              {results.length === 0 ? (
+              {communityError && source === "community" && community.length === 0 ? (
+                <CommunityLoadError onRetry={() => setCommunityRetry((value) => value + 1)} />
+              ) : results.length === 0 ? (
                 <EmptyTemplates query={query} source={source} onClear={clearFilters} />
               ) : (
                 results.map((item) => (
@@ -379,6 +420,18 @@ export function PromptsClient({
 }
 
 /* Filter-aware empty state — never a bare grid. */
+function CommunityLoadError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="empty" role="alert">
+      Community Templates could not load.{" "}
+      <button type="button" className="empty-clear" onClick={onRetry}>
+        Retry
+      </button>
+      .
+    </div>
+  );
+}
+
 function EmptyTemplates({
   query,
   source,

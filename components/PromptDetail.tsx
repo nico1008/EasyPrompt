@@ -23,8 +23,18 @@ import { openInUrl, segmentMarkdown } from "@/lib/buildPrompt";
 import { trackUse, trackView } from "@/lib/metrics/track";
 import { displayTitle, getTemplate } from "@/data/templates";
 import type { ExamplePrompt } from "@/data/prompts";
+import { WorkflowContextBar } from "@/components/WorkflowContextBar";
+import type { WorkflowReturnContext } from "@/lib/workflows/context";
+import { EcosystemLinks } from "@/components/EcosystemLinks";
+import { ecosystemLinksForPrompt } from "@/data/ecosystem";
 
-export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
+export function PromptDetail({
+  prompt,
+  workflowContext,
+}: {
+  prompt: ExamplePrompt;
+  workflowContext?: WorkflowReturnContext | null;
+}) {
   const [toast, setToast] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -80,6 +90,7 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
       <DetailShell
         backHref="/prompts"
         backLabel="All prompts"
+        context={workflowContext ? <WorkflowContextBar context={workflowContext} /> : undefined}
         creator={<CreatorChip creator={{ kind: "house" }} />}
         badge={prompt.tag}
         title={prompt.title}
@@ -111,6 +122,12 @@ export function PromptDetail({ prompt }: { prompt: ExamplePrompt }) {
               </button>
             }
             providers={<ProviderOpenActions links={providerLinks} />}
+          />
+        }
+        footer={
+          <EcosystemLinks
+            links={ecosystemLinksForPrompt(prompt.slug)}
+            currentWorkflowSlug={workflowContext?.workflowSlug}
           />
         }
       />

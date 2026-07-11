@@ -6,10 +6,11 @@ import type { Creator } from "@/lib/browse/types";
  *   - house -> a brand disc + "EasyPrompt" + a verified tick;
  *   - community -> the author's avatar + name, linking to their account profile.
  */
-export function CreatorChip({ creator }: { creator: Creator }) {
+export function CreatorChip({ creator, compact = false }: { creator: Creator; compact?: boolean }) {
+  const compactClass = compact ? " is-compact" : "";
   if (creator.kind === "house") {
     return (
-      <span className="creator-tag is-house" aria-label="Creator: EasyPrompt">
+      <span className={`creator-tag is-house${compactClass}`} aria-label="Creator: EasyPrompt">
         <span className="ct-avatar ct-avatar-house" aria-hidden="true">
           <Icon name="shield" size={15} />
         </span>
@@ -27,7 +28,7 @@ export function CreatorChip({ creator }: { creator: Creator }) {
   const initial = (name.trim()[0] || "?").toUpperCase();
   return (
     <Link
-      className="creator-tag is-community"
+      className={`creator-tag is-community${compactClass}`}
       href={`/${author.username}`}
       aria-label={`Creator: ${name}`}
       title={author.username}

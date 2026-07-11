@@ -12,6 +12,7 @@ import { trackUse } from "@/lib/metrics/track";
 import { useImpression } from "@/lib/metrics/useImpression";
 import { fetchCommunityPromptBody } from "@/lib/community/client";
 import type { BrowsePromptItem } from "@/lib/browse/types";
+import { CreatorChip } from "./CreatorChip";
 
 /* Dark markdown-FILE tile for the Prompts grid — one shape for both house and
    community prompts (req: on-par). The filename heading is a stretched link (the
@@ -70,6 +71,7 @@ export function PromptCard({ item, uses }: { item: BrowsePromptItem; uses?: numb
       <div className="pt-foot">
         <span className="pt-meta">
           <span className="pt-tag">{item.tag}</span>
+          {item.origin === "community" && <CreatorChip creator={item.creator} compact />}
           <UsesBadge target={{ kind: item.metricKind, key: item.slug }} count={uses} managed />
         </span>
         <button

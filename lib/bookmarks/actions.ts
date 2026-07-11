@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getTemplate } from "@/data/templates";
 import { getExamplePrompt } from "@/data/prompts";
+import { getCommunityPrompt, getCommunityTemplate } from "@/lib/community/repo";
 import { bookmarkTargetSchema, type BookmarkTarget } from "./schema";
 
 export type BookmarkState = { ok?: boolean; error?: string; bookmarked?: boolean };
@@ -29,6 +30,10 @@ export async function setBookmarkAction(
     return { error: "Unknown template." };
   if (t.data.kind === "example_prompt" && !getExamplePrompt(t.data.key))
     return { error: "Unknown prompt." };
+  if (t.data.kind === "user_template" && !(await getCommunityTemplate(t.data.key)))
+    return { error: "Unknown community Template." };
+  if (t.data.kind === "user_prompt" && !(await getCommunityPrompt(t.data.key)))
+    return { error: "Unknown community Prompt." };
 
   const supabase = await createClient();
   const {

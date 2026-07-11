@@ -6,6 +6,7 @@ import {
   workflowToolMix,
   type Workflow,
 } from "@/data/workflows";
+import { WorkflowCardProgress } from "@/components/workflows/WorkflowProgress";
 
 export function WorkflowCard({ workflow }: { workflow: Workflow }) {
   const mix = workflowToolMix(workflow);
@@ -37,7 +38,13 @@ export function WorkflowCard({ workflow }: { workflow: Workflow }) {
         <span>{workflowStepCount(workflow)} steps</span>
         <span>{workflow.timeLabel}</span>
       </div>
-      <div className="wt-mix">{mix.label}</div>
+      <div className="wt-mix">
+        <span>{mix.label}</span>
+        <WorkflowCardProgress
+          workflowSlug={workflow.slug}
+          stepIds={workflow.steps.map((step) => step.id)}
+        />
+      </div>
     </article>
   );
 }

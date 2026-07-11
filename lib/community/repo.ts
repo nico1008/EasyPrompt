@@ -5,15 +5,20 @@ import "server-only";
  * routes for rich, indexable rendering. Anon-safe. */
 
 import { createPublicClient } from "@/lib/supabase/server";
-import { buildPrompt, buildPromptFromBlocks, type Answers } from "@/lib/buildPrompt";
+import { buildPrompt, type Answers } from "@/lib/buildPrompt";
 import { getTemplate } from "@/data/templates";
-import type { BlockDoc } from "@/lib/blocks/types";
 import {
   promptRowToCard,
   templateRowToCard,
   type CommunityAuthor,
   type CommunityCard,
 } from "./map";
+import {
+  communityTemplateFromRow,
+  type CommunityTemplateDetail,
+} from "./template";
+
+export type { CommunityTemplateDetail } from "./template";
 
 export type CommunityPromptDetail = {
   id: string;
@@ -86,32 +91,9 @@ export async function getCommunityPrompt(slug: string): Promise<CommunityPromptD
   };
 }
 
-export type CommunityTemplateDetail = {
-  title: string;
-  text: string;
-  visibility: "public";
-  author: CommunityAuthor | null;
-};
-
 export async function getCommunityTemplate(slug: string): Promise<CommunityTemplateDetail | null> {
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("community_template", { p_slug: slug });
   if (error || !data || data.length === 0) return null;
-  const row = data[0];
-
-  let text = "";
-  if (row.kind === "notebook") {
-    const doc = (row.payload as { doc?: BlockDoc }).doc;
-    text = doc ? buildPromptFromBlocks(doc).text : "";
-  } else {
-    // user_template: preview its base prompt skeleton (full anon fill-in is a follow-up).
-    text = ((row.payload as { base_prompt?: string }).base_prompt ?? "").trim();
-  }
-
-  return {
-    title: row.title,
-    text,
-    visibility: "public",
-    author: row.author_username ? { username: row.author_username } : null,
-  };
+  return communityTemplateFromRow(slug, data[0]);
 }

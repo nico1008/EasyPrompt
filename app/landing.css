@@ -92,11 +92,19 @@
   flex-wrap: wrap;
 }
 
+.hero-secondary-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 18px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
 .hero-build-link {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-top: 16px;
   color: var(--fg-2);
   font: 700 13px var(--font-sans);
   transition:
@@ -350,6 +358,13 @@
     background 140ms,
     box-shadow 140ms var(--landing-ease),
     transform 140ms var(--landing-ease);
+}
+
+.chip small {
+  padding-left: 8px;
+  border-left: 1px solid var(--line-1);
+  color: var(--fg-3);
+  font: 500 10px var(--font-mono);
 }
 
 .chip:active {

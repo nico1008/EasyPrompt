@@ -5,6 +5,12 @@ import "../workflows.css";
 import { Icon } from "@/components/Icon";
 import { WorkflowInlinePrompt } from "@/components/WorkflowInlinePrompt";
 import {
+  WorkflowMobileProgress,
+  WorkflowProgressProvider,
+  WorkflowProgressSummary,
+  WorkflowStepAction,
+} from "@/components/workflows/WorkflowProgress";
+import {
   WORKFLOWS,
   getWorkflow,
   resolveWorkflowLinkedItem,
@@ -14,6 +20,7 @@ import {
   type WorkflowLinkedItem,
   type WorkflowLinkedItemDetail,
 } from "@/data/workflows";
+import { withWorkflowContext } from "@/lib/workflows/context";
 
 export function generateStaticParams() {
   return WORKFLOWS.map((workflow) => ({ slug: workflow.slug }));
@@ -62,7 +69,10 @@ export default async function WorkflowDetailPage({
 
   const mix = workflowToolMix(workflow);
 
+  const stepIds = workflow.steps.map((step) => step.id);
+
   return (
+    <WorkflowProgressProvider workflowSlug={workflow.slug} stepIds={stepIds}>
     <main className="workflow-detail">
       <div className="wd-wrap">
         <div className="wd-topbar">
@@ -90,6 +100,7 @@ export default async function WorkflowDetailPage({
               <Icon name="book" size={15} />
               {mix.label}
             </span>
+            <WorkflowProgressSummary />
           </aside>
         </section>
 
@@ -106,7 +117,7 @@ export default async function WorkflowDetailPage({
           {workflow.steps.map((step, index) => {
             const linkedItems = (step.linkedItems ?? []).map(linkedItemDetail);
             return (
-              <article className="wd-step" key={step.id}>
+              <article className="wd-step" id={`step-${step.id}`} key={step.id}>
                 <div className="wd-step-marker" aria-hidden="true">
                   {index + 1}
                 </div>
@@ -125,7 +136,7 @@ export default async function WorkflowDetailPage({
                         <Link
                           key={`${item.type}-${item.slug}`}
                           className={`wd-linked-card is-${item.type}`}
-                          href={item.href}
+                          href={withWorkflowContext(item.href, workflow.slug, step.id)}
                         >
                           <span className="wd-linked-icon" aria-hidden="true">
                             <Icon name={item.type === "template" ? "list" : "code"} size={15} />
@@ -163,12 +174,15 @@ export default async function WorkflowDetailPage({
                       </ul>
                     </div>
                   </div>
+                  <WorkflowStepAction stepId={step.id} stepNumber={index + 1} />
                 </div>
               </article>
             );
           })}
         </section>
       </div>
+      <WorkflowMobileProgress />
     </main>
+    </WorkflowProgressProvider>
   );
 }

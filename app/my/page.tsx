@@ -14,14 +14,13 @@ import { listNotebooks } from "@/lib/notebooks/repo";
 import { listUserTemplates } from "@/lib/userTemplates/repo";
 import { listSavedPrompts } from "@/lib/savedPrompts/repo";
 import { listBookmarks } from "@/lib/bookmarks/repo";
-import { rowToBookmark } from "@/lib/bookmarks/map";
+import { resolveFavoriteRows } from "@/lib/bookmarks/resolve";
 import {
   buildLibrary,
   filterLibrary,
   isLibraryFilter,
   type LibraryFilter,
 } from "@/lib/library/list";
-import { categoryLabel, questionCount, displayTitle } from "@/data/templates";
 
 export const metadata: Metadata = {
   title: "My Library",
@@ -137,9 +136,7 @@ function EmptyState({ filter }: { filter: LibraryFilter }) {
 }
 
 async function Favorites() {
-  const items = (await listBookmarks())
-    .map((row) => rowToBookmark(row))
-    .filter((b) => b.template !== null || b.prompt !== null);
+  const items = await resolveFavoriteRows(await listBookmarks());
 
   if (items.length === 0) {
     return (
@@ -160,53 +157,27 @@ async function Favorites() {
   return (
     <div className="my-grid">
       {items.map((b) =>
-        b.template ? (
-          <article key={b.id} className="my-card-tile is-template">
-            <div className="mct-bar">
-              <span className="mct-glyph" aria-hidden="true">
-                <Icon name="list" size={14} />
-              </span>
-              <h3 className="mct-title">
-                <Link className="mct-link" href={`/templates/${b.template.slug}`}>
-                  {displayTitle(b.template)}
-                </Link>
-              </h3>
-              <span className="mct-fav">
-                <BookmarkButton compact target={{ kind: "catalog", key: b.template.slug }} />
-              </span>
-            </div>
-            <div className="mct-body">
-              <p className="mct-blurb">{b.template.blurb}</p>
-            </div>
-            <div className="mct-foot">
-              <span className="mct-meta">
-                {categoryLabel(b.template.category)} - {questionCount(b.template)} questions
-              </span>
-            </div>
-          </article>
-        ) : (
-          <article key={b.id} className="my-card-tile is-prompt">
-            <div className="mct-bar">
-              <span className="mct-glyph" aria-hidden="true">
-                <Icon name="code" size={14} />
-              </span>
-              <h3 className="mct-title">
-                <Link className="mct-link" href={`/prompts/${b.prompt!.slug}`}>
-                  {b.prompt!.title}
-                </Link>
-              </h3>
-              <span className="mct-fav">
-                <BookmarkButton compact target={{ kind: "example_prompt", key: b.prompt!.slug }} />
-              </span>
-            </div>
-            <div className="mct-body">
-              <p className="mct-blurb">{b.prompt!.blurb}</p>
-            </div>
-            <div className="mct-foot">
-              <span className="mct-meta">{categoryLabel(b.prompt!.category)} - ready to use</span>
-            </div>
-          </article>
-        )
+        <article key={b.id} className={`my-card-tile is-${b.objectType}`}>
+          <div className="mct-bar">
+            <span className="mct-glyph" aria-hidden="true">
+              <Icon name={b.objectType === "template" ? "list" : "code"} size={14} />
+            </span>
+            <h3 className="mct-title">
+              <Link className="mct-link" href={b.href}>
+                {b.title}
+              </Link>
+            </h3>
+            <span className="mct-fav">
+              <BookmarkButton compact target={b.target} />
+            </span>
+          </div>
+          <div className="mct-body">
+            <p className="mct-blurb">{b.blurb}</p>
+          </div>
+          <div className="mct-foot">
+            <span className="mct-meta">{b.meta}</span>
+          </div>
+        </article>
       )}
     </div>
   );

@@ -35,6 +35,12 @@
   --prompt-accent-soft: #E3F5EE;
   --prompt-accent-on-dark: #46D6A6;  /* lifted for contrast on the dark .md surface */
 
+  /* -------- Workflow accent (guided playbooks) -------- */
+  --workflow-accent: #345F98;
+  --workflow-accent-hover: #274D7E;
+  --workflow-soft: #EAF1FA;
+  --workflow-line: rgba(52, 95, 152, 0.24);
+
   /* -------- Borders -------- */
   --line-1: rgba(15,15,30,0.06);    /* hairline / subtle */
   --line-2: rgba(15,15,30,0.10);    /* card edges */
@@ -441,7 +447,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ===== Nav — burger hidden on desktop ===== */
 .nav-burger {
   display: none;
-  width: 38px; height: 38px;
+  width: 44px; height: 44px;
   align-items: center; justify-content: center;
   background: transparent; border: 1px solid var(--line-3);
   border-radius: var(--r-2); color: var(--fg-1);
@@ -879,6 +885,132 @@ a.creator-tag .ct-name { transition: color 140ms ease-out; }
 a.creator-tag:hover .ct-name { color: var(--accent); }
 a.creator-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
 
+.creator-tag.is-compact {
+  position: relative;
+  z-index: 1;
+  gap: 4px;
+  min-height: 22px;
+  padding: 0;
+  font-size: 10px;
+}
+
+.creator-tag.is-compact .ct-avatar {
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+}
+
+.creator-tag.is-compact .ct-name { max-width: 88px; overflow: hidden; text-overflow: ellipsis; }
+
+.ecosystem-links {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-3);
+  background: var(--bg-1);
+}
+
+.ecosystem-links-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.ecosystem-links-head h2 {
+  margin: 0;
+  color: var(--fg-1);
+  font: 700 16px var(--font-sans);
+}
+
+.ecosystem-links-head p {
+  margin: 0;
+  color: var(--fg-3);
+  font: 400 12px var(--font-sans);
+}
+
+.ecosystem-links-list { display: grid; gap: 7px; }
+
+.ecosystem-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 9px 10px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-2);
+  color: inherit;
+  transition: border-color 140ms, background 140ms, transform 140ms;
+}
+
+.ecosystem-link:hover {
+  border-color: var(--line-3);
+  background: var(--bg-2);
+  transform: translateY(-1px);
+}
+
+.ecosystem-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: var(--r-2);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ecosystem-link.is-prompt .ecosystem-link-icon {
+  background: var(--prompt-accent-soft);
+  color: var(--prompt-accent);
+}
+
+.ecosystem-link.is-workflow .ecosystem-link-icon {
+  background: var(--workflow-soft, var(--bg-3));
+  color: var(--workflow-accent, var(--fg-2));
+}
+
+.ecosystem-link-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ecosystem-link-copy > span {
+  color: var(--fg-3);
+  font: 700 9px var(--font-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ecosystem-link-copy strong,
+.ecosystem-link-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ecosystem-link-copy strong { color: var(--fg-1); font: 600 13px var(--font-sans); }
+.ecosystem-link-copy small { color: var(--fg-3); font: 400 11px var(--font-sans); }
+.ecosystem-link > svg { flex: 0 0 auto; color: var(--fg-3); }
+
+@media (max-width: 600px) {
+  .ecosystem-links { padding: 14px; }
+  .ecosystem-links-head { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .ecosystem-link { min-height: 64px; }
+}
+
+@media (max-width: 860px) {
+  .provider-open-actions.is-compact .provider-open {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 .reputation-badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 8px; border-radius: 999px;
@@ -956,6 +1088,83 @@ a.creator-tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Keeps a linked Template or Prompt visibly attached to its originating Workflow. */
+.workflow-context {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 54px;
+  margin: 0 0 22px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  background: var(--bg-1);
+}
+
+.workflow-context-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: var(--r-2);
+  background: var(--workflow-soft, var(--accent-soft));
+  color: var(--workflow-accent, var(--accent));
+}
+
+.workflow-context-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workflow-context-copy strong,
+.workflow-context-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-context-copy strong {
+  color: var(--fg-1);
+  font: 600 13px var(--font-sans);
+}
+
+.workflow-context-copy span {
+  color: var(--fg-3);
+  font: 400 12px var(--font-sans);
+}
+
+.workflow-context-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 9px;
+  color: var(--workflow-accent, var(--accent));
+  font: 600 12px var(--font-sans);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .workflow-context {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .workflow-context-copy { padding-top: 1px; }
+
+  .workflow-context-return {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    border-top: 1px solid var(--line-1);
+  }
 }
 .provider-open[aria-disabled="true"] {
   opacity: 0.45;

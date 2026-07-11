@@ -821,14 +821,10 @@ export function countFor(categoryId: string | "all"): number {
 /** Templates in the same category, excluding the given slug — for "Keep going". */
 export function relatedTemplates(slug: string, limit = 3): Template[] {
   const current = getTemplate(slug);
-  if (!current) return TEMPLATES.slice(0, limit);
-  const sameCat = TEMPLATES.filter(
+  if (!current) return [];
+  return TEMPLATES.filter(
     (t) => t.category === current.category && t.slug !== slug
-  );
-  const fill = TEMPLATES.filter(
-    (t) => t.category !== current.category && t.slug !== slug
-  );
-  return [...sameCat, ...fill].slice(0, limit);
+  ).slice(0, limit);
 }
 
 /** Total fields + checkboxes — drives the "N of M" progress meter. */

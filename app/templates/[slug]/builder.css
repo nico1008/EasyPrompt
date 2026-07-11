@@ -23,7 +23,7 @@
 }
 .tpl-topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .tpl-back { flex-shrink: 0; }
-.tpl-topbar-meta { display: flex; align-items: center; justify-content: flex-end; flex-shrink: 0; }
+.tpl-topbar-meta { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-shrink: 0; }
 .tpl-topbar-meta .creator-tag { padding: 3px 0; }
 .tpl-topbar-meta .ct-avatar { width: 24px; height: 24px; }
 .tpl-topbar-meta .ct-name { font-size: 13px; }
@@ -68,6 +68,15 @@
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .tpl-head h1 { font: 650 23px/1.18 var(--font-sans); letter-spacing: -0.02em; margin: 0 0 6px; text-wrap: balance; }
+
+.community-block-template .community-template-note {
+  padding: 14px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-2);
+  background: var(--bg-2);
+  color: var(--fg-2);
+  font: 400 13px/1.5 var(--font-sans);
+}
 .tpl-head p { font: 400 14px/1.55 var(--font-sans); color: var(--fg-2); margin: 0; max-width: 58ch; }
 
 .tpl-dual .progress-block {

@@ -45,7 +45,14 @@
   background: var(--accent-soft); color: var(--accent); font: 600 15px var(--font-sans);
 }
 .content-page .how-step h3 { font: 600 18px var(--font-sans); margin: 4px 0 6px; color: var(--fg-1); }
+.content-page .how-step h2 { font: 600 19px var(--font-sans); margin: 4px 0 6px; color: var(--fg-1); }
 .content-page .how-step p { font: 400 14px/1.55 var(--font-sans); color: var(--fg-2); margin: 0; }
+.content-page .how-kind a {
+  display: inline-flex;
+  margin-top: 12px;
+  color: var(--accent);
+  font: 600 13px var(--font-sans);
+}
 
 /* Pricing */
 .content-page .price-grid {
