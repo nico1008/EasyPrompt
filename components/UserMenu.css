@@ -52,6 +52,16 @@
   align-items: center;
   padding: 8px 8px 10px;
   border-bottom: 1px solid var(--line-1);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--r-2) var(--r-2) 0 0;
+}
+.user-pop-head:hover {
+  background: var(--bg-2);
+}
+.user-pop-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .user-pop-avatar {
@@ -78,7 +88,7 @@
   color: var(--fg-1);
 }
 
-.user-pop a,
+.user-pop-group a,
 .user-pop-signout {
   display: flex;
   align-items: center;
@@ -94,16 +104,16 @@
   cursor: pointer;
   text-decoration: none;
 }
-.user-pop a svg,
+.user-pop-group a svg,
 .user-pop-signout svg {
   flex-shrink: 0;
   color: var(--fg-3);
 }
-.user-pop a:hover,
+.user-pop-group a:hover,
 .user-pop-signout:hover {
   background: var(--bg-2);
 }
-.user-pop a:hover svg {
+.user-pop-group a:hover svg {
   color: var(--accent);
 }
 
@@ -171,7 +181,7 @@
 }
 
 @media (pointer: coarse) {
-  .user-pop a,
+  .user-pop-group a,
   .user-pop-signout,
   .user-pop-confirm-actions button {
     min-height: 44px;

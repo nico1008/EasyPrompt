@@ -71,7 +71,7 @@ export default async function SettingsPage() {
               {initial}
             </span>
             <div className="account-side-id">
-              <strong>{username ? `@${username}` : "Your account"}</strong>
+              <strong>{username || "Your account"}</strong>
               <span>Public creator profile</span>
             </div>
             {username ? (

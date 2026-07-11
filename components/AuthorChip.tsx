@@ -13,14 +13,14 @@ export function AuthorChip({
   className?: string;
 }) {
   if (!author) return null;
-  const label = `@${author.username}`;
+  const label = author.username;
   return (
     <Link
       className={`author-chip${className ? ` ${className}` : ""}`}
       href={`/${author.username}`}
       onClick={(e) => e.stopPropagation()}
-      title={`@${author.username}`}
-      aria-label={`Creator: @${author.username}`}
+      title={author.username}
+      aria-label={`Creator: ${author.username}`}
     >
       <Icon name="user" size={12} />
       {label}

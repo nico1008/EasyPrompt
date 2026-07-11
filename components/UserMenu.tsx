@@ -70,14 +70,19 @@ export function UserMenu({
 
       {open && (
         <div className="user-pop" aria-label="Account menu">
-          <div className="user-pop-head">
+          <Link
+            className="user-pop-head"
+            href={`/${username}`}
+            onClick={() => setOpen(false)}
+            aria-label={`View ${username}'s profile`}
+          >
             <span className="user-pop-avatar" aria-hidden="true">
               {initial}
             </span>
             <div className="user-pop-id">
-              <strong>@{username}</strong>
+              <strong>{username}</strong>
             </div>
-          </div>
+          </Link>
 
           <div className="user-pop-group">
             <Link href={`/${username}`} onClick={() => setOpen(false)}>

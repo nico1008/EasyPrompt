@@ -55,7 +55,7 @@ async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
       title: template.title || "Untitled Template",
       blurb: template.blurb,
       href: `/p/${row.target_key}`,
-      meta: template.author ? `Community · @${template.author.username}` : "Community Template",
+      meta: template.author ? `Community · ${template.author.username}` : "Community Template",
       target: { kind: "user_template", key: row.target_key },
     };
   }
@@ -69,7 +69,7 @@ async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
       title: prompt.name || "Untitled Prompt",
       blurb: blurbFromBody(prompt.text),
       href: `/prompts/${row.target_key}`,
-      meta: prompt.author ? `Community · @${prompt.author.username}` : "Community Prompt",
+      meta: prompt.author ? `Community · ${prompt.author.username}` : "Community Prompt",
       target: { kind: "user_prompt", key: row.target_key },
     };
   }
