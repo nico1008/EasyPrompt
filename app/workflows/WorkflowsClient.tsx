@@ -11,6 +11,11 @@ import {
   workflowToolMix,
 } from "@/data/workflows";
 import { useCatalogUrlState } from "@/lib/browse/useCatalogUrlState";
+import {
+  CatalogControls,
+  CatalogMenu,
+  CatalogMenuSection,
+} from "@/components/catalog/CatalogControls";
 
 type Sort = "popular" | "new" | "az";
 
@@ -36,7 +41,6 @@ export function WorkflowsClient({
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);
   const [sort, setSort] = useState<Sort>("popular");
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [urlReady, setUrlReady] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -104,9 +108,7 @@ export function WorkflowsClient({
   }, [category, query, sort]);
 
   function clearFilters() {
-    setQuery("");
     setCategory("all");
-    setFiltersOpen(false);
   }
 
   const cats = workflowCategories();
@@ -136,100 +138,44 @@ export function WorkflowsClient({
             />
             <span className="k">{isMac ? "⌘K" : "Ctrl K"}</span>
           </div>
-          <div className="sort" role="group" aria-label="Sort">
-            <button
-              className={sort === "popular" ? "on" : undefined}
-              aria-pressed={sort === "popular"}
-              onClick={() => setSort("popular")}
-            >
-              Popular
-            </button>
-            <button
-              className={sort === "new" ? "on" : undefined}
-              aria-pressed={sort === "new"}
-              onClick={() => setSort("new")}
-            >
-              New
-            </button>
-            <button
-              className={sort === "az" ? "on" : undefined}
-              aria-pressed={sort === "az"}
-              onClick={() => setSort("az")}
-            >
-              A–Z
-            </button>
-          </div>
+          <CatalogControls activeCount={activeFilterCount} onClear={clearFilters}>
+            <CatalogMenu label="Category" icon="list" activeCount={category !== "all" ? 1 : 0}>
+              <CatalogMenuSection>
+                <button role="menuitemradio" aria-checked={category === "all"} onClick={() => setCategory("all")}>
+                  <Icon name="list" size={15} /> All Workflows <span className="ct">{workflowCountFor("all")}</span>
+                </button>
+                {cats.map((cat) => (
+                  <button key={cat.id} role="menuitemradio" aria-checked={category === cat.id} onClick={() => setCategory(cat.id)}>
+                    <Icon name={CATEGORY_ICONS[cat.id] ?? "book"} size={15} /> {cat.label}
+                    <span className="ct">{workflowCountFor(cat.id)}</span>
+                  </button>
+                ))}
+              </CatalogMenuSection>
+            </CatalogMenu>
+            <CatalogMenu label="Sort" valueLabel={sort === "az" ? "A–Z" : sort === "new" ? "Newest" : "Popular"} icon="heading">
+              <CatalogMenuSection>
+                <button role="menuitemradio" aria-checked={sort === "popular"} onClick={() => setSort("popular")}>
+                  <Icon name="star" size={15} /> Popular
+                </button>
+                <button role="menuitemradio" aria-checked={sort === "new"} onClick={() => setSort("new")}>
+                  <Icon name="clock" size={15} /> Newest
+                </button>
+                <button role="menuitemradio" aria-checked={sort === "az"} onClick={() => setSort("az")}>
+                  <Icon name="heading" size={15} /> A–Z
+                </button>
+              </CatalogMenuSection>
+            </CatalogMenu>
+          </CatalogControls>
         </div>
 
-        <div className="filter-mobile-bar">
-          <button
-            type="button"
-            className={`filter-toggle${filtersOpen ? " on" : ""}`}
-            aria-expanded={filtersOpen}
-            aria-controls="workflow-filter-panel"
-            onClick={() => setFiltersOpen((open) => !open)}
-          >
-            <Icon name="list" size={15} />
-            Filters
-            {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
-          </button>
-          {activeFilterCount > 0 && (
-            <button type="button" className="filter-clear" onClick={clearFilters}>
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        <div className="layout">
-          <aside
-            className={`side filter-panel${filtersOpen ? " open" : ""}`}
-            id="workflow-filter-panel"
-          >
-            <div className="group">Browse by</div>
-            <button
-              className={category === "all" ? "on" : undefined}
-              onClick={() => {
-                setCategory("all");
-                setFiltersOpen(false);
-              }}
-            >
-              <span>All workflows</span>
-              <span className="ct">{workflowCountFor("all")}</span>
-            </button>
-            {cats.map((cat) => (
-              <button
-                key={cat.id}
-                className={category === cat.id ? "on" : undefined}
-                onClick={() => {
-                  setCategory(cat.id);
-                  setFiltersOpen(false);
-                }}
-              >
-                <Icon name={CATEGORY_ICONS[cat.id] ?? "book"} size={15} />
-                {cat.label}
-                <span className="ct">{workflowCountFor(cat.id)}</span>
-              </button>
-            ))}
-          </aside>
-
-          <div className="results-region">
-            <div className="results-head" aria-live="polite">
-              <div>
-                <h2>{results.length} {results.length === 1 ? "Workflow" : "Workflows"}</h2>
-                <p>{activeFilterCount > 0 || query.trim() ? "Filtered results" : "Guided work, step by step"}</p>
-              </div>
-              <span>{sort === "az" ? "A–Z" : sort === "new" ? "Newest first" : "Popular first"}</span>
-            </div>
-            <div className="grid">
+        <div className="grid">
               {results.length === 0 ? (
-                <EmptyWorkflows query={query} onClear={clearFilters} />
+                <EmptyWorkflows query={query} onClear={() => { setQuery(""); clearFilters(); }} />
               ) : (
                 results.map((workflow) => (
                   <WorkflowCard key={workflow.id} workflow={workflow} />
                 ))
               )}
-            </div>
-          </div>
         </div>
       </div>
     </main>

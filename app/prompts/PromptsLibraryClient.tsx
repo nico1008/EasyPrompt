@@ -11,6 +11,11 @@ import { fetchCommunityPrompts } from "@/lib/community/client";
 import type { CommunityCard as CommunityCardModel } from "@/lib/community/map";
 import { examplePromptToItem, communityPromptToItem, byOriginThenRecency } from "@/lib/browse/map";
 import { useCatalogUrlState } from "@/lib/browse/useCatalogUrlState";
+import {
+  CatalogControls,
+  CatalogMenu,
+  CatalogMenuSection,
+} from "@/components/catalog/CatalogControls";
 
 type Sort = "popular" | "new" | "az";
 type Source = "all" | "official" | "community";
@@ -50,7 +55,6 @@ export function PromptsLibraryClient({
   const [category, setCategory] = useState<string>(initialCategory);
   const [sort, setSort] = useState<Sort>("popular");
   const [source, setSource] = useState<Source>("all");
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [urlReady, setUrlReady] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
@@ -194,10 +198,8 @@ export function PromptsLibraryClient({
   }
 
   function clearFilters() {
-    setQuery("");
     setCategory("all");
     setSource("all");
-    setFiltersOpen(false);
   }
 
   const activeFilterCount = (category !== "all" ? 1 : 0) + (source !== "all" ? 1 : 0);
@@ -228,114 +230,56 @@ export function PromptsLibraryClient({
             />
             <span className="k">{isMac ? "⌘K" : "Ctrl K"}</span>
           </div>
-          <div className="sort" role="group" aria-label="Sort">
-            <button
-              className={sort === "popular" ? "on" : undefined}
-              aria-pressed={sort === "popular"}
-              onClick={() => setSort("popular")}
-            >
-              Popular
-            </button>
-            <button
-              className={sort === "new" ? "on" : undefined}
-              aria-pressed={sort === "new"}
-              onClick={() => setSort("new")}
-            >
-              Curated first
-            </button>
-            <button
-              className={sort === "az" ? "on" : undefined}
-              aria-pressed={sort === "az"}
-              onClick={() => setSort("az")}
-            >
-              A–Z
-            </button>
-          </div>
+          <CatalogControls activeCount={activeFilterCount} onClear={clearFilters}>
+            <CatalogMenu label="Category" icon="list" activeCount={category !== "all" ? 1 : 0}>
+              <CatalogMenuSection>
+                <button role="menuitemradio" aria-checked={category === "all"} onClick={() => setCategory("all")}>
+                  <Icon name="list" size={15} /> All Prompts <span className="ct">{countForCategory("all")}</span>
+                </button>
+                {cats.map((c) => (
+                  <button key={c.id} role="menuitemradio" aria-checked={category === c.id} onClick={() => setCategory(c.id)}>
+                    <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} /> {c.label}
+                    <span className="ct">{countForCategory(c.id)}</span>
+                  </button>
+                ))}
+              </CatalogMenuSection>
+            </CatalogMenu>
+            <CatalogMenu label="Source" icon="users" activeCount={source !== "all" ? 1 : 0}>
+              <CatalogMenuSection>
+                {(["all", "official", "community"] as const).map((s) => (
+                  <button key={s} role="menuitemradio" aria-checked={source === s} onClick={() => setSource(s)}>
+                    <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
+                    {s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}
+                  </button>
+                ))}
+              </CatalogMenuSection>
+            </CatalogMenu>
+            <CatalogMenu label="Sort" valueLabel={sort === "az" ? "A–Z" : sort === "new" ? "Curated" : "Popular"} icon="heading">
+              <CatalogMenuSection>
+                <button role="menuitemradio" aria-checked={sort === "popular"} onClick={() => setSort("popular")}>
+                  <Icon name="star" size={15} /> Popular
+                </button>
+                <button role="menuitemradio" aria-checked={sort === "new"} onClick={() => setSort("new")}>
+                  <Icon name="shield" size={15} /> Curated first
+                </button>
+                <button role="menuitemradio" aria-checked={sort === "az"} onClick={() => setSort("az")}>
+                  <Icon name="heading" size={15} /> A–Z
+                </button>
+              </CatalogMenuSection>
+            </CatalogMenu>
+          </CatalogControls>
         </div>
 
-        <div className="filter-mobile-bar">
-          <button
-            type="button"
-            className={`filter-toggle${filtersOpen ? " on" : ""}`}
-            aria-expanded={filtersOpen}
-            aria-controls="prompt-filter-panel"
-            onClick={() => setFiltersOpen((open) => !open)}
-          >
-            <Icon name="list" size={15} />
-            Filters
-            {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
-          </button>
-          {activeFilterCount > 0 && (
-            <button type="button" className="filter-clear" onClick={clearFilters}>
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        <div className="layout">
-          <aside className={`side filter-panel${filtersOpen ? " open" : ""}`} id="prompt-filter-panel">
-            <div className="group">Browse by</div>
-            <button
-              className={category === "all" ? "on" : undefined}
-              onClick={() => {
-                setCategory("all");
-                setFiltersOpen(false);
-              }}
-            >
-              <span>All prompts</span>
-              <span className="ct">{countForCategory("all")}</span>
-            </button>
-            {cats.map((c) => (
-              <button
-                key={c.id}
-                className={category === c.id ? "on" : undefined}
-                onClick={() => {
-                  setCategory(c.id);
-                  setFiltersOpen(false);
-                }}
-              >
-                <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} />
-                {c.label}
-                <span className="ct">{countForCategory(c.id)}</span>
-              </button>
-            ))}
-            <div className="group">Source</div>
-            {(["all", "official", "community"] as const).map((s) => (
-              <button
-                key={s}
-                className={source === s ? "on" : undefined}
-                aria-pressed={source === s}
-                onClick={() => {
-                  setSource(s);
-                  setFiltersOpen(false);
-                }}
-              >
-                <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
-                <span>{s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}</span>
-              </button>
-            ))}
-          </aside>
-
-          <div className="results-region">
-            <div className="results-head" aria-live="polite">
-              <div>
-                <h2>{results.length} {results.length === 1 ? "Prompt" : "Prompts"}</h2>
-                <p>{activeFilterCount > 0 || query.trim() ? "Filtered results" : "Ready to copy and use"}</p>
-              </div>
-              <span>{sort === "az" ? "A–Z" : sort === "new" ? "Newest first" : "Popular first"}</span>
-            </div>
-            <div className="grid">
+        <div className="grid">
               {communityError && source === "community" && community.length === 0 ? (
                 <CommunityLoadError onRetry={() => setCommunityRetry((value) => value + 1)} />
               ) : results.length === 0 ? (
-                <EmptyPrompts query={query} source={source} onClear={clearFilters} />
+                <EmptyPrompts query={query} source={source} onClear={() => { setQuery(""); clearFilters(); }} />
               ) : (
                 results.map((item) => (
                   <PromptCard key={item.key} item={item} uses={usesFor(item.origin, item.slug)} />
                 ))
               )}
-            </div>
-          </div>
         </div>
       </div>
     </main>

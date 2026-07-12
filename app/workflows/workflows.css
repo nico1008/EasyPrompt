@@ -15,27 +15,6 @@
   box-shadow: 0 0 0 4px rgba(52, 95, 152, 0.12);
 }
 
-.workflows-page .sort button.on,
-.workflows-page .side button.on {
-  color: var(--workflow-accent);
-  background: var(--workflow-soft);
-}
-
-.workflows-page .side button.on .ct {
-  color: var(--workflow-accent);
-}
-
-.workflows-page .filter-toggle.on {
-  border-color: var(--workflow-accent);
-  background: var(--workflow-soft);
-  color: var(--workflow-accent);
-}
-
-.workflows-page .filter-count {
-  background: var(--workflow-accent);
-}
-
-.workflows-page .filter-clear,
 .workflows-page .empty-clear {
   color: var(--workflow-accent);
 }
@@ -182,7 +161,8 @@
   font: 700 10px var(--font-mono);
 }
 
-.workflows-page .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.workflows-page .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1040px) { .workflows-page .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .workflows-page .grid { grid-template-columns: 1fr; } }
 
 .workflow-detail {

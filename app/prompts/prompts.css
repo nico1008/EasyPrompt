@@ -7,18 +7,6 @@
 /* Shared pill lives in picker.css (.lib-tag). Prompts overrides color only so the
    box metrics stay identical to the Templates library and the header never shifts. */
 .prompts-theme .lib-tag { color: var(--prompt-accent); background: var(--prompt-accent-soft); }
-/* Active category chip adopts the prompt accent. */
-.prompts-theme .side button.on { color: var(--prompt-accent); border-color: var(--prompt-accent); background: var(--prompt-accent-soft); }
-.prompts-theme .side button.on .ct { color: var(--prompt-accent); }
-.prompts-theme .filter-toggle.on {
-  border-color: var(--prompt-accent);
-  background: var(--prompt-accent-soft);
-  color: var(--prompt-accent);
-}
-.prompts-theme .filter-count {
-  background: var(--prompt-accent);
-}
-.prompts-theme .filter-clear,
 .prompts-theme .empty-clear {
   color: var(--prompt-accent);
 }
@@ -102,7 +90,8 @@
 .prompt-tile .bookmark-btn.on { border-color: var(--prompt-accent-on-dark); color: var(--prompt-accent-on-dark); background: rgba(70, 214, 166, 0.12); }
 .prompt-tile .bookmark-btn.on .bookmark-on { fill: var(--prompt-accent-on-dark); }
 
-.prompts-theme .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.prompts-theme .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 980px) { .prompts-theme .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .prompts-theme .grid { grid-template-columns: 1fr; } }
 
 /* ---- Shared detail view ---- */

@@ -13,6 +13,11 @@ import { fetchCategoryAffinity } from "@/lib/personalization/client";
 import { affinityScore } from "@/lib/personalization/affinity";
 import { catalogTemplateToItem, communityTemplateToItem, byOriginThenRecency } from "@/lib/browse/map";
 import { useCatalogUrlState } from "@/lib/browse/useCatalogUrlState";
+import {
+  CatalogControls,
+  CatalogMenu,
+  CatalogMenuSection,
+} from "@/components/catalog/CatalogControls";
 
 type Sort = "foryou" | "popular" | "new" | "az";
 type Filter = "none" | "top" | "small" | "fresh";
@@ -60,7 +65,6 @@ export function PromptsClient({
   const [sort, setSort] = useState<Sort>("popular");
   const [filter, setFilter] = useState<Filter>("none");
   const [source, setSource] = useState<Source>("all");
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [urlReady, setUrlReady] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const [counts, setCounts] = useState<Map<string, Counts>>(() => countsRecordToMap(initialCounts));
@@ -230,11 +234,9 @@ export function PromptsClient({
   }
 
   function clearFilters() {
-    setQuery("");
     setCategory("all");
     setSource("all");
     setFilter("none");
-    setFiltersOpen(false);
   }
 
   const activeFilterCount =
@@ -264,150 +266,76 @@ export function PromptsClient({
             />
             <span className="k">{isMac ? "⌘K" : "Ctrl K"}</span>
           </div>
-          <div className="sort" role="group" aria-label="Sort">
-            {affinity.size > 0 && (
-              <button
-                className={sort === "foryou" ? "on" : undefined}
-                aria-pressed={sort === "foryou"}
-                onClick={() => setSort("foryou")}
-              >
-                For you
-              </button>
-            )}
-            <button
-              className={sort === "popular" ? "on" : undefined}
-              aria-pressed={sort === "popular"}
-              onClick={() => setSort("popular")}
+          <CatalogControls activeCount={activeFilterCount} onClear={clearFilters}>
+            <CatalogMenu label="Category" icon="list" activeCount={category !== "all" ? 1 : 0}>
+              <CatalogMenuSection>
+                <button role="menuitemradio" aria-checked={category === "all"} onClick={() => setCategory("all")}>
+                  <Icon name="list" size={15} /> All Templates <span className="ct">{countForCategory("all")}</span>
+                </button>
+                {CATEGORIES.map((c) => (
+                  <button key={c.id} role="menuitemradio" aria-checked={category === c.id} onClick={() => setCategory(c.id)}>
+                    <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} /> {c.label}
+                    <span className="ct">{countForCategory(c.id)}</span>
+                  </button>
+                ))}
+              </CatalogMenuSection>
+            </CatalogMenu>
+            <CatalogMenu label="Source" icon="users" activeCount={source !== "all" ? 1 : 0}>
+              <CatalogMenuSection>
+                {(["all", "official", "community"] as const).map((s) => (
+                  <button key={s} role="menuitemradio" aria-checked={source === s} onClick={() => setSource(s)}>
+                    <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
+                    {s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}
+                  </button>
+                ))}
+              </CatalogMenuSection>
+            </CatalogMenu>
+            <CatalogMenu label="Filters" icon="wrench" activeCount={filter !== "none" ? 1 : 0}>
+              <CatalogMenuSection>
+                <button role="menuitemradio" aria-checked={filter === "none"} onClick={() => setFilter("none")}>
+                  <Icon name="list" size={15} /> No additional filter
+                </button>
+                <button role="menuitemradio" aria-checked={filter === "top"} onClick={() => setFilter("top")}>
+                  <Icon name="star" size={15} /> Top rated
+                </button>
+                <button role="menuitemradio" aria-checked={filter === "small"} onClick={() => setFilter("small")}>
+                  <Icon name="zap" size={15} /> Under 5 fields
+                </button>
+                <button role="menuitemradio" aria-checked={filter === "fresh"} onClick={() => setFilter("fresh")}>
+                  <Icon name="clock" size={15} /> Added this week
+                </button>
+              </CatalogMenuSection>
+            </CatalogMenu>
+            <CatalogMenu
+              label="Sort"
+              valueLabel={sort === "az" ? "A–Z" : sort === "foryou" ? "For you" : sort === "new" ? "Curated" : "Popular"}
+              icon="heading"
             >
-              Popular
-            </button>
-            <button
-              className={sort === "new" ? "on" : undefined}
-              aria-pressed={sort === "new"}
-              onClick={() => setSort("new")}
-            >
-              Curated first
-            </button>
-            <button
-              className={sort === "az" ? "on" : undefined}
-              aria-pressed={sort === "az"}
-              onClick={() => setSort("az")}
-            >
-              A–Z
-            </button>
-          </div>
+              <CatalogMenuSection>
+                {affinity.size > 0 && (
+                  <button role="menuitemradio" aria-checked={sort === "foryou"} onClick={() => setSort("foryou")}>
+                    <Icon name="user" size={15} /> For you
+                  </button>
+                )}
+                <button role="menuitemradio" aria-checked={sort === "popular"} onClick={() => setSort("popular")}>
+                  <Icon name="star" size={15} /> Popular
+                </button>
+                <button role="menuitemradio" aria-checked={sort === "new"} onClick={() => setSort("new")}>
+                  <Icon name="shield" size={15} /> Curated first
+                </button>
+                <button role="menuitemradio" aria-checked={sort === "az"} onClick={() => setSort("az")}>
+                  <Icon name="heading" size={15} /> A–Z
+                </button>
+              </CatalogMenuSection>
+            </CatalogMenu>
+          </CatalogControls>
         </div>
 
-        <div className="filter-mobile-bar">
-          <button
-            type="button"
-            className={`filter-toggle${filtersOpen ? " on" : ""}`}
-            aria-expanded={filtersOpen}
-            aria-controls="template-filter-panel"
-            onClick={() => setFiltersOpen((open) => !open)}
-          >
-            <Icon name="list" size={15} />
-            Filters
-            {activeFilterCount > 0 && <span className="filter-count">{activeFilterCount}</span>}
-          </button>
-          {activeFilterCount > 0 && (
-            <button type="button" className="filter-clear" onClick={clearFilters}>
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        <div className="layout">
-          <aside className={`side filter-panel${filtersOpen ? " open" : ""}`} id="template-filter-panel">
-            <div className="group">Browse by</div>
-            <button
-              className={category === "all" ? "on" : undefined}
-              onClick={() => {
-                setCategory("all");
-                setFiltersOpen(false);
-              }}
-            >
-              <span>All templates</span>
-              <span className="ct">{countForCategory("all")}</span>
-            </button>
-            {CATEGORIES.map((c) => (
-              <button
-                key={c.id}
-                className={category === c.id ? "on" : undefined}
-                onClick={() => {
-                  setCategory(c.id);
-                  setFiltersOpen(false);
-                }}
-              >
-                <Icon name={CATEGORY_ICONS[c.id] ?? "star"} size={15} />
-                {c.label}
-                <span className="ct">{countForCategory(c.id)}</span>
-              </button>
-            ))}
-            <div className="group">Source</div>
-            {(["all", "official", "community"] as const).map((s) => (
-              <button
-                key={s}
-                className={source === s ? "on" : undefined}
-                aria-pressed={source === s}
-                onClick={() => {
-                  setSource(s);
-                  setFiltersOpen(false);
-                }}
-              >
-                <Icon name={s === "community" ? "users" : s === "official" ? "shield" : "list"} size={15} />
-                <span>{s === "all" ? "All sources" : s === "official" ? "Official" : "Community"}</span>
-              </button>
-            ))}
-            <div className="group">Filter</div>
-            <button
-              className={filter === "top" ? "on" : undefined}
-              aria-pressed={filter === "top"}
-              onClick={() => {
-                setFilter((f) => (f === "top" ? "none" : "top"));
-                setFiltersOpen(false);
-              }}
-            >
-              <Icon name="star" size={15} />
-              <span>Top rated</span>
-            </button>
-            <button
-              className={filter === "small" ? "on" : undefined}
-              aria-pressed={filter === "small"}
-              onClick={() => {
-                setFilter((f) => (f === "small" ? "none" : "small"));
-                setFiltersOpen(false);
-              }}
-            >
-              <Icon name="zap" size={15} />
-              <span>Under 5 fields</span>
-            </button>
-            <button
-              className={filter === "fresh" ? "on" : undefined}
-              aria-pressed={filter === "fresh"}
-              onClick={() => {
-                setFilter((f) => (f === "fresh" ? "none" : "fresh"));
-                setFiltersOpen(false);
-              }}
-            >
-              <Icon name="clock" size={15} />
-              <span>Added this week</span>
-            </button>
-          </aside>
-
-          <div className="results-region">
-            <div className="results-head" aria-live="polite">
-              <div>
-                <h2>{results.length} {results.length === 1 ? "Template" : "Templates"}</h2>
-                <p>{activeFilterCount > 0 || query.trim() ? "Filtered results" : "Browse every starting point"}</p>
-              </div>
-              <span>{sort === "az" ? "A–Z" : sort === "foryou" ? "For you" : sort === "new" ? "Curated first" : "Popular first"}</span>
-            </div>
-            <div className="grid">
+        <div className="grid">
               {communityError && source === "community" && community.length === 0 ? (
                 <CommunityLoadError onRetry={() => setCommunityRetry((value) => value + 1)} />
               ) : results.length === 0 ? (
-                <EmptyTemplates query={query} source={source} onClear={clearFilters} />
+                <EmptyTemplates query={query} source={source} onClear={() => { setQuery(""); clearFilters(); }} />
               ) : (
                 results.map((item) => (
                   <TemplateCard
@@ -418,8 +346,6 @@ export function PromptsClient({
                   />
                 ))
               )}
-            </div>
-          </div>
         </div>
       </div>
     </main>

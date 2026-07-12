@@ -1,0 +1,96 @@
+.catalog-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.catalog-menu { position: relative; flex: none; }
+.catalog-menu-trigger,
+.catalog-clear {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-2);
+  background: var(--bg-1);
+  color: var(--fg-2);
+  font: 600 12px var(--font-sans);
+  white-space: nowrap;
+  transition: border-color 140ms, background 140ms, color 140ms, box-shadow 140ms;
+}
+.catalog-menu-trigger:hover,
+.catalog-menu.is-open .catalog-menu-trigger { border-color: var(--line-3); background: var(--bg-2); color: var(--fg-1); }
+.catalog-menu-trigger.is-active { border-color: rgba(91, 91, 255, 0.32); background: var(--accent-soft); color: var(--accent); }
+.prompts-theme .catalog-menu-trigger.is-active { border-color: rgba(15, 122, 87, 0.28); background: var(--prompt-accent-soft); color: var(--prompt-accent); }
+.workflows-page .catalog-menu-trigger.is-active { border-color: var(--workflow-line); background: var(--workflow-soft); color: var(--workflow-accent); }
+.catalog-menu-trigger b {
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg-1);
+  font: 700 10px var(--font-mono);
+}
+.prompts-theme .catalog-menu-trigger b { background: var(--prompt-accent); }
+.workflows-page .catalog-menu-trigger b { background: var(--workflow-accent); }
+.catalog-menu-trigger > svg:last-child { transition: transform 140ms; }
+.catalog-menu.is-open .catalog-menu-trigger > svg:last-child { transform: rotate(180deg); }
+.catalog-clear { border-color: transparent; background: transparent; color: var(--fg-3); }
+.catalog-clear:hover { background: var(--bg-2); color: var(--fg-1); }
+.catalog-clear span { color: var(--fg-3); font-family: var(--font-mono); }
+
+.catalog-menu-popover {
+  position: absolute;
+  z-index: var(--z-nav-popover);
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 7px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  background: var(--bg-1);
+  box-shadow: var(--shadow-3);
+}
+.catalog-menu-section + .catalog-menu-section { margin-top: 5px; padding-top: 6px; border-top: 1px solid var(--line-1); }
+.catalog-menu-label { display: block; padding: 7px 9px 5px; color: var(--fg-3); font: 700 10px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.catalog-menu-popover button {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--fg-2);
+  font: 500 13px var(--font-sans);
+  text-align: left;
+}
+.catalog-menu-popover button:hover,
+.catalog-menu-popover button:focus-visible { background: var(--bg-2); color: var(--fg-1); outline: none; }
+.catalog-menu-popover button[aria-checked="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 650; }
+.prompts-theme .catalog-menu-popover button[aria-checked="true"] { background: var(--prompt-accent-soft); color: var(--prompt-accent); }
+.workflows-page .catalog-menu-popover button[aria-checked="true"] { background: var(--workflow-soft); color: var(--workflow-accent); }
+.catalog-menu-popover button .ct { margin-left: auto; color: var(--fg-3); font: 500 11px var(--font-mono); }
+.catalog-menu-popover button[aria-checked="true"] .ct { color: currentColor; }
+
+@media (max-width: 760px) {
+  .catalog-controls { justify-content: flex-start; overflow-x: auto; padding: 2px 1px 8px; scrollbar-width: none; }
+  .catalog-controls::-webkit-scrollbar { display: none; }
+  .catalog-menu-popover { position: fixed; top: auto; right: 16px; bottom: 16px; left: 16px; width: auto; max-width: none; max-height: min(70dvh, 520px); overflow: auto; overscroll-behavior: contain; }
+}
+
+@media (max-width: 480px) {
+  .catalog-menu-trigger > span { max-width: 112px; overflow: hidden; text-overflow: ellipsis; }
+  .catalog-clear { padding-inline: 8px; }
+}
