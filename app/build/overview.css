@@ -1,7 +1,7 @@
 /* Builder overview — the create hub. Scoped under .build-overview (imported CSS
    is global). Root stays transparent so the ambient grid shows. */
 
-.build-overview { min-height: 100dvh; background: transparent; }
+.build-overview { background: transparent; }
 .bo-wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 90px; }
 
 .bo-head { margin-bottom: 28px; }

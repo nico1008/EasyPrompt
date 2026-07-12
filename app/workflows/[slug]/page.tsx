@@ -7,8 +7,10 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { WorkflowInlinePrompt } from "@/components/WorkflowInlinePrompt";
 import {
   WorkflowMobileProgress,
+  WorkflowDisclosureControls,
   WorkflowProgressProvider,
   WorkflowProgressSummary,
+  WorkflowStep,
   WorkflowStepAction,
 } from "@/components/workflows/WorkflowProgress";
 import {
@@ -118,21 +120,18 @@ export default async function WorkflowDetailPage({
         </section>
 
         <section className="wd-steps" aria-label="Workflow steps">
+          <WorkflowDisclosureControls />
           {workflow.steps.map((step, index) => {
             const linkedItems = (step.linkedItems ?? []).map(linkedItemDetail);
             return (
-              <article className="wd-step" id={`step-${step.id}`} key={step.id}>
-                <div className="wd-step-marker" aria-hidden="true">
-                  {index + 1}
-                </div>
-                <div className="wd-step-main">
-                  <div className="wd-step-head">
-                    <div>
-                      <span>{step.duration}</span>
-                      <h2>{step.title}</h2>
-                    </div>
-                  </div>
-                  <p className="wd-step-copy">{step.explanation}</p>
+              <WorkflowStep
+                key={step.id}
+                stepId={step.id}
+                stepNumber={index + 1}
+                duration={step.duration}
+                title={step.title}
+                explanation={step.explanation}
+              >
 
                   {linkedItems.length > 0 && (
                     <div className="wd-linked" aria-label="Linked Templates and Prompts">
@@ -179,8 +178,7 @@ export default async function WorkflowDetailPage({
                     </div>
                   </div>
                   <WorkflowStepAction stepId={step.id} stepNumber={index + 1} />
-                </div>
-              </article>
+              </WorkflowStep>
             );
           })}
         </section>

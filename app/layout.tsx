@@ -76,11 +76,16 @@ export default function RootLayout({
           } as React.CSSProperties
         }
       >
+        <a className="skip-link" href="#main-content">
+          Skip to main content
+        </a>
         <PremiumProvider />
         <AuthProvider />
         <BackgroundField />
         <Nav />
-        {children}
+        <div id="main-content" className="site-content" tabIndex={-1}>
+          {children}
+        </div>
         <Footer />
         {ENABLE_ANALYTICS && <Analytics />}
       </body>

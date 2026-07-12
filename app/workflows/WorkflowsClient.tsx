@@ -131,10 +131,10 @@ export function WorkflowsClient({
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search workflows... try 'job application' or 'landing page'"
+              placeholder="Search workflows… try 'job application' or 'landing page'"
               aria-label="Search workflows"
             />
-            <span className="k">{isMac ? "Cmd K" : "Ctrl K"}</span>
+            <span className="k">{isMac ? "⌘K" : "Ctrl K"}</span>
           </div>
           <div className="sort" role="group" aria-label="Sort">
             <button
@@ -156,7 +156,7 @@ export function WorkflowsClient({
               aria-pressed={sort === "az"}
               onClick={() => setSort("az")}
             >
-              A-Z
+              A–Z
             </button>
           </div>
         </div>
@@ -212,7 +212,14 @@ export function WorkflowsClient({
             ))}
           </aside>
 
-          <div>
+          <div className="results-region">
+            <div className="results-head" aria-live="polite">
+              <div>
+                <h2>{results.length} {results.length === 1 ? "Workflow" : "Workflows"}</h2>
+                <p>{activeFilterCount > 0 || query.trim() ? "Filtered results" : "Guided work, step by step"}</p>
+              </div>
+              <span>{sort === "az" ? "A–Z" : sort === "new" ? "Newest first" : "Popular first"}</span>
+            </div>
             <div className="grid">
               {results.length === 0 ? (
                 <EmptyWorkflows query={query} onClear={clearFilters} />

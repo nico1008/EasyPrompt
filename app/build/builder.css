@@ -5,7 +5,7 @@
    .code-well surfaces. Motion is transform/opacity/color only. */
 
 .pbuilder {
-  min-height: 100dvh;
+  min-height: 0;
   background: transparent;
   padding: 24px 20px 96px;
   max-width: 1340px;
@@ -595,6 +595,13 @@ dialog.pb-palette .pb-palette-desc { font: 400 12.5px var(--font-sans); color: v
   .pbuilder .pb-grid.m-outline .pb-outline { display: flex; }
   .pbuilder .pb-grid.m-preview .pb-canvas,
   .pbuilder .pb-grid.m-preview .pb-outline { display: none; }
+}
+
+@media (pointer: coarse) {
+  .pbuilder .pb-grip,
+  .pbuilder .pb-iconbtn,
+  .pbuilder .pb-insert { min-width: 44px; min-height: 44px; }
+  .pbuilder .pb-palette-item { min-height: 48px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

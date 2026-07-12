@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { NewPromptClient } from "./NewPromptClient";
+import { PageLoading } from "@/components/PageLoading";
 
 /* New markdown Prompt editor. Statically generated and anon-safe: the client
    island resolves `?from=` and auth after mount. Save-to-library prompts sign-in;
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function NewPromptPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoading label="Loading Prompt editor" />}>
       <NewPromptClient />
     </Suspense>
   );

@@ -53,8 +53,8 @@ export default function Error({
             margin: "0 0 22px",
           }}
         >
-          Your prompt inputs live in your browser, so nothing was lost. Try
-          again, or head back to the library.
+          Try the action again. If the problem continues, return to the catalog
+          and reopen what you were working on.
           {error.digest ? ` (Ref: ${error.digest})` : ""}
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
@@ -62,7 +62,7 @@ export default function Error({
             Try again
           </button>
           <Link className="btn btn-ghost" href="/templates">
-            Browse prompts
+            Browse Templates
           </Link>
         </div>
       </div>

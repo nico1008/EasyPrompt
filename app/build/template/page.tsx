@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BuildClient } from "../BuildClient";
 import "../builder.css";
+import { PageLoading } from "@/components/PageLoading";
 
 /* The block-based Template builder. Statically generated: it reads no per-request
    user or searchParams on the server — the client island resolves `?from=` and
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function BuildTemplatePage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoading label="Loading Template builder" />}>
       <BuildClient />
     </Suspense>
   );

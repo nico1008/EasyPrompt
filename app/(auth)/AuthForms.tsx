@@ -93,6 +93,7 @@ export function LoginForm({ next }: { next?: string }) {
           type="email"
           className="input"
           autoComplete="email"
+          spellCheck={false}
           required
           aria-invalid={state.fieldErrors?.email ? true : undefined}
           aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}
@@ -154,6 +155,7 @@ export function SignupForm({ next }: { next?: string }) {
             }
           }}
           autoComplete="email"
+          spellCheck={false}
           required
           aria-invalid={state.fieldErrors?.email ? true : undefined}
           aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}
@@ -172,6 +174,7 @@ export function SignupForm({ next }: { next?: string }) {
             setUsername(event.target.value);
           }}
           autoComplete="username"
+          spellCheck={false}
           required
           aria-invalid={state.fieldErrors?.username ? true : undefined}
           aria-describedby={
@@ -243,6 +246,7 @@ export function ForgotForm() {
           type="email"
           className="input"
           autoComplete="email"
+          spellCheck={false}
           required
           aria-invalid={state.fieldErrors?.email ? true : undefined}
           aria-describedby={state.fieldErrors?.email ? "email-err" : undefined}

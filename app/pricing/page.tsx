@@ -15,11 +15,11 @@ export const metadata: Metadata = {
 };
 
 const FREE = [
-  "Every prompt template",
-  "Unlimited prompts, no limits",
-  "Save prompts & build your own templates with a free account",
+  "Every public Template, Prompt, and Workflow",
+  "Unlimited browsing, filling, and copying",
+  "Save Prompts and build your own Templates with a free account",
   "Works with ChatGPT, Claude & Gemini",
-  "Download & share your prompts",
+  "Download and share your Prompts",
 ];
 
 const PRO = [
@@ -33,7 +33,7 @@ const PRO = [
 const FAQ = [
   {
     q: "Is the builder really free?",
-    a: "Yes. Every template, no limits. The core builder runs in your browser, so it costs nothing — and a free account lets you save your prompts and build your own templates.",
+    a: "Yes. Every Template, Prompt, and Workflow is available without a paid plan. The core builder runs in your browser, and a free account lets you save Prompts and build your own Templates.",
   },
   {
     q: "What does Pro add?",

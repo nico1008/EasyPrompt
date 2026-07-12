@@ -2,7 +2,7 @@
    .builder-page / .tpl-dual to avoid global collisions. LEFT = form (light,
    Template identity); RIGHT = live prompt editor (dark, Prompt identity). */
 
-.builder-page { min-height: 100dvh; background: transparent; }
+.builder-page { background: transparent; }
 .tpl-dual { --tpl-nav: 64px; --tpl-gut: 32px; padding-bottom: 64px; }
 
 /* Shared centered width for topbar / grid / footer. */
@@ -213,7 +213,7 @@
   display: flex; flex-direction: column; gap: 12px;
   /* Fill the viewport region so the editor (flex:1) stretches — the prompt is the
      hero and never collapses to a short box floating in white. */
-  height: calc(100dvh - var(--tpl-nav) - 36px);
+  height: clamp(500px, 68dvh, 680px);
   min-height: 0;
 }
 
@@ -347,4 +347,5 @@
 @media (pointer: coarse) {
   .tpl-dual .pill { min-height: 44px; }
   .tpl-seg-btn { height: 44px; }
+  .tpl-reset { min-width: 44px; min-height: 44px; }
 }

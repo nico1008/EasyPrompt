@@ -190,14 +190,16 @@ export function PromptEditor({
           />
         </div>
 
-        <input
-          className="pe-title"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Untitled prompt"
-          aria-label="Prompt name"
-          maxLength={120}
-        />
+        <label className="pe-title-field">
+          <span>Prompt name</span>
+          <input
+            className="pe-title"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Untitled Prompt"
+            maxLength={120}
+          />
+        </label>
 
         <MarkdownEditorSurface
           value={body}

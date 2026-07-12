@@ -316,7 +316,14 @@ export function PromptsLibraryClient({
             ))}
           </aside>
 
-          <div>
+          <div className="results-region">
+            <div className="results-head" aria-live="polite">
+              <div>
+                <h2>{results.length} {results.length === 1 ? "Prompt" : "Prompts"}</h2>
+                <p>{activeFilterCount > 0 || query.trim() ? "Filtered results" : "Ready to copy and use"}</p>
+              </div>
+              <span>{sort === "az" ? "A–Z" : sort === "new" ? "Newest first" : "Popular first"}</span>
+            </div>
             <div className="grid">
               {communityError && source === "community" && community.length === 0 ? (
                 <CommunityLoadError onRetry={() => setCommunityRetry((value) => value + 1)} />

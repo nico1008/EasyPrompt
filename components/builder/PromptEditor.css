@@ -5,7 +5,7 @@
    on BOTH via the shared selector. Only color/weight/italic differ between them,
    which is width-safe in a monospace font. */
 
-.prompt-editor { min-height: 100dvh; background: transparent; }
+.prompt-editor { background: transparent; }
 
 .pe-wrap { max-width: 880px; margin: 0 auto; padding: 30px 24px 96px; }
 .pe-nav {
@@ -17,13 +17,15 @@
 
 .pe-err { margin: 10px 2px 0; color: var(--danger); font: 500 13px var(--font-sans); }
 
+.pe-title-field { display: grid; gap: 5px; margin-bottom: 14px; }
+.pe-title-field > span { padding-left: 2px; color: var(--fg-3); font: 700 10px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
 .pe-title {
   width: 100%;
   border: none; background: transparent;
   font: 700 24px var(--font-sans); letter-spacing: -0.02em; color: var(--fg-1);
   padding: 2px 2px 10px;
   border-bottom: 1px solid transparent;
-  margin-bottom: 14px;
+  margin-bottom: 0;
 }
 .pe-title:focus {
   outline: none;

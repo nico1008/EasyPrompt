@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CrosshairCard } from "@/components/CrosshairCard";
 
 export function SubmitForm() {
-  const [sent, setSent] = useState(false);
+  const [draftOpened, setDraftOpened] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
@@ -25,7 +25,7 @@ export function SubmitForm() {
     window.location.href = `mailto:templates@easyprompt.app?subject=${encodeURIComponent(
       `Template idea: ${title || "(untitled)"}`
     )}&body=${encodeURIComponent(body)}`;
-    setSent(true);
+    setDraftOpened(true);
   }
 
   return (
@@ -35,7 +35,9 @@ export function SubmitForm() {
           <label htmlFor="sf-name">Your name</label>
           <input
             id="sf-name"
+            name="name"
             className="input"
+            autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g., Jordan Lee"
@@ -45,8 +47,11 @@ export function SubmitForm() {
           <label htmlFor="sf-email">Email</label>
           <input
             id="sf-email"
+            name="email"
             className="input"
             type="email"
+            autoComplete="email"
+            spellCheck={false}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
@@ -60,6 +65,7 @@ export function SubmitForm() {
         </label>
         <input
           id="sf-title"
+          name="title"
           className="input"
           required
           value={title}
@@ -72,6 +78,7 @@ export function SubmitForm() {
         <label htmlFor="sf-cat">Best-fit category</label>
         <select
           id="sf-cat"
+          name="category"
           className="select"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -90,6 +97,7 @@ export function SubmitForm() {
         </label>
         <textarea
           id="sf-idea"
+          name="idea"
           className="textarea"
           required
           value={idea}
@@ -100,11 +108,11 @@ export function SubmitForm() {
 
       <div className="actions">
         <button className="btn btn-primary" type="submit">
-          Send it over →
+          Open email draft →
         </button>
-        {sent && (
-          <span className="submit-note" style={{ marginTop: 0 }}>
-            Thanks! Your email draft is open — just hit send.
+        {draftOpened && (
+          <span className="submit-note submit-note-inline" role="status">
+            Your email draft is open. Review it, then send when ready.
           </span>
         )}
       </div>

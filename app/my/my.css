@@ -2,8 +2,9 @@
    .account-page. (The editor brings its own TemplateEditor.css.) */
 
 .my-page {
-  min-height: 62vh;
+  min-height: 0;
 }
+.my-page .my-section-content { margin-top: 24px; }
 .my-wrap {
   max-width: 1000px;
   margin: 0 auto;
@@ -60,9 +61,10 @@
    used for both owned items and Favorites. ===== */
 .my-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
 }
+.my-grid > article { content-visibility: auto; contain-intrinsic-size: auto 210px; }
 @media (max-width: 960px) {
   .my-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -219,25 +221,25 @@
 /* Template accent (light / indigo) */
 .my-page .my-card-tile.is-template:hover { border-color: var(--accent); }
 
-/* Prompt accent (dark .md-file / terminal green) */
+/* Prompt accent: shared light card with a dark markdown header. */
 .my-page .my-card-tile.is-prompt {
-  background: var(--bg-md);
-  border-color: rgba(255, 255, 255, 0.06);
-  color: var(--fg-inv);
+  background: var(--bg-1);
+  border-color: var(--line-2);
+  color: var(--fg-1);
 }
 .my-page .my-card-tile.is-prompt .mct-bar {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom-color: rgba(255, 255, 255, 0.07);
+  background: var(--bg-md);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 .my-page .my-card-tile.is-prompt .mct-glyph { color: var(--prompt-accent-on-dark); }
 .my-page .my-card-tile.is-prompt .mct-title {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fg-inv-strong);
   font-family: var(--font-mono);
   font-size: 13px;
 }
-.my-page .my-card-tile.is-prompt .mct-blurb { color: rgba(255, 255, 255, 0.66); }
-.my-page .my-card-tile.is-prompt .mct-foot { border-top-color: rgba(255, 255, 255, 0.06); }
-.my-page .my-card-tile.is-prompt .mct-meta { color: rgba(255, 255, 255, 0.45); }
+.my-page .my-card-tile.is-prompt .mct-blurb { color: var(--fg-2); }
+.my-page .my-card-tile.is-prompt .mct-foot { border-top-color: var(--line-1); }
+.my-page .my-card-tile.is-prompt .mct-meta { color: var(--fg-3); }
 .my-page .my-card-tile.is-prompt:hover { border-color: rgba(70, 214, 166, 0.4); }
 .my-page .my-card-tile.is-prompt:focus-visible {
   border-color: var(--prompt-accent-on-dark);
@@ -297,7 +299,7 @@
 .my-visibility-public { color: var(--success); background: var(--success-soft); }
 .my-visibility-private { color: var(--fg-3); background: var(--bg-3); }
 
-/* Bookmark toggle on a dark Favorites (Prompt) tile. */
+/* Bookmark toggle sits in the Prompt card's dark filename strip. */
 .my-page .my-card-tile.is-prompt .bookmark-btn {
   height: 26px;
   padding: 0 6px;
@@ -663,6 +665,7 @@
   padding: 0;
   margin: auto;
   overflow: hidden;
+  overscroll-behavior: contain;
   border: 1px solid rgba(15,15,30,0.12);
   border-radius: var(--r-4);
   background: var(--bg-1);

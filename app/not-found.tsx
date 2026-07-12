@@ -8,13 +8,10 @@ export default function NotFound() {
       <div className="content-wrap">
         <CrosshairCard className="center-card">
           <div className="big">404</div>
-          <h1>This prompt wandered off.</h1>
-          <p>
-            The page you&apos;re after doesn&apos;t exist — but a perfect prompt is
-            still 30 seconds away.
-          </p>
+          <h1>That page is not here.</h1>
+          <p>The link may be outdated, or the page may have moved. Start again from the Template catalog.</p>
           <Link className="btn btn-primary btn-lg" href="/templates">
-            Browse prompts →
+            Browse Templates →
           </Link>
         </CrosshairCard>
       </div>

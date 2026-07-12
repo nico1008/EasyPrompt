@@ -6,6 +6,7 @@ import { PromptsLibraryClient } from "./PromptsLibraryClient";
 import { EXAMPLE_PROMPTS } from "@/data/prompts";
 import { listCommunityPrompts } from "@/lib/community/repo";
 import { getPublicCountsBatch } from "@/lib/metrics/repo";
+import { PageLoading } from "@/components/PageLoading";
 
 export const revalidate = 60;
 
@@ -34,7 +35,7 @@ export default async function PromptsCatalogPage() {
   );
 
   return (
-    <Suspense fallback={<main className="picker-page" />}>
+    <Suspense fallback={<PageLoading label="Loading Prompts" />}>
       <PromptsLibraryClient
         initialCounts={initialCounts}
         initialCommunity={initialCommunity}

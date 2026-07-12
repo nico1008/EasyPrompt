@@ -56,7 +56,8 @@ export default async function MyLibraryPage({
 
         <MyTabs />
 
-        <section className="my-section" style={{ marginTop: 24 }}>
+        <section className="my-section my-section-content">
+          <h2 className="sr-only">Library items</h2>
           {filter === "favorites" ? <Favorites /> : <OwnedList filter={filter} />}
         </section>
       </div>
@@ -141,8 +142,12 @@ async function Favorites() {
   if (items.length === 0) {
     return (
       <CrosshairCard className="panel my-empty">
-        <p>No favorites yet. Tap the bookmark on any template or prompt to keep it here.</p>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <span className="my-empty-ic my-empty-ic-prompt" aria-hidden="true">
+          <Icon name="bookmark" size={22} />
+        </span>
+        <h3>No favorites yet</h3>
+        <p>Use the bookmark on any Template or Prompt to keep it here.</p>
+        <div className="my-empty-actions">
           <Link className="btn btn-primary btn-sm" href="/templates">
             Browse templates
           </Link>

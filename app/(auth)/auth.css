@@ -3,7 +3,7 @@
    .panel / .field / .input / .btn primitives from globals.css. */
 
 .auth-page {
-  min-height: 72vh;
+  min-height: 0;
   display: grid;
   place-items: center;
   padding: 64px 20px;

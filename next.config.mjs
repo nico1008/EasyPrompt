@@ -7,9 +7,11 @@
  * app/layout.tsx; tightening to a nonce-based script-src (Next middleware nonce)
  * to drop script 'unsafe-inline' is the documented next step. connect-src allows
  * Supabase Auth/PostgREST (+ wss for future realtime); everything else is 'self'. */
+const isDevelopment = process.env.NODE_ENV === "development";
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",

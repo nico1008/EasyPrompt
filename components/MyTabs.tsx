@@ -12,7 +12,7 @@ export function MyTabs() {
   const sp = useSearchParams();
   const active = sp.get("filter") ?? "all";
   return (
-    <div className="my-tabs" role="tablist" aria-label="Library filters">
+    <nav className="my-tabs" aria-label="Library filters">
       {PRIMARY_FILTERS.map((f) => {
         const on = active === f.id;
         const href = f.id === "all" ? "/my" : `/my?filter=${f.id}`;
@@ -20,14 +20,13 @@ export function MyTabs() {
           <Link
             key={f.id}
             href={href}
-            role="tab"
-            aria-selected={on}
+            aria-current={on ? "page" : undefined}
             className={`my-tab${on ? " on" : ""}`}
           >
             {f.label}
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

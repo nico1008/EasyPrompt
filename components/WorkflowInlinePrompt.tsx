@@ -46,7 +46,7 @@ export function WorkflowInlinePrompt({ prompt }: { prompt: WorkflowInlinePromptM
       <div className="wd-inline-head">
         <div>
           <span>Inline prompt text</span>
-          <h4>{prompt.title}</h4>
+          <h3>{prompt.title}</h3>
         </div>
         <div className="wd-inline-actions">
           <ProviderOpenActions links={providerLinks} compact />

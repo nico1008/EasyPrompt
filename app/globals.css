@@ -19,6 +19,9 @@
   --fg-3: #6B6B78;        /* tertiary / meta — darkened to clear WCAG AA (≈5.2:1 on white) */
   --fg-4: #C7C7CC;        /* disabled */
   --fg-inv: #FFFFFF;      /* on dark surface */
+  --fg-inv-strong: rgba(255,255,255,0.94);
+  --fg-inv-muted: rgba(255,255,255,0.72);
+  --fg-inv-meta: rgba(255,255,255,0.56);
 
   /* -------- Indigo accent -------- */
   --accent:        #5B5BFF;
@@ -61,6 +64,22 @@
   --shadow-2: 0 4px 14px rgba(15,15,30,0.06);
   --shadow-3: 0 12px 32px rgba(15,15,30,0.08);
 
+  /* -------- Layout and spacing roles -------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --shell-reading: 820px;
+  --shell-editor: 880px;
+  --shell-workflow: 940px;
+  --shell-library: 1040px;
+  --shell-catalog: 1240px;
+  --page-gutter: 28px;
+
   /* -------- Status -------- */
   --danger: #C0392B;
   --danger-hover: #A82D24;
@@ -91,7 +110,26 @@
 html { background: var(--bg-0); }
 html, body { margin: 0; padding: 0; color: var(--fg-1);
              font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+body { min-height: 100dvh; display: flex; flex-direction: column; }
+.site-content { flex: 1 0 auto; display: flex; flex-direction: column; min-width: 0; }
+.site-content > main { width: 100%; flex: 1 0 auto; }
+.site-content:focus { outline: none; }
 a { color: inherit; text-decoration: none; }
+
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: calc(var(--z-nav) + 1);
+  padding: 10px 14px;
+  border-radius: var(--r-2);
+  background: var(--bg-ink);
+  color: var(--fg-inv-strong);
+  font: 600 13px var(--font-sans);
+  transform: translateY(-150%);
+  transition: transform 140ms ease;
+}
+.skip-link:focus { transform: translateY(0); }
 
 /* ===== Background field: base grid =====
    The product's one ambient surface — a faint 8px pixel grid fixed behind every
@@ -283,6 +321,19 @@ button { font-family: inherit; cursor: pointer; }
     box-shadow 140ms,
     transform 140ms;
 }
+
+/* Deterministic route fallback. Keeps the shell stable while client state resolves. */
+.route-loading { background: transparent; }
+.route-loading-wrap { width: min(calc(100% - 40px), var(--shell-editor)); margin: 0 auto; padding: 42px 0 80px; }
+.route-loading-wrap > span,
+.route-loading-panel span { display: block; border-radius: var(--r-1); background: var(--bg-3); }
+.route-loading-kicker { width: 92px; height: 22px; }
+.route-loading-title { width: min(420px, 72%); height: 38px; margin-top: 16px; }
+.route-loading-copy { width: min(560px, 88%); height: 18px; margin-top: 12px; }
+.route-loading-panel { display: grid; gap: 12px; margin-top: 28px; padding: 22px; border: 1px solid var(--line-1); border-radius: var(--r-3); background: var(--bg-1); }
+.route-loading-panel span { height: 18px; }
+.route-loading-panel span:nth-child(2) { width: 84%; }
+.route-loading-panel span:nth-child(3) { width: 64%; }
 .check:hover { border-color: var(--line-3); background: var(--bg-2); }
 .check.on { border-color: var(--accent); background: var(--accent-soft); }
 .check .box {
@@ -333,7 +384,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .code-well.dark .code-bar {
   border-bottom-color: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.5);
+  color: var(--fg-inv-meta);
 }
 .code-bar .pip { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
 .code-bar .tag { margin-left: auto; font-family: var(--font-mono); font-size: 11px; }
@@ -343,9 +394,9 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--fg-1);
   white-space: pre-wrap;
 }
-.code-well.dark .code-body { color: rgba(255,255,255,0.92); }
+.code-well.dark .code-body { color: var(--fg-inv-strong); }
 .code-body .c-mute { color: var(--fg-3); }
-.code-well.dark .code-body .c-mute { color: rgba(255,255,255,0.4); }
+.code-well.dark .code-body .c-mute { color: var(--fg-inv-meta); }
 .code-body .c-acc  { color: var(--accent); font-weight: 600; }
 .code-well.dark .code-body .c-acc { color: #A6A6FF; }
 
@@ -758,7 +809,7 @@ button { font-family: inherit; cursor: pointer; }
    Gated to (pointer: coarse) so desktop keeps its compact density (WCAG 2.5.5). */
 @media (pointer: coarse) {
   .btn-sm { min-height: 44px; }
-  .bookmark-btn { min-height: 44px; }
+  .bookmark-btn { min-width: 44px; min-height: 44px; }
   .nav-trigger,
   .nav-direct-link,
   .nav-dropdown-item { min-height: 44px; }
@@ -810,6 +861,7 @@ button { font-family: inherit; cursor: pointer; }
   padding: 0;
   margin: auto;
   overflow: hidden;
+  overscroll-behavior: contain;
   border: 1px solid rgba(15,15,30,0.12);
   border-radius: 16px;
   background: var(--bg-1);

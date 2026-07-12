@@ -6,6 +6,7 @@ import { TEMPLATES } from "@/data/templates";
 import { listCommunityTemplates } from "@/lib/community/repo";
 import { getPublicCountsBatch } from "@/lib/metrics/repo";
 import { getPublicAggregates } from "@/lib/ratings/repo";
+import { PageLoading } from "@/components/PageLoading";
 
 export const revalidate = 60;
 
@@ -31,7 +32,7 @@ export default async function PromptsPage() {
   );
 
   return (
-    <Suspense fallback={<main className="picker-page" />}>
+    <Suspense fallback={<PageLoading label="Loading Templates" />}>
       <PromptsClient
         initialCounts={initialCounts}
         initialCommunity={initialCommunity}

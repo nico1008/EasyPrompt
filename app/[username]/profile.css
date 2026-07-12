@@ -2,7 +2,7 @@
    Page root stays transparent so the shared EasyPrompt field remains visible. */
 
 .profile-page {
-  min-height: 72vh;
+  min-height: 0;
   max-width: 1120px;
   margin: 0 auto;
   padding: 34px 24px 88px;
@@ -204,6 +204,9 @@
   gap: 16px;
 }
 
+.profile-work-grid.is-count-1 { grid-template-columns: minmax(0, 620px); }
+.profile-work-grid.is-count-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
 .profile-work-card {
   position: relative;
   min-height: 206px;
@@ -217,6 +220,7 @@
   transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), border-color 150ms,
     box-shadow 150ms;
 }
+.profile-work-grid > article { content-visibility: auto; contain-intrinsic-size: auto 210px; }
 
 .profile-work-card:hover {
   transform: translateY(-2px);
@@ -320,9 +324,9 @@
 }
 
 .profile-work-card.is-prompt {
-  background: var(--bg-md);
-  border-color: rgba(255, 255, 255, 0.06);
-  color: var(--fg-inv);
+  background: var(--bg-1);
+  border-color: var(--line-2);
+  color: var(--fg-1);
 }
 
 .profile-work-card.is-prompt:hover {
@@ -336,8 +340,8 @@
 }
 
 .profile-work-card.is-prompt .profile-card-top {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom-color: rgba(255, 255, 255, 0.07);
+  background: var(--bg-md);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
 .profile-work-card.is-prompt .profile-type-chip {
@@ -345,20 +349,21 @@
 }
 
 .profile-work-card.is-prompt .profile-card-date,
-.profile-work-card.is-prompt .profile-card-foot {
-  color: rgba(255, 255, 255, 0.48);
+.profile-work-card.is-prompt .profile-card-top {
+  color: var(--fg-inv-meta);
 }
 
 .profile-work-card.is-prompt .profile-card-body h3 {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--fg-1);
 }
 
 .profile-work-card.is-prompt .profile-card-body p {
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--fg-2);
 }
 
 .profile-work-card.is-prompt .profile-card-foot {
-  border-top-color: rgba(255, 255, 255, 0.07);
+  border-top-color: var(--line-1);
+  color: var(--fg-3);
 }
 
 .profile-empty {

@@ -2,8 +2,8 @@
    .picker-page because App Router injects every imported CSS file globally;
    scoping prevents generic names (.card, .layout, .foot) colliding with the builder. */
 
-.picker-page { min-height: 100dvh; background: transparent; }
-.picker-page .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 28px 60px; }
+.picker-page { background: transparent; }
+.picker-page .wrap { max-width: var(--shell-catalog); margin: 0 auto; padding: 36px var(--page-gutter) 72px; }
 
 .picker-page .page-head { margin-bottom: 24px; }
 /* Terminal-flavored page tag — one shared pill for both libraries. Indigo by
@@ -113,7 +113,7 @@
   font: inherit;
 }
 
-.picker-page .layout { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: start; }
+.picker-page .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
 
 .picker-page .side { background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3); padding: 10px; }
 .picker-page .side .group {
@@ -138,7 +138,21 @@
    (header bar -> body -> footer) so the two catalogs read as one family, in the
    Templates' indigo identity: object glyph + sans title in the bar, description in
    the body, category + template meta (rating + question count) in the footer. */
-.picker-page .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.picker-page .results-region { min-width: 0; }
+.picker-page .results-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 14px;
+  padding: 0 2px 13px;
+  border-bottom: 1px solid var(--line-1);
+}
+.picker-page .results-head h2 { margin: 0; font: 700 17px/1.2 var(--font-sans); color: var(--fg-1); }
+.picker-page .results-head p { margin: 4px 0 0; font: 400 13px/1.4 var(--font-sans); color: var(--fg-3); }
+.picker-page .results-head > span { flex: none; font: 600 11px var(--font-mono); color: var(--fg-3); }
+.picker-page .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.picker-page .grid > article { content-visibility: auto; contain-intrinsic-size: auto 220px; }
 
 .picker-page .tpl-tile {
   position: relative;
@@ -214,9 +228,12 @@
 .picker-page .empty b { color: var(--fg-1); font-weight: 600; }
 
 /* ===== Responsive ===== */
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
   .picker-page .layout { grid-template-columns: 1fr; }
-  .picker-page .side { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; }
+  .picker-page .filter-mobile-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -8px 0 16px; }
+  .picker-page .filter-toggle { display: inline-flex; }
+  .picker-page .side.filter-panel { display: none; }
+  .picker-page .side.filter-panel.open { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; }
   .picker-page .side .group { width: 100%; padding: 8px 8px 4px; }
   .picker-page .side a, .picker-page .side button { width: auto; }
   .picker-page .side a .ct, .picker-page .side button .ct { margin-left: 6px; }
@@ -225,21 +242,8 @@
 @media (max-width: 640px) {
   .picker-page .toolbar { grid-template-columns: 1fr; }
   .picker-page .sort { overflow-x: auto; }
-  .picker-page .filter-mobile-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin: -8px 0 16px;
-  }
-  .picker-page .filter-toggle {
-    display: inline-flex;
-  }
-  .picker-page .side.filter-panel {
-    display: none;
-  }
-  .picker-page .side.filter-panel.open {
-    display: flex;
-  }
+  .picker-page .wrap { padding-inline: 16px; }
+  .picker-page .search .k { display: none; }
+  .picker-page .results-head { align-items: flex-start; }
   .picker-page .grid { grid-template-columns: 1fr; }
 }

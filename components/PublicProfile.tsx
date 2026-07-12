@@ -173,7 +173,7 @@ export function PublicProfile({
               </p>
             </div>
           ) : (
-            <div className="profile-work-grid">
+            <div className={`profile-work-grid${items.length <= 2 ? ` is-count-${items.length}` : ""}`}>
               {items.map((it) => (
                 <ProfileWorkCard key={`${it.objectType}-${it.slug}`} item={it} />
               ))}

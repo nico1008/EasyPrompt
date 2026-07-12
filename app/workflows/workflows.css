@@ -48,9 +48,7 @@
   overflow: hidden;
   border: 1px solid var(--line-1);
   border-radius: var(--r-3);
-  background:
-    linear-gradient(180deg, rgba(234, 241, 250, 0.72), rgba(255, 255, 255, 0) 46%),
-    var(--bg-1);
+  background: var(--bg-1);
   color: inherit;
   transition:
     transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -184,8 +182,11 @@
   font: 700 10px var(--font-mono);
 }
 
+.workflows-page .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 640px) { .workflows-page .grid { grid-template-columns: 1fr; } }
+
 .workflow-detail {
-  min-height: 100dvh;
+  min-height: 0;
 }
 
 .workflow-detail .wd-wrap {
@@ -343,6 +344,8 @@
   gap: 18px;
 }
 
+.workflow-detail .wd-disclosure-controls { display: none; }
+
 .workflow-detail .wd-step {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
@@ -376,6 +379,8 @@
   justify-content: space-between;
   gap: 14px;
 }
+
+.workflow-detail .wd-step-toggle { display: none; }
 
 .workflow-detail .wd-step-head span {
   display: block;
@@ -505,9 +510,9 @@
   text-transform: uppercase;
 }
 
-.workflow-detail .wd-inline-head h4 {
+.workflow-detail .wd-inline-head h3 {
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fg-inv-strong);
   font: 700 14px var(--font-sans);
 }
 
@@ -623,6 +628,49 @@
   .workflow-detail .wd-step {
     grid-template-columns: 1fr;
   }
+
+  .workflow-detail .wd-disclosure-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 13px;
+    border: 1px solid var(--workflow-line);
+    border-radius: var(--r-2);
+    background: var(--workflow-soft);
+    color: var(--workflow-accent);
+    font: 600 12px var(--font-sans);
+  }
+
+  .workflow-detail .wd-disclosure-controls button {
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--workflow-line);
+    border-radius: var(--r-2);
+    background: var(--bg-1);
+    color: var(--workflow-accent);
+    font: 700 12px var(--font-sans);
+  }
+
+  .workflow-detail .wd-step:not(.is-expanded) .wd-step-body { display: none; }
+  .workflow-detail .wd-step:not(.is-expanded) .wd-step-main { background: var(--bg-2); }
+  .workflow-detail .wd-step.is-active .wd-step-main { border-color: var(--workflow-line); }
+
+  .workflow-detail .wd-step-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-2);
+    background: var(--bg-2);
+    color: var(--workflow-accent);
+    font: 700 11px var(--font-sans);
+  }
+  .workflow-detail .wd-step-toggle:disabled { cursor: default; opacity: 0.72; }
 
   .workflow-detail .wd-step-main,
   .workflow-detail .wd-prereqs {
