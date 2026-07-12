@@ -7,6 +7,7 @@ import {
   type Workflow,
 } from "@/data/workflows";
 import { WorkflowCardProgress } from "@/components/workflows/WorkflowProgress";
+import { BookmarkButton } from "@/components/BookmarkButton";
 
 export function WorkflowCard({ workflow }: { workflow: Workflow }) {
   const mix = workflowToolMix(workflow);
@@ -22,6 +23,7 @@ export function WorkflowCard({ workflow }: { workflow: Workflow }) {
             {workflow.title}
           </Link>
         </h3>
+        <BookmarkButton compact target={{ kind: "catalog_workflow", key: workflow.catalogId }} />
         {workflow.popular && (
           <span className="wt-pop" title="Popular workflow" aria-label="Popular workflow">
             <Icon name="star" size={12} />
@@ -41,7 +43,7 @@ export function WorkflowCard({ workflow }: { workflow: Workflow }) {
       <div className="wt-mix">
         <span>{mix.label}</span>
         <WorkflowCardProgress
-          workflowSlug={workflow.slug}
+          workflowSlug={`catalog:${workflow.catalogId}`}
           stepIds={workflow.steps.map((step) => step.id)}
         />
       </div>

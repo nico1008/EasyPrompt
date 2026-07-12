@@ -14,6 +14,7 @@ import { listNotebooks } from "@/lib/notebooks/repo";
 import { listUserTemplates } from "@/lib/userTemplates/repo";
 import { listSavedPrompts } from "@/lib/savedPrompts/repo";
 import { listBookmarks } from "@/lib/bookmarks/repo";
+import { listUserWorkflows } from "@/lib/userWorkflows/repo";
 import { resolveFavoriteRows } from "@/lib/bookmarks/resolve";
 import {
   buildLibrary,
@@ -66,12 +67,13 @@ export default async function MyLibraryPage({
 }
 
 async function OwnedList({ filter }: { filter: LibraryFilter }) {
-  const [notebooks, userTemplates, prompts] = await Promise.all([
+  const [notebooks, userTemplates, prompts, workflows] = await Promise.all([
     listNotebooks(),
     listUserTemplates(),
     listSavedPrompts(),
+    listUserWorkflows(),
   ]);
-  const items = filterLibrary(buildLibrary({ notebooks, userTemplates, prompts }), filter);
+  const items = filterLibrary(buildLibrary({ notebooks, userTemplates, prompts, workflows }), filter);
 
   if (items.length === 0) return <EmptyState filter={filter} />;
 
@@ -117,6 +119,7 @@ function EmptyState({ filter }: { filter: LibraryFilter }) {
       </CrosshairCard>
     );
   }
+  if (filter === "workflows") return <CrosshairCard className="panel my-empty"><span className="my-empty-ic"><Icon name="book" size={22}/></span><h3>No Workflows yet</h3><p>Create a guided playbook or remix one from the catalog.</p><div className="my-empty-actions"><Link className="btn btn-primary btn-sm" href="/build/workflow">+ New Workflow</Link><Link className="btn btn-ghost btn-sm" href="/workflows">Browse Workflows</Link></div></CrosshairCard>;
   return (
     <CrosshairCard className="panel my-empty">
       <span className="my-empty-ic">
@@ -146,7 +149,7 @@ async function Favorites() {
           <Icon name="bookmark" size={22} />
         </span>
         <h3>No favorites yet</h3>
-        <p>Use the bookmark on any Template or Prompt to keep it here.</p>
+        <p>Use the bookmark on any Template, Prompt, or Workflow to keep it here.</p>
         <div className="my-empty-actions">
           <Link className="btn btn-primary btn-sm" href="/templates">
             Browse templates
@@ -165,7 +168,7 @@ async function Favorites() {
         <article key={b.id} className={`my-card-tile is-${b.objectType}`}>
           <div className="mct-bar">
             <span className="mct-glyph" aria-hidden="true">
-              <Icon name={b.objectType === "template" ? "list" : "code"} size={14} />
+              <Icon name={b.objectType === "template" ? "list" : b.objectType === "prompt" ? "code" : "book"} size={14} />
             </span>
             <h3 className="mct-title">
               <Link className="mct-link" href={b.href}>

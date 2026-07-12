@@ -93,6 +93,7 @@ const NAV_GROUPS: ReadonlyArray<{
         tone: "prompt",
         activeRoute: "/build/prompt",
       },
+      { href: "/build/workflow", label: "New Workflow", description: "Build a guided playbook", icon: "book", tone: "workflow", activeRoute: "/build/workflow" },
     ],
   },
 ];

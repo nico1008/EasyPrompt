@@ -24,6 +24,8 @@ import {
   type WorkflowLinkedItemDetail,
 } from "@/data/workflows";
 import { withWorkflowContext } from "@/lib/workflows/context";
+import { BookmarkButton } from "@/components/BookmarkButton";
+import { remixCatalogWorkflowAction } from "@/lib/userWorkflows/actions";
 
 export function generateStaticParams() {
   return WORKFLOWS.map((workflow) => ({ slug: workflow.slug }));
@@ -75,7 +77,7 @@ export default async function WorkflowDetailPage({
   const stepIds = workflow.steps.map((step) => step.id);
 
   return (
-    <WorkflowProgressProvider workflowSlug={workflow.slug} stepIds={stepIds}>
+    <WorkflowProgressProvider workflowSlug={`catalog:${workflow.catalogId}`} stepIds={stepIds}>
     <main className="workflow-detail">
       <div className="wd-wrap">
         <div className="wd-topbar">
@@ -94,6 +96,8 @@ export default async function WorkflowDetailPage({
             <p>{workflow.overview}</p>
           </div>
           <aside className="wd-summary" aria-label="Workflow summary">
+            <BookmarkButton target={{ kind: "catalog_workflow", key: workflow.catalogId }} />
+            <form action={remixCatalogWorkflowAction}><input type="hidden" name="catalogId" value={workflow.catalogId}/><button className="btn btn-ghost btn-sm">Remix and edit</button></form>
             <span>
               <Icon name="list" size={15} />
               {workflowStepCount(workflow)} steps

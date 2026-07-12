@@ -16,7 +16,7 @@ export type PublicProfile = {
 };
 
 export type PublicProfileItem = {
-  objectType: "prompt" | "template";
+  objectType: "prompt" | "template" | "workflow";
   slug: string;
   title: string;
   blurb: string;
@@ -44,11 +44,8 @@ export async function getPublicProfile(username: string): Promise<PublicProfile 
 
 export async function getPublicProfileContent(username: string): Promise<PublicProfileItem[]> {
   const supabase = createPublicClient();
-  const { data, error } = await supabase.rpc("public_profile_content", {
-    p_username: username.toLowerCase(),
-  });
-  if (error || !data) return [];
-  return data.map((r) => ({
+  const [content, workflows] = await Promise.all([supabase.rpc("public_profile_content", { p_username: username.toLowerCase() }), supabase.rpc("public_profile_workflows", { p_username: username.toLowerCase() })]);
+  const items: PublicProfileItem[] = content.error || !content.data ? [] : content.data.map((r) => ({
     objectType: r.object_type,
     slug: r.share_slug,
     title: r.title,
@@ -61,4 +58,6 @@ export async function getPublicProfileContent(username: string): Promise<PublicP
     updatedAt: r.updated_at,
     uses: r.uses,
   }));
+  if (!workflows.error) for (const row of workflows.data ?? []) items.push({ objectType:"workflow", slug:row.share_slug, title:row.title, blurb:row.blurb, category:row.category, icon:"book", updatedAt:row.updated_at, uses:0 });
+  return items.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
 }

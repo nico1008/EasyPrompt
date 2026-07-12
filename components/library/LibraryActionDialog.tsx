@@ -13,17 +13,20 @@ import type { LibraryInternal, LibraryItem } from "@/lib/library/list";
 import { deleteNotebookAction, duplicateNotebookAction } from "@/lib/notebooks/actions";
 import { deleteUserTemplateAction, duplicateUserTemplateAction } from "@/lib/userTemplates/actions";
 import { deleteSavedPromptAction, duplicateSavedPromptAction } from "@/lib/savedPrompts/actions";
+import { deleteWorkflowAction, duplicateWorkflowAction, setWorkflowPublishedAction } from "@/lib/userWorkflows/actions";
 
 type FormAction = (formData: FormData) => void | Promise<void>;
 const DUP: Record<LibraryInternal, FormAction> = {
   notebook: duplicateNotebookAction,
   user_template: duplicateUserTemplateAction,
   saved_prompt: duplicateSavedPromptAction,
+  user_workflow: duplicateWorkflowAction,
 };
 const DEL: Record<LibraryInternal, FormAction> = {
   notebook: deleteNotebookAction,
   user_template: deleteUserTemplateAction,
   saved_prompt: deleteSavedPromptAction,
+  user_workflow: deleteWorkflowAction,
 };
 
 function Prop({ label, children }: { label: string; children: React.ReactNode }) {
@@ -166,13 +169,21 @@ export function LibraryActionDialog({ item, onClose }: { item: LibraryItem; onCl
 
           <section className="lib-group">
             <span className="lib-group-label">Visibility</span>
-            <VisibilitySection
-              internal={item.internal}
-              id={item.id}
-              visibility={item.visibility}
-              shareSlug={item.shareSlug}
-              category={item.category}
-            />
+            {item.internal === "user_workflow" ? (
+              <form action={setWorkflowPublishedAction}>
+                <input type="hidden" name="id" value={item.id} />
+                <input type="hidden" name="revision" value={item.revision ?? 1} />
+                <input type="hidden" name="publish" value={item.visibility === "public" ? "false" : "true"} />
+                <button className="btn btn-ghost btn-sm">
+                  {item.visibility === "public" ? "Make private" : "Publish"}
+                </button>
+                {item.visibility === "public" && item.shareSlug ? (
+                  <Link href={`/w/${item.shareSlug}`}>View public Workflow</Link>
+                ) : null}
+              </form>
+            ) : (
+              <VisibilitySection internal={item.internal} id={item.id} visibility={item.visibility} shareSlug={item.shareSlug} category={item.category} />
+            )}
           </section>
 
           <section className="lib-group lib-group-manage">

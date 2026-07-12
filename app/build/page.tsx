@@ -9,6 +9,7 @@ import { getServerUser } from "@/lib/supabase/server";
 import { listNotebooks } from "@/lib/notebooks/repo";
 import { listUserTemplates } from "@/lib/userTemplates/repo";
 import { listSavedPrompts } from "@/lib/savedPrompts/repo";
+import { listUserWorkflows } from "@/lib/userWorkflows/repo";
 import { buildLibrary } from "@/lib/library/list";
 import { objectMeta } from "@/lib/library/objectMeta";
 
@@ -42,6 +43,7 @@ const CHOICES = [
     sub: "Ready-to-use text",
     blurb: "Write a finished prompt in a live markdown editor, then copy it or save it to your library.",
   },
+  { href: "/build/workflow", tone: "workflow" as const, icon: "book" as const, title: "New Workflow", sub: "Guided multi-step playbook", blurb: "Sequence Templates, Prompts, and inline prompt text into a practical playbook." },
 ];
 
 export default async function BuildOverviewPage() {
@@ -96,12 +98,13 @@ export default async function BuildOverviewPage() {
 }
 
 async function RecentCreations() {
-  const [notebooks, userTemplates, prompts] = await Promise.all([
+  const [notebooks, userTemplates, prompts, workflows] = await Promise.all([
     listNotebooks(),
     listUserTemplates(),
     listSavedPrompts(),
+    listUserWorkflows(),
   ]);
-  const items = buildLibrary({ notebooks, userTemplates, prompts }).slice(0, 6);
+  const items = buildLibrary({ notebooks, userTemplates, prompts, workflows }).slice(0, 6);
 
   if (items.length === 0) {
     return (

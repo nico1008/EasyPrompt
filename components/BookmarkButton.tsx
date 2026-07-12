@@ -102,8 +102,9 @@ export function BookmarkButton({
   if (!isSupabaseConfigured()) return null;
 
   const label = on ? "Remove from favorites" : "Add to favorites";
-  const objectLabel =
-    target.kind === "example_prompt" || target.kind === "user_prompt" ? "Prompt" : "Template";
+  const objectLabel = target.kind === "catalog_workflow" || target.kind === "user_workflow"
+    ? "Workflow"
+    : target.kind === "example_prompt" || target.kind === "user_prompt" ? "Prompt" : "Template";
   const authCopy = {
     title: `Favorite this ${objectLabel}`,
     body: `Create an account to add this ${objectLabel} to Favorites in My Library.`,

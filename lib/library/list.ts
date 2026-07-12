@@ -14,16 +14,18 @@ import { buildPrompt, buildPromptFromBlocks } from "@/lib/buildPrompt";
 type NotebookRow = Database["public"]["Tables"]["prompt_notebooks"]["Row"];
 type UserTemplateRow = Database["public"]["Tables"]["user_templates"]["Row"];
 type SavedPromptRow = Database["public"]["Tables"]["saved_prompts"]["Row"];
+type UserWorkflowRow = Database["public"]["Tables"]["user_workflows"]["Row"];
 
-export type LibraryObjectType = "template" | "prompt";
-export type LibraryInternal = "notebook" | "user_template" | "saved_prompt";
+export type LibraryObjectType = "template" | "prompt" | "workflow";
+export type LibraryInternal = "notebook" | "user_template" | "saved_prompt" | "user_workflow";
 export type LibraryVisibility = "private" | "public";
-export type LibraryFilter = "all" | "templates" | "prompts" | "favorites";
+export type LibraryFilter = "all" | "templates" | "prompts" | "workflows" | "favorites";
 
 export const LIBRARY_FILTERS: { id: LibraryFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "templates", label: "Templates" },
   { id: "prompts", label: "Prompts" },
+  { id: "workflows", label: "Workflows" },
   { id: "favorites", label: "Favorites" },
 ];
 
@@ -59,6 +61,7 @@ export type LibraryItem = {
   sizeLabel: string | null;
   /** Formatted "last edited" date, e.g. "Jun 26, 2026". */
   updatedLabel: string;
+  revision?: number;
 };
 
 function fmtDate(s: string): string {
@@ -80,8 +83,22 @@ export function buildLibrary(input: {
   notebooks: NotebookRow[];
   userTemplates: UserTemplateRow[];
   prompts: SavedPromptRow[];
+  workflows?: UserWorkflowRow[];
 }): LibraryItem[] {
   const items: LibraryItem[] = [];
+
+  for (const workflow of input.workflows ?? []) {
+    const document = workflow.document as { steps?: unknown[] };
+    const steps = Array.isArray(document.steps) ? document.steps.length : 0;
+    items.push({ key: `uw-${workflow.id}`, objectType: "workflow", internal: "user_workflow", id: workflow.id,
+      title: workflow.title || "Untitled Workflow", icon: "book", visibility: visibilityOf(workflow.visibility),
+      shareSlug: workflow.share_slug, meta: `${steps} ${steps === 1 ? "step" : "steps"} - ${fmtDate(workflow.updated_at)}`,
+      updatedAt: workflow.updated_at, primaryHref: `/my/workflows/${workflow.id}`, primaryLabel: "Open",
+      editHref: `/my/workflows/${workflow.id}/edit`, source: workflow.source_title_snapshot ? { label: workflow.source_title_snapshot,
+        href: workflow.source_kind === "catalog_workflow" && workflow.source_catalog_id ? `/workflows/${workflow.source_catalog_id}` : "#" } : null,
+      category: workflow.category, preview: makePreview(workflow.blurb), categoryLabel: categoryLabel(workflow.category),
+      sizeLabel: `${steps} ${steps === 1 ? "step" : "steps"}`, updatedLabel: fmtDate(workflow.updated_at), revision: workflow.revision });
+  }
 
   for (const n of input.notebooks) {
     const doc = rowToNotebook(n).doc;
@@ -188,6 +205,8 @@ export function filterLibrary(items: LibraryItem[], filter: LibraryFilter): Libr
       return items.filter((i) => i.objectType === "template");
     case "prompts":
       return items.filter((i) => i.objectType === "prompt");
+    case "workflows":
+      return items.filter((i) => i.objectType === "workflow");
     case "favorites":
       return [];
     case "all":

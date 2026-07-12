@@ -218,21 +218,43 @@ export interface Database {
           id: string;
           owner_id: string;
           // text column — "catalog" (Template) or "example_prompt" (curated Prompt)
-          target_kind: "catalog" | "example_prompt" | "user_template" | "user_prompt";
+          target_kind: "catalog" | "example_prompt" | "user_template" | "user_prompt" | "catalog_workflow" | "user_workflow";
           target_key: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           owner_id: string;
-          target_kind: "catalog" | "example_prompt" | "user_template" | "user_prompt";
+          target_kind: "catalog" | "example_prompt" | "user_template" | "user_prompt" | "catalog_workflow" | "user_workflow";
           target_key: string;
           created_at?: string;
         };
         Update: {
-          target_kind?: "catalog" | "example_prompt" | "user_template" | "user_prompt";
+          target_kind?: "catalog" | "example_prompt" | "user_template" | "user_prompt" | "catalog_workflow" | "user_workflow";
           target_key?: string;
         };
+        Relationships: [];
+      };
+      user_workflows: {
+        Row: {
+          id: string; owner_id: string; title: string; category: string; blurb: string;
+          overview: string; time_label: string; document: Json; document_version: number;
+          revision: number; visibility: ContentVisibility; share_slug: string | null;
+          source_kind: "catalog_workflow" | "user_workflow" | null; source_catalog_id: string | null;
+          source_workflow_id: string | null; source_title_snapshot: string | null;
+          source_author_snapshot: string | null; published_at: string | null;
+          created_at: string; updated_at: string;
+        };
+        Insert: {
+          id?: string; owner_id: string; title?: string; category: string; blurb?: string;
+          overview?: string; time_label?: string; document?: Json; document_version?: number;
+          revision?: number; visibility?: ContentVisibility; share_slug?: string | null;
+          source_kind?: "catalog_workflow" | "user_workflow" | null; source_catalog_id?: string | null;
+          source_workflow_id?: string | null; source_title_snapshot?: string | null;
+          source_author_snapshot?: string | null; published_at?: string | null;
+          created_at?: string; updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["user_workflows"]["Insert"]>;
         Relationships: [];
       };
       // A "Template" in the UI (block-built). See the naming note at the top.
@@ -483,6 +505,26 @@ export interface Database {
           p_share_slug?: string | null;
         };
         Returns: string | null;
+      };
+      publish_workflow: {
+        Args: { p_id: string; p_owner: string; p_revision: number; p_share_slug: string; p_publish: boolean };
+        Returns: { share_slug: string | null; revision: number }[];
+      };
+      community_workflow: {
+        Args: { p_slug: string };
+        Returns: { id: string; title: string; category: string; blurb: string; overview: string;
+          time_label: string; document: Json; document_version: number; source_kind: string | null;
+          source_catalog_id: string | null; source_title_snapshot: string | null;
+          source_author_snapshot: string | null; author_username: string | null }[];
+      };
+      published_workflows: {
+        Args: { p_limit: number; p_offset: number };
+        Returns: { id: string; share_slug: string; title: string; category: string; blurb: string;
+          time_label: string; created_at: string; updated_at: string; author_username: string | null }[];
+      };
+      public_profile_workflows: {
+        Args: { p_username: string };
+        Returns: { id: string; share_slug: string; title: string; category: string; blurb: string; updated_at: string }[];
       };
     };
     Enums: { content_visibility: ContentVisibility };

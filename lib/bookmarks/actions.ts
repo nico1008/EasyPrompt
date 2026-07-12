@@ -12,6 +12,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getTemplate } from "@/data/templates";
 import { getExamplePrompt } from "@/data/prompts";
 import { getCommunityPrompt, getCommunityTemplate } from "@/lib/community/repo";
+import { WORKFLOWS } from "@/data/workflows";
+import { getCommunityWorkflow } from "@/lib/userWorkflows/repo";
 import { bookmarkTargetSchema, type BookmarkTarget } from "./schema";
 
 export type BookmarkState = { ok?: boolean; error?: string; bookmarked?: boolean };
@@ -34,6 +36,10 @@ export async function setBookmarkAction(
     return { error: "Unknown community Template." };
   if (t.data.kind === "user_prompt" && !(await getCommunityPrompt(t.data.key)))
     return { error: "Unknown community Prompt." };
+  if (t.data.kind === "catalog_workflow" && !WORKFLOWS.some((workflow) => workflow.catalogId === t.data.key))
+    return { error: "Unknown Workflow." };
+  if (t.data.kind === "user_workflow" && !(await getCommunityWorkflow(t.data.key)))
+    return { error: "Unknown community Workflow." };
 
   const supabase = await createClient();
   const {

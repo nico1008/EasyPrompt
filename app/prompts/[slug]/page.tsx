@@ -66,11 +66,11 @@ export default async function PromptDetailPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ workflow?: string; step?: string }>;
+  searchParams: Promise<{ workflow?: string; step?: string; workflowReturn?: string }>;
 }) {
   const { slug } = await params;
   const query = await searchParams;
-  const workflowContext = resolveWorkflowContext(query.workflow, query.step);
+  const workflowContext = resolveWorkflowContext(query.workflow, query.step, query.workflowReturn);
 
   if (LEGACY_TEMPLATE_SLUGS.has(slug)) permanentRedirect(`/templates/${slug}`);
 

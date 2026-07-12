@@ -30,7 +30,7 @@ function formattedShortDate(iso: string): string {
 
 function titleFor(it: PublicProfileItem): string {
   if (it.title?.trim()) return it.title.trim();
-  return it.objectType === "prompt" ? "Untitled prompt" : "Untitled template";
+  return it.objectType === "prompt" ? "Untitled prompt" : it.objectType === "workflow" ? "Untitled Workflow" : "Untitled template";
 }
 
 function blurbFor(it: PublicProfileItem): string {
@@ -41,12 +41,12 @@ function blurbFor(it: PublicProfileItem): string {
 }
 
 function itemHref(it: PublicProfileItem): string {
-  return it.objectType === "prompt" ? `/prompts/${it.slug}` : `/p/${it.slug}`;
+  return it.objectType === "prompt" ? `/prompts/${it.slug}` : it.objectType === "workflow" ? `/w/${it.slug}` : `/p/${it.slug}`;
 }
 
 function itemMeta(it: PublicProfileItem): string {
   if (it.category?.trim()) return categoryLabel(it.category);
-  return it.objectType === "prompt" ? "Ready prompt" : "Reusable template";
+  return it.objectType === "prompt" ? "Ready prompt" : it.objectType === "workflow" ? "Guided Workflow" : "Reusable template";
 }
 
 function plural(n: number, one: string, many: string): string {
@@ -55,14 +55,14 @@ function plural(n: number, one: string, many: string): string {
 
 function ProfileWorkCard({ item }: { item: PublicProfileItem }) {
   const isPrompt = item.objectType === "prompt";
-  const type = isPrompt ? "Prompt" : "Template";
+  const type = isPrompt ? "Prompt" : item.objectType === "workflow" ? "Workflow" : "Template";
   const uses = item.uses || 0;
 
   return (
     <article className={`profile-work-card is-${item.objectType}`}>
       <div className="profile-card-top">
         <span className="profile-type-chip">
-          <Icon name={isPrompt ? "code" : "list"} size={13} />
+          <Icon name={isPrompt ? "code" : item.objectType === "workflow" ? "book" : "list"} size={13} />
           {type}
         </span>
         <span className="profile-card-date">Updated {formattedShortDate(item.updatedAt)}</span>
@@ -96,6 +96,7 @@ export function PublicProfile({
   const totalUses = items.reduce((sum, i) => sum + (i.uses || 0), 0);
   const templateCount = items.filter((i) => i.objectType === "template").length;
   const promptCount = items.filter((i) => i.objectType === "prompt").length;
+  const workflowCount = items.filter((i) => i.objectType === "workflow").length;
 
   return (
     <main className="profile-page">
@@ -132,6 +133,7 @@ export function PublicProfile({
             <span>
               <strong>{promptCount}</strong> {plural(promptCount, "prompt", "prompts")}
             </span>
+            <span><strong>{workflowCount}</strong> {plural(workflowCount,"Workflow","Workflows")}</span>
           </div>
         </header>
 
@@ -141,8 +143,8 @@ export function PublicProfile({
               <h2>Public work</h2>
               <p>
                 {items.length > 0
-                  ? "Latest published templates and prompts from this creator."
-                  : "Published templates and prompts will appear here."}
+                  ? "Latest published Templates, Prompts, and Workflows from this creator."
+                  : "Published Templates, Prompts, and Workflows will appear here."}
               </p>
             </div>
             {items.length > 0 && (

@@ -29,8 +29,12 @@ export function withWorkflowContext(
 
 export function resolveWorkflowContext(
   workflowSlug: string | undefined,
-  stepId: string | undefined
+  stepId: string | undefined,
+  workflowReturn?: string
 ): WorkflowReturnContext | null {
+  if (workflowReturn && stepId && (/^\/w\/[a-zA-Z0-9_-]+$/.test(workflowReturn) || /^\/my\/workflows\/[0-9a-f-]{36}$/i.test(workflowReturn))) {
+    return { workflowSlug: workflowReturn, workflowTitle: "Workflow", stepId, stepTitle: "Linked content", stepNumber: 1, stepCount: 1, returnHref: `${workflowReturn}#step-${stepId}` };
+  }
   if (!workflowSlug || !stepId) return null;
   const workflow = getWorkflow(workflowSlug);
   if (!workflow) return null;

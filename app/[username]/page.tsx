@@ -25,7 +25,7 @@ export async function generateMetadata({
   const name = profile.username;
   return {
     title: `${name} - EasyPrompt creator profile`,
-    description: profile.bio?.trim() || `${name}'s public prompts and templates on EasyPrompt.`,
+    description: profile.bio?.trim() || `${name}'s public Templates, Prompts, and Workflows on EasyPrompt.`,
     alternates: { canonical: `/${profile.username}` },
     openGraph: {
       title: `${name} on EasyPrompt`,

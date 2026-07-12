@@ -39,7 +39,7 @@ export default async function BuilderPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ workflow?: string; step?: string }>;
+  searchParams: Promise<{ workflow?: string; step?: string; workflowReturn?: string }>;
 }) {
   const { slug } = await params;
   const query = await searchParams;
@@ -51,7 +51,7 @@ export default async function BuilderPage({
       template={template}
       related={[]}
       ecosystemLinks={ecosystemLinksForTemplate(slug)}
-      workflowContext={resolveWorkflowContext(query.workflow, query.step)}
+      workflowContext={resolveWorkflowContext(query.workflow, query.step, query.workflowReturn)}
     />
   );
 }

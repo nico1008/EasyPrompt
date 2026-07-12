@@ -8,8 +8,8 @@ export const EMPTY_WORKFLOW_PROGRESS: WorkflowProgress = {
   activeStepId: null,
 };
 
-export function workflowProgressKey(workflowSlug: string): string {
-  return `easyprompt.workflow-progress.${workflowSlug}`;
+export function workflowProgressKey(identity: string): string {
+  return `workflow-progress:${identity}`;
 }
 
 export function parseWorkflowProgress(

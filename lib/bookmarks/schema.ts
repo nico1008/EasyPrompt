@@ -8,7 +8,7 @@
 import { z } from "zod";
 
 export const bookmarkTargetSchema = z.object({
-  kind: z.enum(["catalog", "example_prompt", "user_template", "user_prompt"]),
+  kind: z.enum(["catalog", "example_prompt", "user_template", "user_prompt", "catalog_workflow", "user_workflow"]),
   key: z.string().trim().min(1).max(120),
 });
 

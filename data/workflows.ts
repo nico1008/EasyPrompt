@@ -31,6 +31,8 @@ export type WorkflowStep = {
 };
 
 export type Workflow = {
+  /** Permanent catalog identity. Never change this when a public slug changes. */
+  catalogId: string;
   id: string;
   slug: string;
   category: string;
@@ -61,6 +63,7 @@ export type WorkflowToolMix = {
 
 export const WORKFLOWS: Workflow[] = [
   {
+    catalogId: "job-application-pack",
     id: "job-application-pack",
     slug: "job-application-pack",
     category: "writing",
@@ -223,6 +226,7 @@ Constraints:
     ],
   },
   {
+    catalogId: "content-campaign-plan",
     id: "content-campaign-plan",
     slug: "content-campaign-plan",
     category: "marketing",
@@ -399,6 +403,7 @@ Return:
     ],
   },
   {
+    catalogId: "website-ux-improvement",
     id: "website-ux-improvement",
     slug: "website-ux-improvement",
     category: "work",
@@ -558,6 +563,7 @@ Return:
     ],
   },
   {
+    catalogId: "landing-page-build-pass",
     id: "landing-page-build-pass",
     slug: "landing-page-build-pass",
     category: "marketing",
@@ -728,6 +734,7 @@ Return:
     ],
   },
   {
+    catalogId: "prd-from-idea",
     id: "prd-from-idea",
     slug: "prd-from-idea",
     category: "work",
@@ -903,6 +910,7 @@ Return:
     ],
   },
   {
+    catalogId: "research-synthesis-brief",
     id: "research-synthesis-brief",
     slug: "research-synthesis-brief",
     category: "education",
@@ -1067,6 +1075,7 @@ Return:
     ],
   },
   {
+    catalogId: "healthier-week-plan",
     id: "healthier-week-plan",
     slug: "healthier-week-plan",
     category: "life",
@@ -1221,6 +1230,10 @@ Return:
 
 export function getWorkflow(slug: string): Workflow | undefined {
   return WORKFLOWS.find((workflow) => workflow.slug === slug);
+}
+
+export function getWorkflowByCatalogId(catalogId: string): Workflow | undefined {
+  return WORKFLOWS.find((workflow) => workflow.catalogId === catalogId);
 }
 
 export function workflowStepCount(workflow: Workflow): number {

@@ -4,12 +4,14 @@ import { categoryLabel, displayTitle, getTemplate, questionCount } from "@/data/
 import { getExamplePrompt } from "@/data/prompts";
 import { blurbFromBody } from "@/lib/community/map";
 import { getCommunityPrompt, getCommunityTemplate } from "@/lib/community/repo";
+import { WORKFLOWS, workflowCategoryLabel, workflowStepCount } from "@/data/workflows";
+import { getCommunityWorkflow } from "@/lib/userWorkflows/repo";
 import type { BookmarkRow } from "@/lib/bookmarks/map";
 import type { BookmarkTarget } from "@/lib/bookmarks/schema";
 
 export type FavoriteItem = {
   id: string;
-  objectType: "template" | "prompt";
+  objectType: "template" | "prompt" | "workflow";
   title: string;
   blurb: string;
   href: string;
@@ -18,6 +20,20 @@ export type FavoriteItem = {
 };
 
 async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
+  if (row.target_kind === "catalog_workflow") {
+    const workflow = WORKFLOWS.find((item) => item.catalogId === row.target_key);
+    if (!workflow) return null;
+    return { id: row.id, objectType: "workflow", title: workflow.title, blurb: workflow.blurb,
+      href: `/workflows/${workflow.slug}`, meta: `${workflowCategoryLabel(workflow.category)} · ${workflowStepCount(workflow)} steps`,
+      target: { kind: "catalog_workflow", key: workflow.catalogId } };
+  }
+  if (row.target_kind === "user_workflow") {
+    const workflow = await getCommunityWorkflow(row.target_key);
+    if (!workflow) return null;
+    return { id: row.id, objectType: "workflow", title: workflow.title, blurb: workflow.blurb,
+      href: `/w/${row.target_key}`, meta: `${workflowCategoryLabel(workflow.category)} · Community Workflow`,
+      target: { kind: "user_workflow", key: row.target_key } };
+  }
   if (row.target_kind === "catalog") {
     const template = getTemplate(row.target_key);
     if (!template) return null;

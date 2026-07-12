@@ -11,10 +11,11 @@ export type ObjectMeta = {
   icon: IconName;
   label: string;
   /** CSS tone hook: `obj-template` (indigo) | `obj-prompt` (prompt-accent). */
-  tone: "obj-template" | "obj-prompt";
+  tone: "obj-template" | "obj-prompt" | "obj-workflow";
 };
 
 export function objectMeta(objectType: LibraryObjectType): ObjectMeta {
+  if (objectType === "workflow") return { icon: "book", label: "Workflow", tone: "obj-workflow" };
   return objectType === "template"
     ? { icon: "list", label: "Template", tone: "obj-template" }
     : { icon: "code", label: "Prompt", tone: "obj-prompt" };

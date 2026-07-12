@@ -1,4 +1,18 @@
 /* Workflows are public playbooks. Selectors stay scoped because App Router CSS is global. */
+.workflow-editor-page { max-width: 980px; margin: 0 auto; padding: 48px 20px 96px; }
+.workflow-editor-page .workflow-editor { display: grid; gap: 20px; padding: 28px; }
+.workflow-editor-page label { display: grid; gap: 7px; font-weight: 650; }
+.workflow-editor-page input, .workflow-editor-page textarea, .workflow-editor-page select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--bg); color: var(--ink); font: inherit; }
+.workflow-editor-page textarea { min-height: 96px; resize: vertical; }
+.workflow-editor-page fieldset { position: relative; display: grid; gap: 14px; padding: 20px; border: 1px solid var(--workflow-line); border-radius: var(--r-3); }
+.workflow-editor-page .we-section-head, .workflow-editor-page footer, .workflow-editor-page .we-order { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.workflow-editor-page .we-order { justify-content: flex-end; }
+.workflow-editor-page .we-order button { min-width: 40px; min-height: 40px; }
+.workflow-editor-page .we-errors { color: var(--danger); }
+.workflow-editor-page .we-inline-row { display: grid; grid-template-columns: 180px 1fr 1fr 40px; gap: 8px; }
+.workflow-editor-page .we-inline-prompt { display: grid; gap: 8px; padding: 12px; background: var(--workflow-soft); border-radius: var(--r-2); }
+@media (max-width: 640px) { .workflow-editor-page { padding: 24px 12px 72px; } .workflow-editor-page .workflow-editor { padding: 18px; } }
+@media (max-width: 640px) { .workflow-editor-page .we-inline-row { grid-template-columns: 1fr; } }
 
 .workflows-page,
 .workflow-detail {
