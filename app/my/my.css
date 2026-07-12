@@ -4,11 +4,11 @@
 .my-page {
   min-height: 0;
 }
-.my-page .my-section-content { margin-top: 24px; }
+.my-page .my-section-content { margin-top: 20px; }
 .my-wrap {
-  max-width: 1000px;
+  max-width: var(--shell-library);
   margin: 0 auto;
-  padding: 36px 20px 80px;
+  padding: 36px var(--page-gutter) 80px;
 }
 
 .my-head {
@@ -16,12 +16,12 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 .my-head h1 {
-  font: 700 32px/1.1 var(--font-sans);
-  letter-spacing: -0.025em;
-  margin: 6px 0 0;
+  font: 600 38px/1.05 var(--font-sans);
+  letter-spacing: -0.03em;
+  margin: 8px 0 0;
   color: var(--fg-1);
 }
 .my-head-actions {
@@ -33,11 +33,15 @@
 .my-tabs {
   display: flex;
   gap: 4px;
+  overflow-x: auto;
   border-bottom: 1px solid var(--line-2);
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  scrollbar-width: none;
 }
+.my-tabs::-webkit-scrollbar { display: none; }
 .my-tab {
   position: relative;
+  flex: none;
   padding: 10px 14px;
   font: 600 14px var(--font-sans);
   color: var(--fg-3);
@@ -61,12 +65,12 @@
    used for both owned items and Favorites. ===== */
 .my-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 .my-grid > article { content-visibility: auto; contain-intrinsic-size: auto 210px; }
-@media (max-width: 960px) {
-  .my-grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 1120px) {
+  .my-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .my-grid { grid-template-columns: 1fr; }
@@ -811,6 +815,7 @@
 }
 
 .my-empty {
+  width: min(100%, 760px);
   padding: 36px 28px;
   display: flex;
   flex-direction: column;
@@ -1057,10 +1062,12 @@
 }
 
 @media (max-width: 760px) {
+  .my-wrap { padding-inline: 16px; }
   .my-head {
     flex-direction: column;
     align-items: flex-start;
   }
+  .my-head h1 { font-size: 32px; }
   .account-layout {
     width: min(100% - 32px, 680px);
     padding-top: 24px;

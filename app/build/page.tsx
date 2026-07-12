@@ -55,7 +55,7 @@ export default async function BuildOverviewPage() {
           <Eyebrow>Create</Eyebrow>
           <h1>What do you want to make?</h1>
           <p>
-            A <strong>template</strong> is a reusable framework you fill in. A <strong>prompt</strong>{" "}
+            A <strong>Template</strong> is a reusable framework you fill in. A <strong>Prompt</strong>{" "}
             is finished text you paste straight into an AI. Start with either.
           </p>
         </div>
@@ -115,7 +115,7 @@ async function RecentCreations() {
           </span>
           <div>
             <strong>Nothing here yet.</strong>
-            <p>Your templates and prompts will collect here — make your first one above ↑</p>
+            <p>Your Templates and Prompts will collect here — make your first one above ↑</p>
           </div>
         </CrosshairCard>
       </div>
