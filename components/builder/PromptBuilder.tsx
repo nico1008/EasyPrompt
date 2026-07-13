@@ -37,10 +37,10 @@ import type { NotebookVersion } from "@/lib/notebooks/versions/repo";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { Icon } from "@/components/Icon";
-import { Eyebrow } from "@/components/Eyebrow";
 import { Toast } from "@/components/Toast";
 import { CodeWell } from "@/components/CodeWell";
 import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
+import { BuilderTitleField } from "./BuilderTitleField";
 import { BlockCard } from "./BlockCard";
 import { Outline } from "./Outline";
 import { BlockPalette } from "./BlockPalette";
@@ -266,7 +266,7 @@ export function PromptBuilder({
         <Breadcrumbs
           items={[
             { href: notebookId ? "/my" : "/build", label: notebookId ? "My Library" : "Builder" },
-            { label: notebookId ? doc.title || "Untitled template" : "New template" },
+            { label: doc.title || (notebookId ? "Untitled template" : "New template") },
           ]}
         />
       </div>
@@ -274,14 +274,11 @@ export function PromptBuilder({
       {/* ---- top toolbar ---- */}
       <header className="pb-toolbar">
         <div className="pb-toolbar-title">
-          <Eyebrow>Template builder</Eyebrow>
-          <input
-            className="pb-title-input"
+          <BuilderTitleField
+            kind="template"
             value={doc.title}
             placeholder="Untitled template"
-            aria-label="Template title"
-            maxLength={120}
-            onChange={(e) => setDoc((d) => ({ ...d, title: e.target.value }))}
+            onValueChange={(title) => setDoc((current) => ({ ...current, title }))}
           />
         </div>
         <div className="pb-toolbar-actions">

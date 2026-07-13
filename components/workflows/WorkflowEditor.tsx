@@ -4,6 +4,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
+import { BuilderTitleField } from "@/components/builder/BuilderTitleField";
 import { CATEGORIES } from "@/data/templates";
 import { createWorkflowAction, updateWorkflowAction, type WorkflowActionState } from "@/lib/userWorkflows/actions";
 import type { WorkflowDocumentV1, WorkflowDraft, WorkflowLink } from "@/lib/userWorkflows/schema";
@@ -72,6 +73,7 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
 
   return (
     <main className="workflow-editor-page">
+      <h1 className="sr-only">Workflow builder</h1>
       <form action={submit} className="workflow-editor">
         <input type="hidden" name="id" value={initial?.id ?? ""} />
         <input type="hidden" name="revision" value={revision} />
@@ -82,15 +84,19 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
             <Breadcrumbs
               items={[
                 { href: initial ? "/my" : "/build", label: initial ? "My Library" : "Builder" },
-                { label: initial ? draft.title || "Untitled workflow" : "New workflow" },
+                { label: draft.title || (initial ? "Untitled workflow" : "New workflow") },
               ]}
             />
           </div>
           <header className="we-topbar">
-            <div className="we-title-block">
-              <span className="we-product-mark">Workflow builder</span>
-              <h1>{initial ? draft.title || "Untitled Workflow" : "New Workflow"}</h1>
-            </div>
+            <BuilderTitleField
+              kind="workflow"
+              value={draft.title}
+              onValueChange={(title) => set("title", title)}
+              placeholder="Untitled workflow"
+              maxLength={100}
+              className="we-title-editor"
+            />
             <div className="we-save-cluster">
               <span className={`we-save-status${dirty ? " is-dirty" : ""}${state.conflict ? " is-error" : ""}`} aria-live="polite">
                 <span aria-hidden="true" />{status}
@@ -126,7 +132,6 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
                 <p>Set the context people need before they begin.</p>
               </div>
               <div className="we-fields-grid">
-                <label className="we-field we-field-wide"><span>Title</span><input className="input" value={draft.title} onChange={(event) => set("title", event.target.value)} maxLength={100} placeholder="e.g. Launch a product update" /></label>
                 <label className="we-field"><span>Category</span><select className="select" value={draft.category} onChange={(event) => set("category", event.target.value)}>{CATEGORIES.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select></label>
                 <label className="we-field"><span>Time estimate</span><input className="input" value={draft.timeLabel} onChange={(event) => set("timeLabel", event.target.value)} maxLength={100} placeholder="e.g. 30 min active work" /></label>
                 <label className="we-field we-field-wide"><span>Short description</span><textarea className="textarea we-textarea-short" value={draft.blurb} onChange={(event) => set("blurb", event.target.value)} maxLength={300} placeholder="A concise description for Workflow cards and listings." /><small>{draft.blurb.length}/300</small></label>

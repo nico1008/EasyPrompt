@@ -27,23 +27,7 @@
   border-bottom: 1px solid var(--line-1);
 }
 
-.workflow-editor-page .we-title-block { min-width: 0; }
-.workflow-editor-page .we-product-mark {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--workflow-accent);
-  font: 600 11px/1.2 var(--font-sans);
-}
-.workflow-editor-page .we-title-block h1 {
-  max-width: 60vw;
-  margin: 0;
-  overflow: hidden;
-  color: var(--fg-1);
-  font: 650 20px/1.25 var(--font-sans);
-  letter-spacing: -0.018em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.workflow-editor-page .we-title-editor { flex: 1 1 520px; }
 .workflow-editor-page .we-save-cluster { display: flex; align-items: center; gap: 16px; }
 .workflow-editor-page .we-save-status {
   display: inline-flex;

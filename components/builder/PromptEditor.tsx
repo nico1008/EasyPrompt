@@ -25,6 +25,7 @@ import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl } from "@/lib/buildPrompt";
 import { MarkdownEditorSurface } from "@/components/builder/MarkdownEditorSurface";
+import { BuilderTitleField } from "@/components/builder/BuilderTitleField";
 import { useLocalDraft } from "@/lib/drafts/useLocalDraft";
 import {
   createManualPromptAction,
@@ -190,16 +191,13 @@ export function PromptEditor({
           />
         </div>
 
-        <label className="pe-title-field">
-          <span>Prompt name</span>
-          <input
-            className="pe-title"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Untitled Prompt"
-            maxLength={120}
-          />
-        </label>
+        <BuilderTitleField
+          kind="prompt"
+          value={name}
+          onValueChange={setName}
+          placeholder="Untitled prompt"
+          className="pe-title-editor"
+        />
 
         <MarkdownEditorSurface
           value={body}
