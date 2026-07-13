@@ -90,10 +90,6 @@
 .prompt-tile .bookmark-btn.on { border-color: var(--prompt-accent-on-dark); color: var(--prompt-accent-on-dark); background: rgba(70, 214, 166, 0.12); }
 .prompt-tile .bookmark-btn.on .bookmark-on { fill: var(--prompt-accent-on-dark); }
 
-.prompts-theme .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 980px) { .prompts-theme .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .prompts-theme .grid { grid-template-columns: 1fr; } }
-
 /* ---- Shared detail view ---- */
 .prompt-detail { background: transparent; }
 .pd-wrap { max-width: var(--shell-reading); margin: 0 auto; padding: 30px 20px 80px; }
