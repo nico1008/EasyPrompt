@@ -6,13 +6,10 @@ import { Icon } from "@/components/Icon";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { WorkflowInlinePrompt } from "@/components/WorkflowInlinePrompt";
 import {
-  WorkflowMobileProgress,
   WorkflowDisclosureControls,
-  WorkflowProgressProvider,
-  WorkflowProgressSummary,
   WorkflowStep,
-  WorkflowStepAction,
-} from "@/components/workflows/WorkflowProgress";
+  WorkflowStepsProvider,
+} from "@/components/workflows/WorkflowSteps";
 import {
   WORKFLOWS,
   getWorkflow,
@@ -77,7 +74,7 @@ export default async function WorkflowDetailPage({
   const stepIds = workflow.steps.map((step) => step.id);
 
   return (
-    <WorkflowProgressProvider workflowSlug={`catalog:${workflow.catalogId}`} stepIds={stepIds}>
+    <WorkflowStepsProvider stepIds={stepIds}>
     <main className="workflow-detail">
       <div className="wd-wrap">
         <div className="wd-topbar">
@@ -110,7 +107,6 @@ export default async function WorkflowDetailPage({
               <Icon name="book" size={15} />
               {mix.label}
             </span>
-            <WorkflowProgressSummary />
           </aside>
         </section>
 
@@ -181,14 +177,12 @@ export default async function WorkflowDetailPage({
                       </ul>
                     </div>
                   </div>
-                  <WorkflowStepAction stepId={step.id} stepNumber={index + 1} />
               </WorkflowStep>
             );
           })}
         </section>
       </div>
-      <WorkflowMobileProgress />
     </main>
-    </WorkflowProgressProvider>
+    </WorkflowStepsProvider>
   );
 }

@@ -6,7 +6,6 @@ import {
   workflowToolMix,
   type Workflow,
 } from "@/data/workflows";
-import { WorkflowCardProgress } from "@/components/workflows/WorkflowProgress";
 import { BookmarkButton } from "@/components/BookmarkButton";
 
 export function WorkflowCard({ workflow }: { workflow: Workflow }) {
@@ -42,10 +41,6 @@ export function WorkflowCard({ workflow }: { workflow: Workflow }) {
       </div>
       <div className="wt-mix">
         <span>{mix.label}</span>
-        <WorkflowCardProgress
-          workflowSlug={`catalog:${workflow.catalogId}`}
-          stepIds={workflow.steps.map((step) => step.id)}
-        />
       </div>
     </article>
   );

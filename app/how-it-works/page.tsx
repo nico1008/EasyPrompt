@@ -55,7 +55,7 @@ const STEPS = [
   {
     n: 3,
     title: "Copy, continue, or come back later",
-    body: "Open the result in the AI tool you already use. Favorite useful public content, save your own Prompts, and resume Workflow progress on this device.",
+    body: "Open the result in the AI tool you already use. Favorite useful public content, save your own Prompts, or return to a linked Workflow step.",
   },
 ];
 
