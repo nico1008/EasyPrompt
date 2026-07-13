@@ -12,6 +12,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildPromptFromBlocks, openInUrl } from "@/lib/buildPrompt";
 import { analyzeDoc, type HealthStatus } from "@/lib/blocks/health";
 import type { Block, BlockDoc } from "@/lib/blocks/types";
@@ -260,6 +261,15 @@ export function PromptBuilder({
     <main className="pbuilder">
       <Toast show={Boolean(toast)} message={toast} />
       <h1 className="sr-only">Template builder</h1>
+
+      <div className="pb-nav">
+        <Breadcrumbs
+          items={[
+            { href: notebookId ? "/my" : "/build", label: notebookId ? "My Library" : "Builder" },
+            { label: notebookId ? doc.title || "Untitled template" : "New template" },
+          ]}
+        />
+      </div>
 
       {/* ---- top toolbar ---- */}
       <header className="pb-toolbar">

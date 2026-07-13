@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
 import { CATEGORIES } from "@/data/templates";
 import { createWorkflowAction, updateWorkflowAction, type WorkflowActionState } from "@/lib/userWorkflows/actions";
@@ -76,18 +77,28 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
         <input type="hidden" name="revision" value={revision} />
         <input type="hidden" name="payload" value={JSON.stringify(draft)} />
 
-        <header className="we-topbar">
-          <div className="we-title-block">
-            <span className="we-product-mark"><Icon name="book" size={16} /> Workflow builder</span>
-            <h1>{initial ? draft.title || "Untitled Workflow" : "New Workflow"}</h1>
+        <div className="we-head">
+          <div className="we-nav">
+            <Breadcrumbs
+              items={[
+                { href: initial ? "/my" : "/build", label: initial ? "My Library" : "Builder" },
+                { label: initial ? draft.title || "Untitled workflow" : "New workflow" },
+              ]}
+            />
           </div>
-          <div className="we-save-cluster">
-            <span className={`we-save-status${dirty ? " is-dirty" : ""}${state.conflict ? " is-error" : ""}`} aria-live="polite">
-              <span aria-hidden="true" />{status}
-            </span>
-            <button className="btn btn-primary" disabled={pending}>{pending ? "Saving…" : "Save Workflow"}</button>
-          </div>
-        </header>
+          <header className="we-topbar">
+            <div className="we-title-block">
+              <span className="we-product-mark">Workflow builder</span>
+              <h1>{initial ? draft.title || "Untitled Workflow" : "New Workflow"}</h1>
+            </div>
+            <div className="we-save-cluster">
+              <span className={`we-save-status${dirty ? " is-dirty" : ""}${state.conflict ? " is-error" : ""}`} aria-live="polite">
+                <span aria-hidden="true" />{status}
+              </span>
+              <button className="btn btn-primary" disabled={pending}>{pending ? "Saving…" : "Save Workflow"}</button>
+            </div>
+          </header>
+        </div>
 
         <div className="we-shell">
           <aside className="we-outline" aria-label="Workflow structure">

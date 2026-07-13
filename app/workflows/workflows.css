@@ -1,34 +1,38 @@
 /* Workflows are public playbooks. Selectors stay scoped because App Router CSS is global. */
 .workflow-editor-page {
   min-height: calc(100dvh - 64px);
-  background: rgba(250, 250, 250, 0.76);
+  background: transparent;
 }
 
 .workflow-editor-page .workflow-editor { min-width: 0; }
 
-.workflow-editor-page .we-topbar {
-  position: sticky;
-  top: 64px;
-  z-index: calc(var(--z-nav) - 1);
+.workflow-editor-page .we-head {
+  width: min(calc(100% - 48px), 1140px);
+  margin: 0 auto;
+  padding-top: 30px;
+}
+
+.workflow-editor-page .we-nav {
   display: flex;
   align-items: center;
+  margin-bottom: 20px;
+}
+
+.workflow-editor-page .we-topbar {
+  display: flex;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  min-height: 82px;
-  padding: 14px max(24px, calc((100vw - var(--shell-library)) / 2));
-  border-bottom: 1px solid var(--line-2);
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(14px);
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line-1);
 }
 
 .workflow-editor-page .we-title-block { min-width: 0; }
 .workflow-editor-page .we-product-mark {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+  display: block;
   margin-bottom: 4px;
   color: var(--workflow-accent);
-  font: 600 12px/1 var(--font-sans);
+  font: 600 11px/1.2 var(--font-sans);
 }
 .workflow-editor-page .we-title-block h1 {
   max-width: 60vw;
@@ -66,11 +70,11 @@
   gap: 36px;
   width: min(calc(100% - 48px), 1140px);
   margin: 0 auto;
-  padding: 36px 0 104px;
+  padding: 22px 0 104px;
 }
 .workflow-editor-page .we-outline {
   position: sticky;
-  top: 182px;
+  top: 88px;
   align-self: start;
   max-height: calc(100dvh - 210px);
   overflow: auto;
@@ -283,12 +287,15 @@
 .workflow-editor-page .we-mobile-save { display: none; }
 
 @media (max-width: 920px) {
+  .workflow-editor-page .we-head { width: min(calc(100% - 32px), 840px); }
   .workflow-editor-page .we-shell { grid-template-columns: 1fr; width: min(calc(100% - 32px), 840px); gap: 20px; padding-top: 24px; }
   .workflow-editor-page .we-outline { position: static; display: none; }
 }
 
 @media (max-width: 640px) {
-  .workflow-editor-page .we-topbar { position: static; min-height: 70px; padding: 12px 16px; }
+  .workflow-editor-page .we-head { width: min(calc(100% - 24px), 840px); padding-top: 16px; }
+  .workflow-editor-page .we-nav { margin-bottom: 16px; }
+  .workflow-editor-page .we-topbar { min-height: 62px; padding-bottom: 14px; }
   .workflow-editor-page .we-save-cluster .btn { display: none; }
   .workflow-editor-page .we-save-status { font-size: 11px; }
   .workflow-editor-page .we-shell { width: min(calc(100% - 24px), 840px); padding: 14px 0 96px; }
