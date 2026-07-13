@@ -35,7 +35,7 @@ export function BuilderTitleField({
 
   return (
     <label className={classes}>
-      <span className="builder-title-label">{label}</span>
+      <span className="sr-only">{label}</span>
       <input
         className="builder-title-input"
         value={value}

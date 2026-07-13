@@ -1,56 +1,68 @@
 /* One title-editing contract for Prompt, Template, and Workflow builders. */
 .builder-title-field {
   --builder-title-accent: var(--accent);
-  --builder-title-ring: var(--accent-tint);
-  display: grid;
-  gap: 7px;
+  position: relative;
+  display: block;
   width: min(100%, 640px);
   min-width: 0;
 }
 
 .builder-title-field.is-prompt {
   --builder-title-accent: var(--prompt-accent);
-  --builder-title-ring: rgba(15, 122, 87, 0.12);
 }
 
 .builder-title-field.is-workflow {
   --builder-title-accent: var(--workflow-accent);
-  --builder-title-ring: rgba(52, 95, 152, 0.12);
 }
 
-.builder-title-label {
-  color: var(--fg-2);
-  font: 600 12px/1.2 var(--font-sans);
+.builder-title-field::after {
+  content: "Edit";
+  position: absolute;
+  right: 2px;
+  bottom: 12px;
+  color: var(--fg-3);
+  font: 600 11px/1 var(--font-sans);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(2px);
+  transition:
+    opacity 140ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .builder-title-input {
   width: 100%;
   min-width: 0;
-  min-height: 54px;
+  min-height: 44px;
   margin: 0;
-  padding: 9px 12px 10px;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-3);
-  background: rgba(255, 255, 255, 0.82);
+  padding: 2px 52px 7px 2px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
   color: var(--fg-1);
-  font: 650 26px/1.2 var(--font-sans);
+  caret-color: var(--builder-title-accent);
+  font: 680 28px/1.2 var(--font-sans);
   letter-spacing: -0.025em;
   outline: none;
   transition:
-    background 160ms cubic-bezier(0.16, 1, 0.3, 1),
     border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .builder-title-input::placeholder { color: var(--fg-3); opacity: 1; }
-.builder-title-input:hover { border-color: var(--line-3); background: var(--bg-1); }
+.builder-title-field:hover:not(:focus-within)::after { opacity: 1; transform: none; }
+.builder-title-input:hover { border-bottom-color: var(--line-2); }
 .builder-title-input:focus-visible {
-  border-color: var(--builder-title-accent);
-  background: var(--bg-1);
-  box-shadow: 0 0 0 4px var(--builder-title-ring);
+  border-bottom-color: var(--builder-title-accent);
+  box-shadow: inset 0 -1px 0 var(--builder-title-accent);
 }
 
 @media (max-width: 640px) {
   .builder-title-field { width: 100%; }
-  .builder-title-input { min-height: 50px; font-size: 22px; }
+  .builder-title-input { min-height: 42px; font-size: 24px; }
+}
+
+@media (hover: none) {
+  .builder-title-input { border-bottom-color: var(--line-2); }
 }
