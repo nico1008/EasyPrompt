@@ -80,6 +80,24 @@ export const blockDocSchema = z.object({
 
 export type BlockDocInput = z.infer<typeof blockDocSchema>;
 
+/**
+ * Structural validity is separate from saveability: the builder needs a valid
+ * blank document while a user is starting, but the library must not accept an
+ * artifact that cannot produce or collect useful input.
+ */
+export function blockDocSaveError(doc: BlockDoc): string | null {
+  const hasReusableContent = doc.blocks.some((block) => {
+    if (!block.enabled) return false;
+    if (block.kind === "section") return block.body.trim().length > 0;
+    if (block.kind === "variable") return block.field.label.trim().length > 0;
+    return false;
+  });
+
+  return hasReusableContent
+    ? null
+    : "Add content or a reusable input before saving this Template.";
+}
+
 /** Size guard so a single prompt can't blow up storage / a row. */
 export const MAX_NOTEBOOK_JSON = 50_000;
 

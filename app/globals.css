@@ -761,6 +761,7 @@ button { font-family: inherit; cursor: pointer; }
 .rating-meta { font: 500 12px var(--font-mono); color: var(--fg-3); letter-spacing: 0.02em; }
 .rating-login { color: var(--accent); margin-left: 6px; }
 .rating-mine { color: var(--fg-2); }
+.rating-error { display: block; margin-top: 4px; color: var(--danger); }
 .rating-compact {
   display: inline-flex; align-items: center; gap: 3px;
   color: var(--fg-2); font: 600 12px var(--font-mono);

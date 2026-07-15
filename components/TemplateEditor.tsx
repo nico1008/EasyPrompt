@@ -12,7 +12,11 @@ import { useFormStatus } from "react-dom";
 import { CATEGORIES } from "@/data/templates";
 import { ICON_NAMES } from "@/components/iconNames";
 import { buildPrompt, defaultAnswers } from "@/lib/buildPrompt";
-import { inputToTemplate, type UserTemplateInput } from "@/lib/userTemplates/validate";
+import {
+  inputToTemplate,
+  validateUserTemplate,
+  type UserTemplateInput,
+} from "@/lib/userTemplates/validate";
 import {
   createUserTemplateAction,
   updateUserTemplateAction,
@@ -60,14 +64,14 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-function SubmitRow({ editing }: { editing: boolean }) {
+function SubmitRow({ editing, disabled }: { editing: boolean; disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <div className="editor-actions">
       <Link className="btn btn-ghost" href="/my">
         Cancel
       </Link>
-      <button className="btn btn-primary" type="submit" disabled={pending}>
+      <button className="btn btn-primary" type="submit" disabled={pending || disabled}>
         {pending ? "Saving…" : editing ? "Save changes" : "Create template"}
       </button>
     </div>
@@ -83,9 +87,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
   // Move focus to the error summary when it appears so keyboard/AT users land on
   // what needs fixing — the form is long and the summary can be off-screen.
   const errRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (state.errors?.length) errRef.current?.focus();
-  }, [state.errors]);
+  const submittedSnapshotRef = useRef<string | null>(null);
 
   const [meta, setMeta] = useState({
     title: initial?.title ?? "",
@@ -208,11 +210,27 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
       return "";
     }
   }, [input]);
+  const inputSnapshot = useMemo(() => JSON.stringify(input), [input]);
+  const initialSnapshot = useRef(inputSnapshot);
+  const unchanged = editing && inputSnapshot === initialSnapshot.current;
+  const canSubmit = validateUserTemplate(input).ok && !unchanged;
+  const stateIsCurrent = submittedSnapshotRef.current === inputSnapshot;
+  const currentErrors = stateIsCurrent ? state.errors : undefined;
+
+  useEffect(() => {
+    if (currentErrors?.length) errRef.current?.focus();
+  }, [currentErrors]);
 
   return (
     <main className="my-page editor-page">
       <div className="editor-grid">
-        <form action={formAction} className="editor panel">
+        <form
+          action={formAction}
+          className="editor panel"
+          onSubmit={() => {
+            submittedSnapshotRef.current = inputSnapshot;
+          }}
+        >
           <input type="hidden" name="payload" value={JSON.stringify(input)} />
           {editing && <input type="hidden" name="id" value={initial!.id} />}
 
@@ -404,7 +422,7 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
             + Add checkbox
           </button>
 
-          {state.errors?.length ? (
+          {currentErrors?.length ? (
             <div
               ref={errRef}
               tabIndex={-1}
@@ -414,14 +432,14 @@ export function TemplateEditor({ initial }: { initial?: EditorInitial }) {
             >
               <strong id="editor-errors-title">Please fix the following:</strong>
               <ul>
-                {state.errors.map((e, i) => (
+                {currentErrors.map((e, i) => (
                   <li key={i}>{e}</li>
                 ))}
               </ul>
             </div>
           ) : null}
 
-          <SubmitRow editing={editing} />
+          <SubmitRow editing={editing} disabled={!canSubmit} />
         </form>
 
         <aside className="editor-preview panel">

@@ -40,10 +40,10 @@ function promptSnapshot(name: string, body: string): string {
   return JSON.stringify({ name: name.trim() || "Untitled prompt", body });
 }
 
-function SaveSubmit({ saved }: { saved: boolean }) {
+function SaveSubmit({ saved, disabled }: { saved: boolean; disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button className="btn btn-ghost btn-sm" type="submit" disabled={pending || saved}>
+    <button className="btn btn-ghost btn-sm" type="submit" disabled={pending || saved || disabled}>
       {pending ? "Saving…" : saved ? "Saved" : "Save"}
     </button>
   );
@@ -76,6 +76,7 @@ export function PromptEditor({
   );
   currentSnapshotRef.current = currentSnapshot;
   const saved = editing && savedSnapshot === currentSnapshot;
+  const stateIsCurrent = submittedSnapshotRef.current === currentSnapshot;
 
   const [state, formAction] = useActionState(
     editing ? updateManualPromptAction : createManualPromptAction,
@@ -160,7 +161,7 @@ export function PromptEditor({
       <input type="hidden" name="name" value={name || "Untitled prompt"} />
       <input type="hidden" name="body" value={body} />
       {editing && <input type="hidden" name="id" value={savedPromptId} />}
-      <SaveSubmit saved={saved} />
+      <SaveSubmit saved={saved} disabled={!hasBody} />
     </form>
   ) : isSupabaseConfigured() ? (
     <AuthGatedButton
@@ -222,7 +223,7 @@ export function PromptEditor({
           providers={<ProviderOpenActions links={providerLinks} disabled={!hasBody} />}
         />
 
-        {state.error && (
+        {stateIsCurrent && state.error && (
           <p className="pe-err" role="alert">
             {state.error}
           </p>

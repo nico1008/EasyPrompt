@@ -11,6 +11,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { currentAuthNext } from "@/components/AuthGatedButton";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { Icon } from "@/components/Icon";
+import { Toast } from "@/components/Toast";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 import { fetchIsBookmarked } from "@/lib/bookmarks/client";
@@ -30,6 +31,7 @@ export function BookmarkButton({
   const [pop, setPop] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authNext, setAuthNext] = useState("/");
+  const [error, setError] = useState("");
   const busyRef = useRef(false);
   const hydrationRef = useRef(0);
   const mutationRef = useRef(0);
@@ -71,6 +73,7 @@ export function BookmarkButton({
     if (busyRef.current) return;
     busyRef.current = true;
     setBusy(true);
+    setError("");
     const prev = on;
     const next = !prev;
     const mutationId = mutationRef.current + 1;
@@ -85,6 +88,7 @@ export function BookmarkButton({
       const res = await setBookmarkAction(target, next);
       if (!res.ok) {
         if (mutationRef.current === mutationId) setOn(prev);
+        setError(res.error ?? "Couldn't update Favorites.");
         return;
       }
       if (typeof res.bookmarked === "boolean" && mutationRef.current === mutationId) {
@@ -93,6 +97,7 @@ export function BookmarkButton({
       if (pathname.startsWith("/my")) router.refresh();
     } catch {
       if (mutationRef.current === mutationId) setOn(prev);
+      setError("Couldn't update Favorites. Please try again.");
     } finally {
       busyRef.current = false;
       setBusy(false);
@@ -112,6 +117,7 @@ export function BookmarkButton({
 
   return (
     <>
+      <Toast show={Boolean(error)} message={error} />
       <button
         type="button"
         className={`bookmark-btn${on ? " on" : ""}${authPending || !bookmarkLoaded ? " is-pending" : ""}`}

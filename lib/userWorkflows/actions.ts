@@ -7,7 +7,8 @@ import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { getWorkflowByCatalogId, resolveWorkflowLinkedItem } from "@/data/workflows";
 import { makeShareSlug } from "@/lib/notebooks/share";
 import { getCommunityPrompt, getCommunityTemplate } from "@/lib/community/repo";
-import { catalogWorkflowToDraft, readWorkflowDocument, validateWorkflowDraft, validateWorkflowForPublish, type WorkflowDraft } from "./schema";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { catalogWorkflowToDraft, readWorkflowDocument, validateWorkflowDraft, validateWorkflowForPublish, workflowDraftSaveError, type WorkflowDraft } from "./schema";
 import { getCommunityWorkflow, getUserWorkflow } from "./repo";
 
 export type WorkflowActionState = { ok?: boolean; id?: string; revision?: number; errors?: string[]; conflict?: boolean };
@@ -29,8 +30,11 @@ function rowFromDraft(ownerId: string, draft: WorkflowDraft) {
 }
 
 export async function createWorkflowAction(_previous: WorkflowActionState, formData: FormData): Promise<WorkflowActionState> {
+  if (!isSupabaseConfigured()) return { errors: ["Accounts aren't set up here."] };
   const parsed = validateWorkflowDraft(parsePayload(formData));
   if (!parsed.success) return { errors: parsed.error.issues.map((issue) => issue.message) };
+  const saveError = workflowDraftSaveError(parsed.data);
+  if (saveError) return { errors: [saveError] };
   const { supabase, user } = await userAndClient();
   if (!user) return { errors: ["Please log in again."] };
   const { data, error } = await supabase.from("user_workflows").insert(rowFromDraft(user.id, parsed.data)).select("id,revision").single();
@@ -40,10 +44,13 @@ export async function createWorkflowAction(_previous: WorkflowActionState, formD
 }
 
 export async function updateWorkflowAction(_previous: WorkflowActionState, formData: FormData): Promise<WorkflowActionState> {
+  if (!isSupabaseConfigured()) return { errors: ["Accounts aren't set up here."] };
   const id = String(formData.get("id") ?? "");
   const revision = Number(formData.get("revision"));
   const parsed = validateWorkflowDraft(parsePayload(formData));
   if (!id || !Number.isInteger(revision) || !parsed.success) return { errors: ["Invalid Workflow draft."] };
+  const saveError = workflowDraftSaveError(parsed.data);
+  if (saveError) return { errors: [saveError] };
   const { supabase, user } = await userAndClient();
   if (!user) return { errors: ["Please log in again."] };
   const draft = parsed.data;
@@ -71,6 +78,7 @@ async function linksArePublic(draft: WorkflowDraft): Promise<string[]> {
 }
 
 export async function setWorkflowPublishedAction(formData: FormData): Promise<void> {
+  if (!isSupabaseConfigured()) return;
   const id = String(formData.get("id") ?? ""); const revision = Number(formData.get("revision"));
   const publish = formData.get("publish") === "true";
   const row = await getUserWorkflow(id); if (!row) return;

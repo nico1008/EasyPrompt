@@ -4,11 +4,12 @@
  * both Templates and Prompts write through setVisibilityAction. Public rows get a
  * stable share slug; private rows are owner-only and any old slug stays dormant. */
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Icon } from "@/components/Icon";
 import { setVisibilityAction, type VisibilityState } from "@/lib/library/actions";
 import { CATEGORIES } from "@/data/templates";
+import { copyText } from "@/lib/clipboard";
 import type { LibraryInternal, LibraryVisibility } from "@/lib/library/list";
 
 export function publicUrlFor(internal: LibraryInternal, slug: string | null): string {
@@ -18,19 +19,20 @@ export function publicUrlFor(internal: LibraryInternal, slug: string | null): st
 }
 
 function CopyLink({ url }: { url: string }) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   return (
     <button
       type="button"
       className="btn btn-ghost btn-sm"
       onClick={() => {
-        void navigator.clipboard?.writeText(url);
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 1500);
+        void copyText(url).then((ok) => {
+          setStatus(ok ? "copied" : "failed");
+          if (ok) window.setTimeout(() => setStatus("idle"), 1500);
+        });
       }}
     >
-      <Icon name={copied ? "check" : "copy"} size={14} />
-      {copied ? "Copied" : "Copy link"}
+      <Icon name={status === "copied" ? "check" : "copy"} size={14} />
+      {status === "copied" ? "Copied" : status === "failed" ? "Try again" : "Copy link"}
     </button>
   );
 }
@@ -38,16 +40,18 @@ function CopyLink({ url }: { url: string }) {
 function VisibilitySubmit({
   current,
   selected,
+  disabled,
 }: {
   current: LibraryVisibility;
   selected: LibraryVisibility;
+  disabled: boolean;
 }) {
   const { pending } = useFormStatus();
   let label = "Save visibility";
   if (selected !== current) label = selected === "public" ? "Change to public" : "Change to private";
 
   return (
-    <button type="submit" className="btn btn-primary btn-block" disabled={pending}>
+    <button type="submit" className="btn btn-primary btn-block" disabled={pending || disabled}>
       <Icon name={selected === "public" ? "share" : "shield"} size={15} />
       {pending ? "Saving…" : label}
     </button>
@@ -71,13 +75,25 @@ export function VisibilitySection({
   const [nextVisibility, setNextVisibility] = useState<LibraryVisibility>(visibility);
   const [cat, setCat] = useState(category ?? "");
   const isPrompt = internal === "saved_prompt";
-  const url = useMemo(
-    () => (visibility === "public" ? publicUrlFor(internal, shareSlug) : ""),
-    [internal, shareSlug, visibility]
-  );
+  const signature = `${nextVisibility}:${cat}`;
+  const [submittedSignature, setSubmittedSignature] = useState<string | null>(null);
+  const stateIsCurrent = submittedSignature === signature;
+  const categoryChanged = isPrompt && nextVisibility === "public" && cat !== (category ?? "");
+  const changed = nextVisibility !== visibility || categoryChanged;
+  const canSubmit = changed && (!isPrompt || nextVisibility !== "public" || Boolean(cat));
+  const url = visibility === "public" ? publicUrlFor(internal, shareSlug) : "";
+
+  useEffect(() => {
+    setNextVisibility(visibility);
+    setCat(category ?? "");
+  }, [category, visibility]);
 
   return (
-    <form action={action} className="lib-visibility">
+    <form
+      action={action}
+      className="lib-visibility"
+      onSubmit={() => setSubmittedSignature(signature)}
+    >
       <input type="hidden" name="internal" value={internal} />
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="visibility" value={nextVisibility} />
@@ -158,10 +174,10 @@ export function VisibilitySection({
         </div>
       )}
 
-      {state.error && <p className="lib-err">{state.error}</p>}
-      {state.ok && <p className="lib-ok">Visibility saved.</p>}
+      {stateIsCurrent && state.error && <p className="lib-err" role="alert">{state.error}</p>}
+      {stateIsCurrent && state.ok && !changed && <p className="lib-ok" role="status">Visibility saved.</p>}
 
-      <VisibilitySubmit current={visibility} selected={nextVisibility} />
+      <VisibilitySubmit current={visibility} selected={nextVisibility} disabled={!canSubmit} />
     </form>
   );
 }

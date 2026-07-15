@@ -29,8 +29,10 @@ export function RatingStars({
 }) {
   const [agg, setAgg] = useState<Aggregate | null>(initialAggregate ?? null);
   const [mine, setMine] = useState<number | null>(null);
+  const [mineLoaded, setMineLoaded] = useState(false);
   const [hover, setHover] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authNext, setAuthNext] = useState("/templates");
   const { account, loaded } = useSupabaseAccountState();
@@ -51,11 +53,18 @@ export function RatingStars({
   useEffect(() => {
     if (!isSupabaseConfigured() || !loggedIn) {
       setMine(null);
+      setMineLoaded(true);
       return;
     }
+    setMineLoaded(false);
     let active = true;
     void fetchMyRating(target).then((r) => {
-      if (active) setMine(r);
+      if (active) {
+        setMine(r);
+        setMineLoaded(true);
+      }
+    }).catch(() => {
+      if (active) setMineLoaded(true);
     });
     return () => {
       active = false;
@@ -64,22 +73,33 @@ export function RatingStars({
 
   const submit = useCallback(
     async (n: number) => {
-      if (busy || authPending) return;
+      if (busy || authPending || (loggedIn && !mineLoaded)) return;
       if (!loggedIn) {
         setAuthNext(currentAuthNext("/templates"));
         setAuthPromptOpen(true);
         return;
       }
       setBusy(true);
+      setError(null);
+      const previousRating = mine;
       setMine(n); // optimistic
-      const res = await rateAction(target, n);
-      if (res.ok && res.aggregate) {
-        setAgg(res.aggregate);
-        if (res.myRating) setMine(res.myRating);
+      try {
+        const res = await rateAction(target, n);
+        if (res.ok && res.aggregate) {
+          setAgg(res.aggregate);
+          if (res.myRating) setMine(res.myRating);
+        } else {
+          setMine(previousRating);
+          setError(res.error ?? "Couldn't save your rating.");
+        }
+      } catch {
+        setMine(previousRating);
+        setError("Couldn't save your rating. Please try again.");
+      } finally {
+        setBusy(false);
       }
-      setBusy(false);
     },
-    [authPending, loggedIn, busy, target]
+    [authPending, loggedIn, mineLoaded, busy, mine, target]
   );
 
   if (!isSupabaseConfigured()) return null;
@@ -114,7 +134,7 @@ export function RatingStars({
             className={`rating-star${n <= display ? " on" : ""}`}
             aria-label={`${n} star${n > 1 ? "s" : ""}`}
             aria-pressed={mine === n}
-            disabled={busy || authPending}
+            disabled={busy || authPending || (loggedIn && !mineLoaded)}
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
             onFocus={() => setHover(n)}
@@ -142,6 +162,7 @@ export function RatingStars({
         ) : mine ? (
           <span className="rating-mine">· your rating: {mine}</span>
         ) : null}
+        {error && <span className="rating-error" role="alert">{error}</span>}
       </div>
       <AuthPromptDialog
         open={authPromptOpen}

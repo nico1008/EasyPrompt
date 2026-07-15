@@ -1,19 +1,28 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AuthGatedButton, currentAuthNext } from "@/components/AuthGatedButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
 import { BuilderTitleField } from "@/components/builder/BuilderTitleField";
 import { CATEGORIES } from "@/data/templates";
 import { createWorkflowAction, updateWorkflowAction, type WorkflowActionState } from "@/lib/userWorkflows/actions";
-import type { WorkflowDocumentV1, WorkflowDraft, WorkflowLink } from "@/lib/userWorkflows/schema";
+import {
+  validateWorkflowDraft,
+  workflowDraftSaveError,
+  type WorkflowDocumentV1,
+  type WorkflowDraft,
+  type WorkflowLink,
+} from "@/lib/userWorkflows/schema";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { useSupabaseAccountState } from "@/lib/supabase/useUser";
 
 const emptyDocument = (): WorkflowDocumentV1 => ({ version: 1, prerequisites: [], steps: [] });
 const emptyStep = (): WorkflowDocumentV1["steps"][number] => ({
   id: crypto.randomUUID(), title: "", duration: "", explanation: "", linkedItems: [], inlinePrompts: [], deliverables: [], tips: [],
 });
-const lines = (value: string) => value.split("\n");
+const lines = (value: string) => value.split("\n").map((line) => line.trim()).filter(Boolean);
 const linkLabels: Record<WorkflowLink["kind"], string> = {
   catalog_template: "Catalog Template",
   catalog_prompt: "Catalog Prompt",
@@ -23,24 +32,81 @@ const linkLabels: Record<WorkflowLink["kind"], string> = {
 
 export type WorkflowEditorInitial = WorkflowDraft & { id: string; revision: number };
 
+const blankWorkflowDraft = (): WorkflowDraft => ({
+  title: "",
+  category: CATEGORIES[0].id,
+  blurb: "",
+  overview: "",
+  timeLabel: "",
+  document: emptyDocument(),
+});
+
+function WorkflowSaveButton({ pending, disabled }: { pending: boolean; disabled: boolean }) {
+  const { account } = useSupabaseAccountState();
+  if (!isSupabaseConfigured()) return null;
+
+  if (!account) {
+    return (
+      <AuthGatedButton
+        className="btn btn-primary"
+        disabled={disabled}
+        next={() => currentAuthNext("/build/workflow")}
+        prompt={{
+          title: "Save this Workflow",
+          body: "Create an account to save this Workflow to My Library.",
+        }}
+      >
+        Save Workflow
+      </AuthGatedButton>
+    );
+  }
+
+  return (
+    <button className="btn btn-primary" type="submit" disabled={pending || disabled}>
+      {pending ? "Saving…" : "Save Workflow"}
+    </button>
+  );
+}
+
 export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial }) {
   const router = useRouter();
-  const [draft, setDraft] = useState<WorkflowDraft>(initial ?? { title: "", category: CATEGORIES[0].id, blurb: "", overview: "", timeLabel: "", document: emptyDocument() });
+  const [draft, setDraft] = useState<WorkflowDraft>(() => initial ?? blankWorkflowDraft());
   const [revision, setRevision] = useState(initial?.revision ?? 1);
-  const [dirty, setDirty] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState(() =>
+    JSON.stringify(initial ?? blankWorkflowDraft())
+  );
   const action = initial ? updateWorkflowAction : createWorkflowAction;
   const [state, submit, pending] = useActionState<WorkflowActionState, FormData>(action, {});
   const storageKey = `easyprompt.workflow-editor.${initial?.id ?? "new"}`;
+  const draftSnapshot = useMemo(() => JSON.stringify(draft), [draft]);
+  const dirty = draftSnapshot !== savedSnapshot;
+  const saveError = workflowDraftSaveError(draft);
+  const canSave = dirty && !saveError;
+  const submittedSnapshotRef = useRef<string | null>(null);
+  const stateIsCurrent = submittedSnapshotRef.current === draftSnapshot;
+  const currentErrors = stateIsCurrent ? state.errors : undefined;
 
   useEffect(() => {
+    if (initial) return;
     const raw = localStorage.getItem(storageKey);
-    if (raw) try { setDraft(JSON.parse(raw)); } catch { /* Ignore a malformed local draft. */ }
-  }, [storageKey]);
-  useEffect(() => { if (dirty) localStorage.setItem(storageKey, JSON.stringify(draft)); }, [dirty, draft, storageKey]);
+    if (!raw) return;
+    try {
+      const parsed = validateWorkflowDraft(JSON.parse(raw));
+      if (parsed.success && !workflowDraftSaveError(parsed.data)) setDraft(parsed.data);
+      else localStorage.removeItem(storageKey);
+    } catch {
+      localStorage.removeItem(storageKey);
+    }
+  }, [initial, storageKey]);
+  useEffect(() => {
+    if (initial) return;
+    if (dirty && !saveError) localStorage.setItem(storageKey, draftSnapshot);
+    else localStorage.removeItem(storageKey);
+  }, [dirty, draftSnapshot, initial, saveError, storageKey]);
   useEffect(() => {
     if (!state.ok) return;
     localStorage.removeItem(storageKey);
-    setDirty(false);
+    if (submittedSnapshotRef.current) setSavedSnapshot(submittedSnapshotRef.current);
     if (!initial && state.id) router.replace(`/my/workflows/${state.id}/edit`);
     if (state.revision) setRevision(state.revision);
   }, [initial, router, state, storageKey]);
@@ -50,8 +116,15 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
     return () => removeEventListener("beforeunload", warn);
   }, [dirty]);
 
-  const status = useMemo(() => pending ? "Saving…" : state.conflict ? "Newer changes exist" : state.errors?.[0] ?? (state.ok ? "Saved" : dirty ? "Unsaved changes" : "Saved"), [dirty, pending, state]);
-  const set = <K extends keyof WorkflowDraft>(key: K, value: WorkflowDraft[K]) => { setDraft((current) => ({ ...current, [key]: value })); setDirty(true); };
+  const status = pending
+    ? "Saving…"
+    : stateIsCurrent && state.conflict
+      ? "Newer changes exist"
+      : currentErrors?.[0]
+        ?? (dirty ? (saveError ? "Add something before saving" : "Unsaved changes") : initial ? "Saved" : "Not saved yet");
+  const set = <K extends keyof WorkflowDraft>(key: K, value: WorkflowDraft[K]) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+  };
   const setDocument = (document: WorkflowDocumentV1) => set("document", document);
   const updateStep = (index: number, patch: Partial<WorkflowDocumentV1["steps"][number]>) => {
     const steps = [...draft.document.steps];
@@ -74,7 +147,17 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
   return (
     <main className="workflow-editor-page">
       <h1 className="sr-only">Workflow builder</h1>
-      <form action={submit} className="workflow-editor">
+      <form
+        action={submit}
+        className="workflow-editor"
+        onSubmit={(event) => {
+          if (!canSave) {
+            event.preventDefault();
+            return;
+          }
+          submittedSnapshotRef.current = draftSnapshot;
+        }}
+      >
         <input type="hidden" name="id" value={initial?.id ?? ""} />
         <input type="hidden" name="revision" value={revision} />
         <input type="hidden" name="payload" value={JSON.stringify(draft)} />
@@ -101,7 +184,7 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
               <span className={`we-save-status${dirty ? " is-dirty" : ""}${state.conflict ? " is-error" : ""}`} aria-live="polite">
                 <span aria-hidden="true" />{status}
               </span>
-              <button className="btn btn-primary" disabled={pending}>{pending ? "Saving…" : "Save Workflow"}</button>
+              <WorkflowSaveButton pending={pending} disabled={!canSave} />
             </div>
           </header>
         </div>
@@ -205,11 +288,11 @@ export function WorkflowEditor({ initial }: { initial?: WorkflowEditorInitial })
               ))}
             </section>
 
-            {state.errors?.length ? <div className="we-errors" role="alert"><strong>Check this Workflow before saving</strong><ul>{state.errors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
+            {currentErrors?.length ? <div className="we-errors" role="alert"><strong>Check this Workflow before saving</strong><ul>{currentErrors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
           </div>
         </div>
 
-        <footer className="we-mobile-save"><span>{status}</span><button className="btn btn-primary" disabled={pending}>{pending ? "Saving…" : "Save Workflow"}</button></footer>
+        <footer className="we-mobile-save"><span>{status}</span><WorkflowSaveButton pending={pending} disabled={!canSave} /></footer>
       </form>
     </main>
   );

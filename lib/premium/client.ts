@@ -93,25 +93,25 @@ export async function fetchBoosters(templateId?: string): Promise<Booster[] | nu
   const stored = readStored();
   if (!stored) return null;
 
-  const url = `/api/premium${templateId ? `?template=${encodeURIComponent(templateId)}` : ""}`;
-  const call = (token: string) =>
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-
-  let res = await call(stored.token);
-
-  if (res.status === 401) {
-    const re = await unlock(stored.code); // re-mint a fresh token
-    if (!re.ok) {
-      lock();
-      return null;
-    }
-    const fresh = readStored();
-    if (!fresh) return null;
-    res = await call(fresh.token);
-  }
-
-  if (!res.ok) return null;
   try {
+    const url = `/api/premium${templateId ? `?template=${encodeURIComponent(templateId)}` : ""}`;
+    const call = (token: string) =>
+      fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+
+    let res = await call(stored.token);
+
+    if (res.status === 401) {
+      const re = await unlock(stored.code); // re-mint a fresh token
+      if (!re.ok) {
+        lock();
+        return null;
+      }
+      const fresh = readStored();
+      if (!fresh) return null;
+      res = await call(fresh.token);
+    }
+
+    if (!res.ok) return null;
     const body = (await res.json()) as { boosters?: Booster[] };
     return body.boosters ?? [];
   } catch {

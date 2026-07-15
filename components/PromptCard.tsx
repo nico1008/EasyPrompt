@@ -24,6 +24,7 @@ import { CreatorChip } from "./CreatorChip";
 export function PromptCard({ item, uses }: { item: BrowsePromptItem; uses?: number }) {
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   const bodyRef = useRef<string | null>(item.body);
   const ref = useImpression<HTMLElement>({ kind: item.metricKind, key: item.slug });
 
@@ -32,17 +33,24 @@ export function PromptCard({ item, uses }: { item: BrowsePromptItem; uses?: numb
       e.preventDefault();
       e.stopPropagation();
       if (busy) return;
+      setFailed(false);
       let body = bodyRef.current;
       if (body == null) {
         setBusy(true);
         body = await fetchCommunityPromptBody(item.slug);
-        bodyRef.current = body;
+        if (body) bodyRef.current = body;
         setBusy(false);
       }
-      if (body && (await copyText(body))) {
+      if (!body) {
+        setFailed(true);
+        return;
+      }
+      if (await copyText(body)) {
         trackUse({ kind: item.metricKind, key: item.slug }, "copy");
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1600);
+      } else {
+        setFailed(true);
       }
     },
     [busy, item.slug, item.metricKind]
@@ -79,10 +87,10 @@ export function PromptCard({ item, uses }: { item: BrowsePromptItem; uses?: numb
           className={`pt-copy${copied ? " done" : ""}`}
           onClick={copy}
           disabled={busy}
-          aria-label={`Copy the ${item.title} prompt`}
+          aria-label={failed ? `Retry copying the ${item.title} prompt` : `Copy the ${item.title} prompt`}
         >
           <Icon name={copied ? "check" : "copy"} size={13} />
-          {copied ? "Copied" : busy ? "…" : "Copy"}
+          {copied ? "Copied" : busy ? "…" : failed ? "Retry" : "Copy"}
         </button>
       </div>
     </article>

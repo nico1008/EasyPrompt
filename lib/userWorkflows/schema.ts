@@ -59,6 +59,36 @@ export function validateWorkflowDraft(raw: unknown) {
   return workflowDraftSchema.safeParse(raw);
 }
 
+/**
+ * Incomplete Workflow drafts are useful, but a completely untouched draft is
+ * not a library item. Keep this semantic guard separate from the structural
+ * schema so the editor can still represent its blank starting state.
+ */
+export function workflowDraftSaveError(draft: WorkflowDraft): string | null {
+  const hasTopLevelContent = [
+    draft.title,
+    draft.blurb,
+    draft.overview,
+    draft.timeLabel,
+    ...draft.document.prerequisites,
+  ].some((value) => value.trim().length > 0);
+
+  const hasStepContent = draft.document.steps.some((step) =>
+    [step.title, step.duration, step.explanation, ...step.deliverables, ...step.tips]
+      .some((value) => value.trim().length > 0) ||
+    step.linkedItems.some((link) =>
+      [link.key, link.titleSnapshot, link.note ?? ""].some((value) => value.trim().length > 0)
+    ) ||
+    step.inlinePrompts.some((prompt) =>
+      [prompt.title, prompt.body].some((value) => value.trim().length > 0)
+    )
+  );
+
+  return hasTopLevelContent || hasStepContent
+    ? null
+    : "Add Workflow details or a step before saving.";
+}
+
 export function validateWorkflowForPublish(raw: unknown): string[] {
   const parsed = workflowDraftSchema.safeParse(raw);
   if (!parsed.success) return parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);

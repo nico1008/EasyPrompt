@@ -11,7 +11,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { nameSchema } from "@/lib/savedPrompts/schema";
-import { parseBlockDoc } from "@/lib/blocks/schema";
+import { blockDocSaveError, parseBlockDoc } from "@/lib/blocks/schema";
 import type { BlockDoc } from "@/lib/blocks/types";
 import { recordVersion } from "./versions/repo";
 import { makeShareSlug } from "./share";
@@ -43,6 +43,8 @@ export async function createNotebookAction(
 
   const doc = parseBlockDoc(formData.get("doc"));
   if (!doc.ok) return { error: doc.error };
+  const saveError = blockDocSaveError(doc.value);
+  if (saveError) return { error: saveError };
 
   const { data, error } = await supabase
     .from("prompt_notebooks")
@@ -73,6 +75,8 @@ export async function updateNotebookAction(
 
   const doc = parseBlockDoc(formData.get("doc"));
   if (!doc.ok) return { error: doc.error };
+  const saveError = blockDocSaveError(doc.value);
+  if (saveError) return { error: saveError };
 
   const patch: { doc: BlockDoc; name?: string } = { doc: doc.value };
   const name = (formData.get("name") as string | null)?.trim();
@@ -126,6 +130,16 @@ export async function setNotebookShareAction(
 
   let shareSlug: string | null = null;
   if (on) {
+    const { data: notebook } = await supabase
+      .from("prompt_notebooks")
+      .select("doc")
+      .eq("id", id)
+      .maybeSingle();
+    const parsedDoc = notebook ? parseBlockDoc(JSON.stringify(notebook.doc)) : null;
+    if (!parsedDoc?.ok) return { error: "This Template is not available." };
+    const saveError = blockDocSaveError(parsedDoc.value);
+    if (saveError) return { error: saveError.replace("saving", "sharing") };
+
     // Keep an existing slug stable so a shared link doesn't churn on re-toggle.
     const { data: existing } = await supabase
       .from("prompt_notebooks")

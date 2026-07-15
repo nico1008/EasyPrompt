@@ -31,8 +31,8 @@ export type SaveSource =
 
 const EMPTY: SaveState = {};
 
-function saveSnapshot(name: string, answers: Answers): string {
-  return JSON.stringify({ name: name.trim() || "Untitled prompt", answers });
+function saveSnapshot(name: string, answers: Answers, customBody?: string): string {
+  return JSON.stringify({ name: name.trim() || "Untitled prompt", answers, customBody });
 }
 
 function SaveSubmit({
@@ -83,6 +83,7 @@ export function SavePromptButton({
 }) {
   const editing = Boolean(savedPromptId);
   const custom = customBody !== undefined;
+  const customIsEmpty = custom && !customBody.trim();
   // Custom (hand-edited) text always forks to a new manual prompt; otherwise the
   // form's answers are saved (update in edit mode, create from the template fresh).
   const action = custom
@@ -99,7 +100,10 @@ export function SavePromptButton({
       ? "Update Prompt"
       : "Save Prompt";
   const [name, setName] = useState(defaultName);
-  const currentSnapshot = useMemo(() => saveSnapshot(name, answers), [answers, name]);
+  const currentSnapshot = useMemo(
+    () => saveSnapshot(name, answers, customBody),
+    [answers, customBody, name]
+  );
   const currentSnapshotRef = useRef(currentSnapshot);
   const submittedSnapshotRef = useRef<string | null>(null);
   const handledStateRef = useRef<SaveState | null>(null);
@@ -109,6 +113,7 @@ export function SavePromptButton({
   const { account } = useSupabaseAccountState();
   currentSnapshotRef.current = currentSnapshot;
   const saved = editing && !custom && savedSnapshot === currentSnapshot;
+  const stateIsCurrent = submittedSnapshotRef.current === currentSnapshot;
 
   // Once a save succeeds, let the parent drop its local draft and record the
   // payload that actually reached the server.
@@ -129,6 +134,7 @@ export function SavePromptButton({
         <p className="save-hint">Want to keep this Prompt?</p>
         <AuthGatedButton
           className="btn btn-ink btn-sm"
+          disabled={customIsEmpty}
           prompt={{
             title: "Save this Prompt",
             body: "Create an account to save and reuse.",
@@ -195,8 +201,12 @@ export function SavePromptButton({
         aria-label="Name this prompt"
         maxLength={120}
       />
-      <SaveSubmit label={saved ? "Saved" : saveLabel} variant={variant} disabled={saved} />
-      {state.error && (
+      <SaveSubmit
+        label={saved ? "Saved" : saveLabel}
+        variant={variant}
+        disabled={saved || customIsEmpty}
+      />
+      {stateIsCurrent && state.error && (
         <p className="save-err" role="alert">
           {state.error}
         </p>

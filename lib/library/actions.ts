@@ -19,6 +19,8 @@ import { getUserTemplate } from "@/lib/userTemplates/repo";
 import { rowToTemplate } from "@/lib/userTemplates/map";
 import { getSavedPrompt, type SavedPromptRow } from "@/lib/savedPrompts/repo";
 import { rowToAnswers } from "@/lib/savedPrompts/map";
+import { rowToNotebook } from "@/lib/notebooks/map";
+import { blockDocSaveError } from "@/lib/blocks/schema";
 
 const schema = z.object({
   internal: z.enum(["notebook", "user_template", "saved_prompt"]),
@@ -89,6 +91,22 @@ export async function setVisibilityAction(
   const category = normalizeCategory(formData.get("category"));
 
   const shareSlug = visibility === "public" && !slug ? makeShareSlug() : null;
+
+  if (visibility === "public" && internal === "notebook") {
+    const row = await getNotebook(id);
+    if (!row) return { error: "Not found." };
+    const saveError = blockDocSaveError(rowToNotebook(row).doc);
+    if (saveError) {
+      return { error: "Add content or a reusable input before making this Template public." };
+    }
+  }
+
+  if (visibility === "public" && internal === "user_template") {
+    const row = await getUserTemplate(id);
+    if (!row || !row.base_prompt.trim()) {
+      return { error: "Add content before making this Template public." };
+    }
+  }
 
   if (internal === "saved_prompt") {
     const row = await getSavedPrompt(id);

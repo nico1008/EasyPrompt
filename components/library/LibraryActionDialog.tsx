@@ -4,6 +4,7 @@
  * holds secondary management: open/edit, visibility/share, duplicate, and delete. */
 
 import { useEffect, useId, useRef, type KeyboardEvent } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { ConfirmButton } from "@/components/ConfirmButton";
@@ -35,6 +36,24 @@ function Prop({ label, children }: { label: string; children: React.ReactNode })
       <dt>{label}</dt>
       <dd>{children}</dd>
     </div>
+  );
+}
+
+function WorkflowPublishButton({ isPublic }: { isPublic: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button className="btn btn-ghost btn-sm" type="submit" disabled={pending}>
+      {pending ? "Updating…" : isPublic ? "Make private" : "Publish"}
+    </button>
+  );
+}
+
+function DuplicateButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className="btn btn-ghost btn-sm" disabled={pending}>
+      <Icon name="copy" size={14} /> {pending ? "Duplicating…" : "Duplicate"}
+    </button>
   );
 }
 
@@ -174,9 +193,7 @@ export function LibraryActionDialog({ item, onClose }: { item: LibraryItem; onCl
                 <input type="hidden" name="id" value={item.id} />
                 <input type="hidden" name="revision" value={item.revision ?? 1} />
                 <input type="hidden" name="publish" value={item.visibility === "public" ? "false" : "true"} />
-                <button className="btn btn-ghost btn-sm">
-                  {item.visibility === "public" ? "Make private" : "Publish"}
-                </button>
+                <WorkflowPublishButton isPublic={item.visibility === "public"} />
                 {item.visibility === "public" && item.shareSlug ? (
                   <Link href={`/w/${item.shareSlug}`}>View public Workflow</Link>
                 ) : null}
@@ -191,9 +208,7 @@ export function LibraryActionDialog({ item, onClose }: { item: LibraryItem; onCl
             <div className="lib-dialog-manage">
               <form action={DUP[item.internal]}>
                 <input type="hidden" name="id" value={item.id} />
-                <button type="submit" className="btn btn-ghost btn-sm">
-                  <Icon name="copy" size={14} /> Duplicate
-                </button>
+                <DuplicateButton />
               </form>
               <form action={DEL[item.internal]}>
                 <input type="hidden" name="id" value={item.id} />

@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { buildPromptFromBlocks, openInUrl } from "@/lib/buildPrompt";
 import { analyzeDoc, type HealthStatus } from "@/lib/blocks/health";
+import { blockDocSaveError } from "@/lib/blocks/schema";
 import type { Block, BlockDoc } from "@/lib/blocks/types";
 import { newBlockId } from "@/lib/blocks/defaults";
 import { useNotebookDraft } from "@/lib/drafts/useNotebookDraft";
@@ -110,6 +111,7 @@ export function PromptBuilder({
 
   const built = useMemo(() => buildPromptFromBlocks(doc), [doc]);
   const health = useMemo(() => analyzeDoc(doc, built), [doc, built]);
+  const saveError = useMemo(() => blockDocSaveError(doc), [doc]);
   const docSnapshot = useMemo(() => JSON.stringify(doc), [doc]);
 
   /* Anonymous autosave — off in edit mode (the saved row is the source of truth). */
@@ -311,6 +313,7 @@ export function PromptBuilder({
             name={doc.title}
             doc={doc}
             saved={notebookId !== undefined && !dirty}
+            saveError={saveError}
             onSaved={markSaved}
             onCreated={(id) => router.push(`/my/notebooks/${id}`)}
             onAuthGateNavigate={persistDraftNow}
@@ -524,11 +527,24 @@ function ExportMenu({ text, onDownload }: { text: string; onDownload: () => void
 /* ------------------------------- save control ----------------------------- */
 const EMPTY_SAVE: NotebookSaveState = {};
 
-function SaveSubmit({ editing, saved }: { editing: boolean; saved: boolean }) {
+function SaveSubmit({
+  editing,
+  saved,
+  disabled,
+}: {
+  editing: boolean;
+  saved: boolean;
+  disabled: boolean;
+}) {
   const { pending } = useFormStatus();
   // Secondary (dark) so it doesn't compete with the indigo Copy primary.
   return (
-    <button className="btn btn-ink btn-sm" type="submit" disabled={pending || saved}>
+    <button
+      className="btn btn-ink btn-sm"
+      type="submit"
+      disabled={pending || saved || disabled}
+      title={disabled ? "Add content or a reusable input first" : undefined}
+    >
       {pending ? "Saving…" : saved ? "Saved" : editing ? "Save" : "Save template"}
     </button>
   );
@@ -539,6 +555,7 @@ function SaveControl({
   name,
   doc,
   saved,
+  saveError,
   onSaved,
   onCreated,
   onAuthGateNavigate,
@@ -547,6 +564,7 @@ function SaveControl({
   name: string;
   doc: BlockDoc;
   saved: boolean;
+  saveError: string | null;
   onSaved: (snapshot?: string) => void;
   onCreated: (id: string) => void;
   onAuthGateNavigate: () => void;
@@ -559,6 +577,7 @@ function SaveControl({
   const currentSnapshotRef = useRef(currentSnapshot);
   const submittedSnapshotRef = useRef<string | null>(null);
   currentSnapshotRef.current = currentSnapshot;
+  const stateIsCurrent = submittedSnapshotRef.current === currentSnapshot;
 
   useEffect(() => {
     if (!state.ok || handledStateRef.current === state) return;
@@ -573,6 +592,7 @@ function SaveControl({
     return (
       <AuthGatedButton
         className="btn btn-ink btn-sm"
+        disabled={Boolean(saveError)}
         next={() => currentAuthNext("/build")}
         prompt={{
           title: "Save this template",
@@ -600,8 +620,8 @@ function SaveControl({
       <input type="hidden" name="doc" value={currentSnapshot} />
       <input type="hidden" name="name" value={name} />
       {editing && <input type="hidden" name="id" value={notebookId} />}
-      <SaveSubmit editing={editing} saved={saved} />
-      {state.error && (
+      <SaveSubmit editing={editing} saved={saved} disabled={Boolean(saveError)} />
+      {stateIsCurrent && state.error && (
         <span className="pb-save-err" role="alert">
           {state.error}
         </span>

@@ -9,6 +9,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getCommunityPrompt } from "@/lib/community/repo";
+import { getTemplate } from "@/data/templates";
+import { getUserTemplate } from "@/lib/userTemplates/repo";
 import { nameSchema, parseAnswers, bodySchema, type AnswersInput } from "./schema";
 
 export type SaveState = { ok?: boolean; error?: string; savedId?: string };
@@ -120,6 +122,7 @@ export async function createSavedPromptAction(
   if (sourceKind === "catalog") {
     const slug = formData.get("catalog_slug");
     if (typeof slug !== "string" || !slug) return { error: "Missing template." };
+    if (!getTemplate(slug)) return { error: "That Template is no longer available." };
     row = {
       owner_id: user.id,
       name: nameCheck.data,
@@ -131,6 +134,7 @@ export async function createSavedPromptAction(
   } else if (sourceKind === "user") {
     const tid = formData.get("user_template_id");
     if (typeof tid !== "string" || !tid) return { error: "Missing template." };
+    if (!(await getUserTemplate(tid))) return { error: "That Template is no longer available." };
     row = {
       owner_id: user.id,
       name: nameCheck.data,
@@ -242,6 +246,9 @@ export async function duplicateSavedPromptAction(formData: FormData): Promise<vo
     catalog_slug: src.catalog_slug,
     user_template_id: src.user_template_id,
     answers: src.answers,
+    body: src.body,
+    category: src.category,
+    remixed_from: src.remixed_from,
   });
   revalidatePath("/my");
 }
