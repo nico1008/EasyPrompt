@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
-import { Folder, FolderPlus, Search, Settings2, SlidersHorizontal } from "lucide-react";
+import { Folder, Search, Settings2, SlidersHorizontal } from "lucide-react";
 import { Icon } from "@/components/Icon";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { ConfirmButton } from "@/components/ConfirmButton";
@@ -40,7 +40,7 @@ function initialType(filter: LibraryFilter): LibrarySearchType {
   return "all";
 }
 
-function LibraryModal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+function LibraryModal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
@@ -51,7 +51,7 @@ function LibraryModal({ title, onClose, children }: { title: string; onClose: ()
   return (
     <dialog
       ref={ref}
-      className="library-modal"
+      className={`library-modal${wide ? " library-modal-wide" : ""}`}
       aria-label={title}
       onClose={onClose}
       onClick={(event) => {
@@ -74,10 +74,9 @@ function LibraryModal({ title, onClose, children }: { title: string; onClose: ()
   );
 }
 
-function ItemCard({ item, onManage, onOrganize }: {
+function ItemCard({ item, onManage }: {
   item: LibraryBrowserItem;
   onManage: () => void;
-  onOrganize: () => void;
 }) {
   const meta = objectMeta(item.objectType);
   return (
@@ -90,9 +89,6 @@ function ItemCard({ item, onManage, onOrganize }: {
         <span className="mct-card-actions">
           {item.visibility === "public" ? <span className="my-visibility my-visibility-public mct-status">Public</span> : null}
           {item.favoriteTarget ? <span className="mct-fav"><BookmarkButton compact target={item.favoriteTarget} /></span> : null}
-          <button type="button" className="mct-manage" onClick={onOrganize} aria-label={`Add ${item.title} to a workspace`}>
-            <FolderPlus size={15} strokeWidth={1.8} aria-hidden="true" />
-          </button>
           {item.ownedItem ? (
             <button type="button" className="mct-manage" onClick={onManage} aria-label={`Manage ${item.title}`}>
               <Settings2 size={15} strokeWidth={1.8} aria-hidden="true" />
@@ -106,6 +102,73 @@ function ItemCard({ item, onManage, onOrganize }: {
         {item.isFavorite ? <span className="mct-kind">Favorite</span> : null}
       </div>
     </article>
+  );
+}
+
+function WorkspaceItemsModal({
+  workspace,
+  items,
+  selectedKeys,
+  pending,
+  notice,
+  onToggle,
+  onClose,
+}: {
+  workspace: LibraryWorkspace;
+  items: LibraryBrowserItem[];
+  selectedKeys: ReadonlySet<string>;
+  pending: boolean;
+  notice: string | null;
+  onToggle: (itemKey: string, included: boolean) => void;
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const [type, setType] = useState<LibrarySearchType>("all");
+  const matches = useMemo(() => searchLibrary(items, {
+    query: deferredQuery,
+    type,
+    sort: "name",
+  }), [deferredQuery, items, type]);
+
+  return (
+    <LibraryModal title={`Add items to ${workspace.name}`} onClose={onClose} wide>
+      <div className="workspace-items-tools">
+        <label className="workspace-items-search">
+          <Search size={16} strokeWidth={1.8} aria-hidden="true" />
+          <span className="sr-only">Search library items</span>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search your library" autoFocus />
+          {query ? <button type="button" onClick={() => setQuery("")} aria-label="Clear item search"><Icon name="x" size={13} /></button> : null}
+        </label>
+        <div className="workspace-items-filters" aria-label="Filter items by type">
+          {FILTERS.map((filter) => (
+            <button key={filter.id} type="button" className={type === filter.id ? "is-active" : ""} onClick={() => setType(filter.id)}>
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <p className="workspace-items-summary">{selectedKeys.size} {selectedKeys.size === 1 ? "item" : "items"} in this workspace</p>
+      </div>
+      <div className="workspace-assign-list">
+        {matches.length === 0 ? <p>No items match this search.</p> : matches.map((item) => {
+          const checked = selectedKeys.has(item.key);
+          const meta = objectMeta(item.objectType);
+          return (
+            <label key={item.key} className="workspace-assign-row">
+              <span>
+                <span className="workspace-assign-icon" aria-hidden="true"><Icon name={meta.icon} size={14} /></span>
+                <span className="workspace-assign-copy"><strong>{item.title}</strong><small>{meta.label}</small></span>
+              </span>
+              <input type="checkbox" checked={checked} disabled={pending} onChange={(event) => onToggle(item.key, event.target.checked)} />
+            </label>
+          );
+        })}
+      </div>
+      {notice ? <p className="library-form-error" role="alert">{notice}</p> : null}
+      <footer className="library-modal-foot">
+        <button type="button" className="btn btn-primary btn-sm" onClick={onClose}>Done</button>
+      </footer>
+    </LibraryModal>
   );
 }
 
@@ -124,8 +187,8 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [manageWorkspaceId, setManageWorkspaceId] = useState<string | null>(null);
+  const [assignWorkspaceId, setAssignWorkspaceId] = useState<string | null>(null);
   const [activeManageKey, setActiveManageKey] = useState<string | null>(null);
-  const [activeOrganizeKey, setActiveOrganizeKey] = useState<string | null>(null);
   const [membershipState, setMembershipState] = useState(() => memberships);
   const [notice, setNotice] = useState<string | null>(null);
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
@@ -199,8 +262,8 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
   }, [visible.length, visibleLimit]);
 
   const activeOwned = activeManageKey ? itemByKey.get(activeManageKey)?.ownedItem ?? null : null;
-  const activeOrganize = activeOrganizeKey ? itemByKey.get(activeOrganizeKey) ?? null : null;
   const activeWorkspace = workspaces.find((workspace) => workspace.id === manageWorkspaceId) ?? null;
+  const assignWorkspace = workspaces.find((workspace) => workspace.id === assignWorkspaceId) ?? null;
 
   const chooseType = (next: LibrarySearchType) => {
     setType(next);
@@ -243,7 +306,6 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
         <div className="library-side-group library-workspaces">
           <div className="library-side-title">
             <span className="library-side-label">Workspaces</span>
-            <button type="button" onClick={() => setCreateOpen(true)} aria-label="New workspace"><Icon name="plus" size={14} /></button>
           </div>
           {workspaces.length === 0 ? <p className="library-no-workspaces">Group related items into focused spaces.</p> : null}
           {workspaces.map((workspace) => (
@@ -258,7 +320,7 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
               </button>
             </div>
           ))}
-          <button type="button" className="library-new-workspace" onClick={() => setCreateOpen(true)}><FolderPlus size={15} /> New workspace</button>
+          <button type="button" className="library-new-workspace" onClick={() => setCreateOpen(true)}><Icon name="plus" size={14} /> New workspace</button>
         </div>
       </aside>
 
@@ -289,18 +351,25 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
             <h2>{workspaceId ? workspaces.find((workspace) => workspace.id === workspaceId)?.name : query ? "Search results" : FILTERS.find((filter) => filter.id === type)?.label}</h2>
             <p>{visible.length} {visible.length === 1 ? "item" : "items"}{query ? ` matching “${query}”` : ""}</p>
           </div>
-          {workspaceId ? <button type="button" className="btn btn-ghost btn-sm" onClick={() => setWorkspaceId(null)}>Show all</button> : null}
+          {workspaceId ? (
+            <div className="library-results-actions">
+              <button type="button" className="library-add-items" onClick={() => { setAssignWorkspaceId(workspaceId); setNotice(null); }}>
+                <Icon name="plus" size={14} /> Add items
+              </button>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setWorkspaceId(null)}>Show all</button>
+            </div>
+          ) : null}
         </div>
 
         {visible.length > 0 ? (
           <div className="my-grid library-grid-results">
-            {displayed.map((item) => <ItemCard key={item.key} item={item} onManage={() => setActiveManageKey(item.key)} onOrganize={() => setActiveOrganizeKey(item.key)} />)}
+            {displayed.map((item) => <ItemCard key={item.key} item={item} onManage={() => setActiveManageKey(item.key)} />)}
           </div>
         ) : (
           <div className="library-zero">
             <span><Search size={22} /></span>
             <h3>{query ? "No close matches" : workspaceId ? "This workspace is empty" : "Nothing here yet"}</h3>
-            <p>{query ? "Try fewer words or search by category." : workspaceId ? "Use the folder button on any item to add it here." : "Create or favorite an item to start your library."}</p>
+            <p>{query ? "Try fewer words or search by category." : workspaceId ? "Choose Add items to build this workspace." : "Create or favorite an item to start your library."}</p>
             {query ? <button type="button" className="btn btn-ghost btn-sm" onClick={() => setQuery("")}>Clear search</button> : null}
           </div>
         )}
@@ -313,25 +382,16 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
 
       {activeOwned ? <LibraryActionDialog key={activeOwned.key} item={activeOwned} onClose={() => setActiveManageKey(null)} /> : null}
 
-      {activeOrganize ? (
-        <LibraryModal title={`Organize ${activeOrganize.title}`} onClose={() => { setActiveOrganizeKey(null); setNotice(null); }}>
-          <div className="workspace-assign-list">
-            {workspaces.length === 0 ? <p>Create a workspace first, then add this item.</p> : workspaces.map((workspace) => {
-              const checked = membershipMap.get(workspace.id)?.has(activeOrganize.key) ?? false;
-              return (
-                <label key={workspace.id} className="workspace-assign-row">
-                  <span><Folder size={16} /><strong>{workspace.name}</strong></span>
-                  <input type="checkbox" checked={checked} disabled={pending} onChange={(event) => toggleMembership(workspace.id, activeOrganize.key, event.target.checked)} />
-                </label>
-              );
-            })}
-          </div>
-          {notice ? <p className="library-form-error" role="alert">{notice}</p> : null}
-          <footer className="library-modal-foot">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setActiveOrganizeKey(null); setCreateOpen(true); }}>New workspace</button>
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => setActiveOrganizeKey(null)}>Done</button>
-          </footer>
-        </LibraryModal>
+      {assignWorkspace ? (
+        <WorkspaceItemsModal
+          workspace={assignWorkspace}
+          items={items}
+          selectedKeys={membershipMap.get(assignWorkspace.id) ?? EMPTY_KEYS}
+          pending={pending}
+          notice={notice}
+          onToggle={(itemKey, included) => toggleMembership(assignWorkspace.id, itemKey, included)}
+          onClose={() => { setAssignWorkspaceId(null); setNotice(null); }}
+        />
       ) : null}
 
       {createOpen ? (
