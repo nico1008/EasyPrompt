@@ -10,6 +10,7 @@ import { rowToNotebook } from "@/lib/notebooks/map";
 import { rowToTemplate } from "@/lib/userTemplates/map";
 import { rowToAnswers } from "@/lib/savedPrompts/map";
 import { buildPrompt, buildPromptFromBlocks } from "@/lib/buildPrompt";
+import { ownedLibraryItemKey } from "@/lib/workspaces/schema";
 
 type NotebookRow = Database["public"]["Tables"]["prompt_notebooks"]["Row"];
 type UserTemplateRow = Database["public"]["Tables"]["user_templates"]["Row"];
@@ -90,7 +91,7 @@ export function buildLibrary(input: {
   for (const workflow of input.workflows ?? []) {
     const document = workflow.document as { steps?: unknown[] };
     const steps = Array.isArray(document.steps) ? document.steps.length : 0;
-    items.push({ key: `uw-${workflow.id}`, objectType: "workflow", internal: "user_workflow", id: workflow.id,
+    items.push({ key: ownedLibraryItemKey("user_workflow", workflow.id), objectType: "workflow", internal: "user_workflow", id: workflow.id,
       title: workflow.title || "Untitled Workflow", icon: "book", visibility: visibilityOf(workflow.visibility),
       shareSlug: workflow.share_slug, meta: `${steps} ${steps === 1 ? "step" : "steps"} - ${fmtDate(workflow.updated_at)}`,
       updatedAt: workflow.updated_at, primaryHref: `/my/workflows/${workflow.id}`, primaryLabel: "Open",
@@ -104,7 +105,7 @@ export function buildLibrary(input: {
     const doc = rowToNotebook(n).doc;
     const blocks = doc.blocks.length;
     items.push({
-      key: `nb-${n.id}`,
+      key: ownedLibraryItemKey("notebook", n.id),
       objectType: "template",
       internal: "notebook",
       id: n.id,
@@ -131,7 +132,7 @@ export function buildLibrary(input: {
   for (const t of input.userTemplates) {
     const fieldCount = Array.isArray(t.fields) ? (t.fields as unknown[]).length : 0;
     items.push({
-      key: `ut-${t.id}`,
+      key: ownedLibraryItemKey("user_template", t.id),
       objectType: "template",
       internal: "user_template",
       id: t.id,
@@ -172,7 +173,7 @@ export function buildLibrary(input: {
       }
     }
     items.push({
-      key: `sp-${p.id}`,
+      key: ownedLibraryItemKey("saved_prompt", p.id),
       objectType: "prompt",
       internal: "saved_prompt",
       id: p.id,

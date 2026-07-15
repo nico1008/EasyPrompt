@@ -17,6 +17,7 @@ export type FavoriteItem = {
   href: string;
   meta: string;
   target: BookmarkTarget;
+  createdAt: string;
 };
 
 async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
@@ -25,14 +26,14 @@ async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
     if (!workflow) return null;
     return { id: row.id, objectType: "workflow", title: workflow.title, blurb: workflow.blurb,
       href: `/workflows/${workflow.slug}`, meta: `${workflowCategoryLabel(workflow.category)} · ${workflowStepCount(workflow)} steps`,
-      target: { kind: "catalog_workflow", key: workflow.catalogId } };
+      target: { kind: "catalog_workflow", key: workflow.catalogId }, createdAt: row.created_at };
   }
   if (row.target_kind === "user_workflow") {
     const workflow = await getCommunityWorkflow(row.target_key);
     if (!workflow) return null;
     return { id: row.id, objectType: "workflow", title: workflow.title, blurb: workflow.blurb,
       href: `/w/${row.target_key}`, meta: `${workflowCategoryLabel(workflow.category)} · Community Workflow`,
-      target: { kind: "user_workflow", key: row.target_key } };
+      target: { kind: "user_workflow", key: row.target_key }, createdAt: row.created_at };
   }
   if (row.target_kind === "catalog") {
     const template = getTemplate(row.target_key);
@@ -45,6 +46,7 @@ async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
       href: `/templates/${template.slug}`,
       meta: `${categoryLabel(template.category)} · ${questionCount(template)} questions`,
       target: { kind: "catalog", key: template.slug },
+      createdAt: row.created_at,
     };
   }
 
@@ -59,6 +61,7 @@ async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
       href: `/prompts/${prompt.slug}`,
       meta: `${categoryLabel(prompt.category)} · ready to use`,
       target: { kind: "example_prompt", key: prompt.slug },
+      createdAt: row.created_at,
     };
   }
 
@@ -73,6 +76,7 @@ async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
       href: `/p/${row.target_key}`,
       meta: template.author ? `Community · ${template.author.username}` : "Community Template",
       target: { kind: "user_template", key: row.target_key },
+      createdAt: row.created_at,
     };
   }
 
@@ -87,6 +91,7 @@ async function resolveFavorite(row: BookmarkRow): Promise<FavoriteItem | null> {
       href: `/prompts/${row.target_key}`,
       meta: prompt.author ? `Community · ${prompt.author.username}` : "Community Prompt",
       target: { kind: "user_prompt", key: row.target_key },
+      createdAt: row.created_at,
     };
   }
 

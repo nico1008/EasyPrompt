@@ -235,6 +235,57 @@ export interface Database {
         };
         Relationships: [];
       };
+      library_workspaces: {
+        Row: {
+          id: string;
+          owner_id: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          name?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      library_workspace_items: {
+        Row: {
+          workspace_id: string;
+          owner_id: string;
+          item_key: string;
+          created_at: string;
+        };
+        Insert: {
+          workspace_id: string;
+          owner_id: string;
+          item_key: string;
+          created_at?: string;
+        };
+        Update: {
+          workspace_id?: string;
+          owner_id?: string;
+          item_key?: string;
+          created_at?: string;
+        };
+        Relationships: [{
+          foreignKeyName: "library_workspace_items_workspace_owner_fkey";
+          columns: ["workspace_id", "owner_id"];
+          isOneToOne: false;
+          referencedRelation: "library_workspaces";
+          referencedColumns: ["id", "owner_id"];
+        }];
+      };
       user_workflows: {
         Row: {
           id: string; owner_id: string; title: string; category: string; blurb: string;

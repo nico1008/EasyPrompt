@@ -3,11 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import "./my.css";
 import { Eyebrow } from "@/components/Eyebrow";
-import { CrosshairCard } from "@/components/CrosshairCard";
-import { MyTabs } from "@/components/MyTabs";
 import { Icon } from "@/components/Icon";
-import { BookmarkButton } from "@/components/BookmarkButton";
-import { MyLibraryGrid } from "@/components/library/MyLibraryGrid";
+import { LibraryBrowser, type LibraryBrowserItem } from "@/components/library/LibraryBrowser";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { listNotebooks } from "@/lib/notebooks/repo";
@@ -16,12 +13,9 @@ import { listSavedPrompts } from "@/lib/savedPrompts/repo";
 import { listBookmarks } from "@/lib/bookmarks/repo";
 import { listUserWorkflows } from "@/lib/userWorkflows/repo";
 import { resolveFavoriteRows } from "@/lib/bookmarks/resolve";
-import {
-  buildLibrary,
-  filterLibrary,
-  isLibraryFilter,
-  type LibraryFilter,
-} from "@/lib/library/list";
+import { buildLibrary, isLibraryFilter, type LibraryFilter } from "@/lib/library/list";
+import { favoriteLibraryItemKey } from "@/lib/workspaces/schema";
+import { listLibraryWorkspaceData } from "@/lib/workspaces/repo";
 
 export const metadata: Metadata = {
   title: "My Library",
@@ -39,14 +33,62 @@ export default async function MyLibraryPage({
 
   const { filter: raw } = await searchParams;
   const filter: LibraryFilter = isLibraryFilter(raw) ? raw : "all";
+  const [notebooks, userTemplates, prompts, workflows, bookmarkRows, workspaceData] = await Promise.all([
+    listNotebooks(),
+    listUserTemplates(),
+    listSavedPrompts(),
+    listUserWorkflows(),
+    listBookmarks(),
+    listLibraryWorkspaceData(),
+  ]);
+  const [ownedItems, favorites] = await Promise.all([
+    Promise.resolve(buildLibrary({ notebooks, userTemplates, prompts, workflows })),
+    resolveFavoriteRows(bookmarkRows),
+  ]);
+
+  const browserItems: LibraryBrowserItem[] = [
+    ...ownedItems.map((item) => ({
+      key: item.key,
+      title: item.title,
+      objectType: item.objectType,
+      meta: item.meta,
+      preview: item.preview,
+      categoryLabel: item.categoryLabel,
+      sourceLabel: item.source?.label ?? null,
+      updatedAt: item.updatedAt,
+      isFavorite: false,
+      href: item.primaryHref,
+      icon: item.icon,
+      visibility: item.visibility,
+      ownedItem: item,
+      favoriteTarget: null,
+    })),
+    ...favorites.map((item) => ({
+      key: favoriteLibraryItemKey(item.target),
+      title: item.title,
+      objectType: item.objectType,
+      meta: item.meta,
+      preview: item.blurb,
+      categoryLabel: null,
+      sourceLabel: "Favorite",
+      updatedAt: item.createdAt,
+      isFavorite: true,
+      href: item.href,
+      icon: item.objectType === "template" ? "list" as const : item.objectType === "prompt" ? "code" as const : "book" as const,
+      visibility: null,
+      ownedItem: null,
+      favoriteTarget: item.target,
+    })),
+  ];
 
   return (
     <main className="my-page">
-      <div className="my-wrap">
-        <div className="my-head">
+      <div className="my-wrap my-library-wrap">
+        <div className="my-head library-page-head">
           <div>
             <Eyebrow>Your workspace</Eyebrow>
             <h1>My Library</h1>
+            <p>Find any Template, Prompt, or Workflow in seconds.</p>
           </div>
           <div className="my-head-actions">
             <Link className="btn btn-primary btn-sm" href="/build">
@@ -55,138 +97,13 @@ export default async function MyLibraryPage({
           </div>
         </div>
 
-        <MyTabs />
-
-        <section className="my-section my-section-content">
-          <h2 className="sr-only">Library items</h2>
-          {filter === "favorites" ? <Favorites /> : <OwnedList filter={filter} />}
-        </section>
+        <LibraryBrowser
+          items={browserItems}
+          workspaces={workspaceData.workspaces}
+          memberships={workspaceData.memberships}
+          initialFilter={filter}
+        />
       </div>
     </main>
-  );
-}
-
-async function OwnedList({ filter }: { filter: LibraryFilter }) {
-  const [notebooks, userTemplates, prompts, workflows] = await Promise.all([
-    listNotebooks(),
-    listUserTemplates(),
-    listSavedPrompts(),
-    listUserWorkflows(),
-  ]);
-  const items = filterLibrary(buildLibrary({ notebooks, userTemplates, prompts, workflows }), filter);
-
-  if (items.length === 0) return <EmptyState filter={filter} />;
-
-  return <MyLibraryGrid items={items} />;
-}
-
-function EmptyState({ filter }: { filter: LibraryFilter }) {
-  if (filter === "templates") {
-    return (
-      <CrosshairCard className="panel my-empty">
-        <span className="my-empty-ic my-empty-ic-template">
-          <Icon name="list" size={22} />
-        </span>
-        <h3>No templates yet</h3>
-        <p>Templates are reusable frameworks you fill in to generate a prompt.</p>
-        <div className="my-empty-actions">
-          <Link className="btn btn-primary btn-sm" href="/build/template">
-            + New Template
-          </Link>
-          <Link className="btn btn-ghost btn-sm" href="/templates">
-            Browse templates
-          </Link>
-        </div>
-      </CrosshairCard>
-    );
-  }
-  if (filter === "prompts") {
-    return (
-      <CrosshairCard className="panel my-empty">
-        <span className="my-empty-ic my-empty-ic-prompt">
-          <Icon name="code" size={22} />
-        </span>
-        <h3>No prompts yet</h3>
-        <p>Prompts are ready-to-use text you can copy straight into an AI.</p>
-        <div className="my-empty-actions">
-          <Link className="btn btn-primary btn-sm" href="/build/prompt">
-            + New Prompt
-          </Link>
-          <Link className="btn btn-ghost btn-sm" href="/prompts">
-            Browse prompts
-          </Link>
-        </div>
-      </CrosshairCard>
-    );
-  }
-  if (filter === "workflows") return <CrosshairCard className="panel my-empty"><span className="my-empty-ic"><Icon name="book" size={22}/></span><h3>No Workflows yet</h3><p>Create a guided playbook or remix one from the catalog.</p><div className="my-empty-actions"><Link className="btn btn-primary btn-sm" href="/build/workflow">+ New Workflow</Link><Link className="btn btn-ghost btn-sm" href="/workflows">Browse Workflows</Link></div></CrosshairCard>;
-  return (
-    <CrosshairCard className="panel my-empty">
-      <span className="my-empty-ic">
-        <Icon name="star" size={22} />
-      </span>
-      <h3>Your library is empty</h3>
-      <p>Create your first template or prompt. Everything you make lives here.</p>
-      <div className="my-empty-actions">
-        <Link className="btn btn-primary btn-sm" href="/build/template">
-          + New Template
-        </Link>
-        <Link className="btn btn-ink btn-sm" href="/build/prompt">
-          + New Prompt
-        </Link>
-      </div>
-    </CrosshairCard>
-  );
-}
-
-async function Favorites() {
-  const items = await resolveFavoriteRows(await listBookmarks());
-
-  if (items.length === 0) {
-    return (
-      <CrosshairCard className="panel my-empty">
-        <span className="my-empty-ic my-empty-ic-prompt" aria-hidden="true">
-          <Icon name="bookmark" size={22} />
-        </span>
-        <h3>No favorites yet</h3>
-        <p>Use the bookmark on any Template, Prompt, or Workflow to keep it here.</p>
-        <div className="my-empty-actions">
-          <Link className="btn btn-primary btn-sm" href="/templates">
-            Browse templates
-          </Link>
-          <Link className="btn btn-ghost btn-sm" href="/prompts">
-            Browse prompts
-          </Link>
-        </div>
-      </CrosshairCard>
-    );
-  }
-
-  return (
-    <div className="my-grid">
-      {items.map((b) =>
-        <article key={b.id} className={`my-card-tile is-${b.objectType}`}>
-          <div className="mct-bar">
-            <span className="mct-glyph" aria-hidden="true">
-              <Icon name={b.objectType === "template" ? "list" : b.objectType === "prompt" ? "code" : "book"} size={14} />
-            </span>
-            <h3 className="mct-title">
-              <Link className="mct-link" href={b.href}>
-                {b.title}
-              </Link>
-            </h3>
-            <span className="mct-fav">
-              <BookmarkButton compact target={b.target} />
-            </span>
-          </div>
-          <div className="mct-body">
-            <p className="mct-blurb">{b.blurb}</p>
-          </div>
-          <div className="mct-foot">
-            <span className="mct-meta">{b.meta}</span>
-          </div>
-        </article>
-      )}
-    </div>
   );
 }
