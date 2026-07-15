@@ -5,6 +5,7 @@ import type { Template } from "@/data/types";
 import type { Database } from "@/lib/supabase/types";
 import { inputToTemplate, userTemplateInputSchema } from "@/lib/userTemplates/validate";
 import type { CommunityAuthor } from "./map";
+import type { TemplateDefinition } from "@/lib/templates/model";
 
 type CommunityTemplateRow =
   Database["public"]["Functions"]["community_template"]["Returns"][number];
@@ -18,6 +19,7 @@ type CommunityTemplateBase = {
 };
 
 export type CommunityTemplateDetail =
+  | (CommunityTemplateBase & { kind: "canonical"; definition: TemplateDefinition })
   | (CommunityTemplateBase & { kind: "user_template"; template: Template })
   | (CommunityTemplateBase & { kind: "notebook"; doc: BlockDoc });
 

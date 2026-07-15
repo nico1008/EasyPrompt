@@ -14,8 +14,8 @@ export function savedPromptEditMode(
   prompt: SavedPromptSource,
   hasSourceTemplate: boolean
 ): SavedPromptEditMode {
+  if (prompt.body !== null) return "body";
   const templateBacked = prompt.source_kind === "catalog" || prompt.source_kind === "user";
   if (templateBacked && hasSourceTemplate) return "answers";
-  if (prompt.body !== null) return "body";
   return "unavailable";
 }

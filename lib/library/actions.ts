@@ -21,6 +21,8 @@ import { getSavedPrompt, type SavedPromptRow } from "@/lib/savedPrompts/repo";
 import { rowToAnswers } from "@/lib/savedPrompts/map";
 import { rowToNotebook } from "@/lib/notebooks/map";
 import { blockDocSaveError } from "@/lib/blocks/schema";
+import { userTemplateDefinition } from "@/lib/templates/adapters";
+import { templateReadiness } from "@/lib/templates/compiler";
 
 const schema = z.object({
   internal: z.enum(["notebook", "user_template", "saved_prompt"]),
@@ -103,9 +105,27 @@ export async function setVisibilityAction(
 
   if (visibility === "public" && internal === "user_template") {
     const row = await getUserTemplate(id);
-    if (!row || !row.base_prompt.trim()) {
-      return { error: "Add content before making this Template public." };
+    if (!row) return { error: "Not found." };
+    if (!row.title.trim() || !row.blurb?.trim() || !row.category.trim()) {
+      return { error: "Add a title, outcome description, and category before publishing." };
     }
+    const issues = templateReadiness(userTemplateDefinition(row));
+    if (issues.length) return { error: issues[0].message };
+    const { error } = await supabase.rpc("publish_template_revision", {
+      p_template_id: id,
+      p_expected_edit_version: row.edit_version,
+      p_share_slug: row.share_slug ?? makeShareSlug(),
+    });
+    if (error) return { error: "Couldn't publish this Template. Open the editor and try again." };
+    revalidatePath("/my");
+    return { ok: true };
+  }
+
+  if (visibility === "private" && internal === "user_template") {
+    const { error } = await supabase.rpc("unpublish_template", { p_template_id: id });
+    if (error) return { error: "Couldn't unpublish this Template." };
+    revalidatePath("/my");
+    return { ok: true };
   }
 
   if (internal === "saved_prompt") {

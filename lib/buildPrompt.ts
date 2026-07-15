@@ -140,7 +140,7 @@ export function buildPromptFromBlocks(doc: BlockDoc): BuiltPrompt {
 
   for (const b of doc.blocks) {
     // Notes never reach the prompt; dividers emit a rule but aren't counted.
-    if (b.kind === "note") continue;
+    if (b.kind === "note" || b.kind === "form_group") continue;
     if (b.kind === "divider") {
       if (!b.enabled) continue;
       separate();
@@ -162,7 +162,7 @@ export function buildPromptFromBlocks(doc: BlockDoc): BuiltPrompt {
       }
       if (body) segments.push(...markAuthored(body));
       answered++;
-    } else {
+    } else if (b.kind === "variable") {
       const value = b.value.trim();
       if (!value) continue; // smart exclusion: blank variable
       separate();
@@ -171,6 +171,11 @@ export function buildPromptFromBlocks(doc: BlockDoc): BuiltPrompt {
       const prefix = b.field.prefix.replace(/^\n+/, "");
       if (prefix) segments.push(...markAuthored(prefix));
       segments.push({ text: value, kind: "acc" });
+      answered++;
+    } else {
+      if (!b.suggestedSelected || !b.injectedText.trim()) continue;
+      separate();
+      segments.push(...markAuthored(b.injectedText.trim()));
       answered++;
     }
   }

@@ -65,9 +65,31 @@ const dividerBlockSchema = z.object({
   collapsed: z.boolean(),
 });
 
+const optionalToggleBlockSchema = z.object({
+  kind: z.literal("optional_toggle"),
+  id: idSchema,
+  label: z.string().max(80),
+  helper: z.string().max(160).optional(),
+  injectedText: z.string().max(1000),
+  suggestedSelected: z.boolean(),
+  enabled: z.boolean(),
+  collapsed: z.boolean(),
+});
+
+const formGroupBlockSchema = z.object({
+  kind: z.literal("form_group"),
+  id: idSchema,
+  title: z.string().max(80),
+  description: z.string().max(200).optional(),
+  enabled: z.boolean(),
+  collapsed: z.boolean(),
+});
+
 export const blockSchema = z.discriminatedUnion("kind", [
   sectionBlockSchema,
   variableBlockSchema,
+  optionalToggleBlockSchema,
+  formGroupBlockSchema,
   noteBlockSchema,
   dividerBlockSchema,
 ]);
@@ -76,6 +98,9 @@ export const blockDocSchema = z.object({
   version: z.literal(1),
   title: z.string().max(120),
   blocks: z.array(blockSchema).max(60, "Keep it under 60 blocks."),
+  outcome: z.string().max(240).optional(),
+  category: z.string().max(40).optional(),
+  icon: z.string().max(40).optional(),
 });
 
 export type BlockDocInput = z.infer<typeof blockDocSchema>;
@@ -90,6 +115,7 @@ export function blockDocSaveError(doc: BlockDoc): string | null {
     if (!block.enabled) return false;
     if (block.kind === "section") return block.body.trim().length > 0;
     if (block.kind === "variable") return block.field.label.trim().length > 0;
+    if (block.kind === "optional_toggle") return block.label.trim().length > 0 && block.injectedText.trim().length > 0;
     return false;
   });
 

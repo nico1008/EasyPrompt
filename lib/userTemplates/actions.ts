@@ -8,7 +8,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { validateUserTemplate } from "./validate";
+import { inputToTemplate, validateUserTemplate } from "./validate";
+import { documentFromClassicTemplate } from "@/lib/templates/adapters";
 
 export type EditorState = { ok?: boolean; errors?: string[] };
 
@@ -53,6 +54,7 @@ export async function createUserTemplateAction(
   if (!user) return { errors: ["Please log in again."] };
 
   const v = result.value;
+  const document = documentFromClassicTemplate(inputToTemplate(v));
   const base = slugify(v.title);
   const row = {
     owner_id: user.id,
@@ -66,6 +68,10 @@ export async function createUserTemplateAction(
     fields: v.fields,
     checkboxes: v.checkboxes,
     is_public: false, // sharing seam parked — never write a public row (see validate.ts)
+    visibility: "private" as const,
+    document,
+    schema_version: document.schema_version,
+    edit_version: 1,
   };
 
   // Insert; if the (owner_id, slug) pair collides, retry once with a suffix.
@@ -111,7 +117,30 @@ export async function updateUserTemplateAction(
   if (!user) return { errors: ["Please log in again."] };
 
   const v = result.value;
-  const { error } = await supabase
+  const document = documentFromClassicTemplate(inputToTemplate(v));
+  const { data: current } = await supabase
+    .from("user_templates")
+    .select("edit_version")
+    .eq("id", id)
+    .maybeSingle();
+  if (!current) return { errors: ["That Template is no longer available."] };
+
+  const { error } = await supabase.rpc("save_template_edit", {
+    p_template_id: id,
+    p_expected_edit_version: current.edit_version,
+    p_document: document,
+    p_title: v.title,
+    p_outcome: v.blurb ?? "",
+    p_category: v.category,
+    p_icon: v.icon,
+  });
+  if (error) {
+    return { errors: [error.message.includes("edit conflict")
+      ? "This Template changed in another session. Reload and try again."
+      : "Couldn't save your changes. Please try again."] };
+  }
+
+  const { error: mirrorError } = await supabase
     .from("user_templates")
     .update({
       title: v.title,
@@ -123,11 +152,10 @@ export async function updateUserTemplateAction(
       base_prompt: v.base_prompt,
       fields: v.fields,
       checkboxes: v.checkboxes,
-      is_public: false, // sharing seam parked — never write a public row (see validate.ts)
     })
     .eq("id", id);
 
-  if (error) return { errors: ["Couldn't save your changes. Please try again."] };
+  if (mirrorError) return { errors: ["The Template saved, but its legacy compatibility data could not be updated."] };
 
   revalidatePath("/my");
   revalidatePath(`/my/templates/${id}`);
@@ -141,7 +169,20 @@ export async function deleteUserTemplateAction(formData: FormData): Promise<void
   if (typeof id !== "string" || !id) redirect("/my");
 
   const supabase = await createClient();
-  await supabase.from("user_templates").delete().eq("id", id);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await supabase.rpc("soft_delete_template", { p_template_id: id });
+  revalidatePath("/my");
+}
+
+export async function restoreUserTemplateAction(formData: FormData): Promise<void> {
+  if (!isSupabaseConfigured()) redirect("/my");
+  const id = formData.get("id");
+  if (typeof id !== "string" || !id) redirect("/my");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await supabase.rpc("restore_deleted_template", { p_template_id: id });
   revalidatePath("/my");
 }
 
@@ -177,7 +218,14 @@ export async function duplicateUserTemplateAction(formData: FormData): Promise<v
     base_prompt: src.base_prompt,
     fields: src.fields,
     checkboxes: src.checkboxes,
+    document: src.document,
+    schema_version: src.schema_version,
+    edit_version: 1,
     is_public: false,
+    visibility: "private",
+    published_revision_id: null,
+    deleted_at: null,
+    delete_after: null,
   });
 
   revalidatePath("/my");

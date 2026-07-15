@@ -73,6 +73,12 @@ export interface Database {
           is_public: boolean;
           visibility: ContentVisibility;
           share_slug: string | null;
+          document: Json | null;
+          schema_version: number;
+          edit_version: number;
+          published_revision_id: string | null;
+          deleted_at: string | null;
+          delete_after: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -92,6 +98,12 @@ export interface Database {
           is_public?: boolean;
           visibility?: ContentVisibility;
           share_slug?: string | null;
+          document?: Json | null;
+          schema_version?: number;
+          edit_version?: number;
+          published_revision_id?: string | null;
+          deleted_at?: string | null;
+          delete_after?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -109,6 +121,12 @@ export interface Database {
           is_public?: boolean;
           visibility?: ContentVisibility;
           share_slug?: string | null;
+          document?: Json | null;
+          schema_version?: number;
+          edit_version?: number;
+          published_revision_id?: string | null;
+          deleted_at?: string | null;
+          delete_after?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -127,6 +145,15 @@ export interface Database {
           visibility: ContentVisibility;
           share_slug: string | null;
           remixed_from: string | null;
+          template_key: string | null;
+          template_revision_id: string | null;
+          template_content_revision: number | null;
+          source_surface: string | null;
+          source_title_snapshot: string | null;
+          source_author_snapshot: string | null;
+          source_slug_snapshot: string | null;
+          source_snapshot: Json | null;
+          source_created_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -143,6 +170,15 @@ export interface Database {
           visibility?: ContentVisibility;
           share_slug?: string | null;
           remixed_from?: string | null;
+          template_key?: string | null;
+          template_revision_id?: string | null;
+          template_content_revision?: number | null;
+          source_surface?: string | null;
+          source_title_snapshot?: string | null;
+          source_author_snapshot?: string | null;
+          source_slug_snapshot?: string | null;
+          source_snapshot?: Json | null;
+          source_created_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -154,8 +190,90 @@ export interface Database {
           visibility?: ContentVisibility;
           share_slug?: string | null;
           remixed_from?: string | null;
+          template_key?: string | null;
+          template_revision_id?: string | null;
+          template_content_revision?: number | null;
+          source_surface?: string | null;
+          source_title_snapshot?: string | null;
+          source_author_snapshot?: string | null;
+          source_slug_snapshot?: string | null;
+          source_snapshot?: Json | null;
+          source_created_at?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      template_revisions: {
+        Row: {
+          id: string;
+          template_id: string;
+          owner_id: string;
+          schema_version: number;
+          source_edit_version: number;
+          reason: "publish" | "republish" | "manual" | "conflict_overwrite" | "pre_restore" | "private_source";
+          label: string | null;
+          title: string;
+          outcome: string;
+          category: string;
+          icon: string;
+          document: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          owner_id: string;
+          schema_version: number;
+          source_edit_version: number;
+          reason: "publish" | "republish" | "manual" | "conflict_overwrite" | "pre_restore" | "private_source";
+          label?: string | null;
+          title: string;
+          outcome?: string;
+          category: string;
+          icon: string;
+          document: Json;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      legacy_template_map: {
+        Row: {
+          id: string;
+          legacy_source_kind: "prompt_notebook" | "user_template";
+          legacy_source_id: string;
+          canonical_template_id: string | null;
+          migration_status: "pending" | "migrated" | "needs_review" | "waived";
+          source_checksum: string | null;
+          target_checksum: string | null;
+          original_slug: string | null;
+          error_reason: string | null;
+          migrated_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["legacy_template_map"]["Row"]> & {
+          legacy_source_kind: "prompt_notebook" | "user_template";
+          legacy_source_id: string;
+          migration_status: "pending" | "migrated" | "needs_review" | "waived";
+        };
+        Update: Partial<Database["public"]["Tables"]["legacy_template_map"]["Row"]>;
+        Relationships: [];
+      };
+      template_route_redirects: {
+        Row: {
+          id: string;
+          legacy_path: string;
+          canonical_template_id: string | null;
+          canonical_slug: string | null;
+          status_code: 301 | 308 | 410;
+          verified_at: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["template_route_redirects"]["Row"]> & {
+          legacy_path: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["template_route_redirects"]["Row"]>;
         Relationships: [];
       };
       entitlements: {
@@ -318,6 +436,8 @@ export interface Database {
           /** Non-null = shareable via /s/t/<slug> (capability token). */
           share_slug: string | null;
           visibility: ContentVisibility;
+          deleted_at: string | null;
+          delete_after: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -328,6 +448,8 @@ export interface Database {
           doc?: Json;
           share_slug?: string | null;
           visibility?: ContentVisibility;
+          deleted_at?: string | null;
+          delete_after?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -336,6 +458,8 @@ export interface Database {
           doc?: Json;
           share_slug?: string | null;
           visibility?: ContentVisibility;
+          deleted_at?: string | null;
+          delete_after?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -556,6 +680,61 @@ export interface Database {
           p_share_slug?: string | null;
         };
         Returns: string | null;
+      };
+      save_template_edit: {
+        Args: {
+          p_template_id: string;
+          p_expected_edit_version: number;
+          p_document: Json;
+          p_title: string;
+          p_outcome: string;
+          p_category: string;
+          p_icon: string;
+        };
+        Returns: { template_id: string; edit_version: number }[];
+      };
+      publish_template_revision: {
+        Args: { p_template_id: string; p_expected_edit_version: number; p_share_slug: string };
+        Returns: { revision_id: string; share_slug: string; edit_version: number }[];
+      };
+      snapshot_template_revision: {
+        Args: { p_template_id: string; p_expected_edit_version: number };
+        Returns: string;
+      };
+      overwrite_template_edit: {
+        Args: { p_template_id: string; p_document: Json; p_title: string };
+        Returns: number;
+      };
+      snapshot_template_version: {
+        Args: { p_template_id: string; p_label?: string | null };
+        Returns: string;
+      };
+      restore_template_version: {
+        Args: { p_template_id: string; p_revision_id: string };
+        Returns: number;
+      };
+      unpublish_template: { Args: { p_template_id: string }; Returns: undefined };
+      soft_delete_template: { Args: { p_template_id: string }; Returns: undefined };
+      restore_deleted_template: { Args: { p_template_id: string }; Returns: undefined };
+      public_template_revision: {
+        Args: { p_slug: string };
+        Returns: {
+          template_id: string;
+          template_key: string;
+          revision_id: string;
+          title: string;
+          outcome: string;
+          category: string;
+          icon: string;
+          document: Json;
+          share_slug: string;
+          author_username: string | null;
+          author_display_name: string | null;
+        }[];
+      };
+      template_route_status: {
+        Args: { p_slug: string };
+        Returns: string;
       };
       publish_workflow: {
         Args: { p_id: string; p_owner: string; p_revision: number; p_share_slug: string; p_publish: boolean };

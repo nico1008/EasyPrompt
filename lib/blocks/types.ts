@@ -78,11 +78,29 @@ export type DividerBlock = BlockCommon & {
   kind: "divider";
 };
 
-export type Block = SectionBlock | VariableBlock | NoteBlock | DividerBlock;
+export type OptionalToggleBlock = BlockCommon & {
+  kind: "optional_toggle";
+  label: string;
+  helper?: string;
+  injectedText: string;
+  suggestedSelected: boolean;
+};
+
+export type FormGroupBlock = BlockCommon & {
+  kind: "form_group";
+  title: string;
+  description?: string;
+};
+
+export type Block = SectionBlock | VariableBlock | OptionalToggleBlock | FormGroupBlock | NoteBlock | DividerBlock;
 
 export type BlockDoc = {
   version: 1;
   /** Prompt display name; maps to prompt_notebooks.name on save. */
   title: string;
   blocks: Block[];
+  /** Creator metadata is carried in local drafts; canonical storage keeps it in columns. */
+  outcome?: string;
+  category?: string;
+  icon?: string;
 };

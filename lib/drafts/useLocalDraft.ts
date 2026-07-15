@@ -18,6 +18,8 @@ export function useLocalDraft<T>(opts: {
   key: string;
   /** Off when reopening a saved item (the saved row wins) or when disabled. */
   enabled: boolean;
+  /** Persist without restoring when the server remains authoritative (crash protection). */
+  restore?: boolean;
   /** Current value to persist. */
   value: T;
   /** Whether there's content worth keeping (skip storing empty drafts). */
@@ -32,7 +34,7 @@ export function useLocalDraft<T>(opts: {
    *  content but it exceeds the size cap (so the caller can warn the user). */
   onStatus?: (status: "saved" | "too-big") => void;
 }): { clear: () => void } {
-  const { key, enabled, value, hasContent, serialize, parse, onRestore, onStatus } = opts;
+  const { key, enabled, restore = true, value, hasContent, serialize, parse, onRestore, onStatus } = opts;
   const ready = useRef(false);
   const onRestoreRef = useRef(onRestore);
   onRestoreRef.current = onRestore;
@@ -46,10 +48,12 @@ export function useLocalDraft<T>(opts: {
   // Restore once, after mount. Marks `ready` so autosave doesn't run first.
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
-    const draft = parseRef.current(window.localStorage.getItem(key));
-    if (draft) onRestoreRef.current(draft);
+    if (restore) {
+      const draft = parseRef.current(window.localStorage.getItem(key));
+      if (draft) onRestoreRef.current(draft);
+    }
     ready.current = true;
-  }, [key, enabled]);
+  }, [key, enabled, restore]);
 
   // Debounced autosave on change (only after the restore pass).
   useEffect(() => {

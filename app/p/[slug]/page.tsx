@@ -7,6 +7,7 @@ import { blurbFromBody } from "@/lib/community/map";
 import { shareSlugSchema } from "@/lib/notebooks/share";
 import { Builder } from "@/app/templates/[slug]/Builder";
 import { CommunityBlockTemplateRunner } from "@/components/CommunityBlockTemplateRunner";
+import { UnifiedTemplateFill } from "@/components/templates/UnifiedTemplateFill";
 
 /* A community Template by share slug. Data comes from the security-definer
  * community_template(slug) RPC (exact-slug, visibility-gated, author-gated). A
@@ -47,6 +48,16 @@ export default async function CommunityTemplatePage({
 
   const tpl = await getCommunityTemplate(slug);
   if (!tpl) notFound();
+
+  if (tpl.kind === "canonical") {
+    return (
+      <UnifiedTemplateFill
+        definition={tpl.definition}
+        breadcrumbs={[{ href: "/templates", label: "Templates" }, { label: tpl.title }]}
+        bookmarkTarget={{ kind: "user_template", key: slug }}
+      />
+    );
+  }
 
   if (tpl.kind === "user_template") {
     return (

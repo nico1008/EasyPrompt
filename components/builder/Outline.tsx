@@ -11,6 +11,8 @@ import type { Block } from "@/lib/blocks/types";
 function outlineLabel(b: Block): string {
   if (b.kind === "section") return b.heading.trim() || blockTypeLabel(b);
   if (b.kind === "variable") return b.field.label.trim() || "Variable";
+  if (b.kind === "optional_toggle") return b.label.trim() || "Optional choice";
+  if (b.kind === "form_group") return b.title.trim() || "Form section";
   if (b.kind === "note") return b.text.trim() ? `Note: ${b.text.trim().slice(0, 24)}` : "Note";
   return "Divider";
 }

@@ -33,6 +33,7 @@ import {
   type SaveState,
 } from "@/lib/savedPrompts/actions";
 import "./PromptEditor.css";
+import type { PromptTemplateProvenance } from "@/lib/templates/provenance";
 
 const EMPTY: SaveState = {};
 
@@ -53,11 +54,13 @@ export function PromptEditor({
   draftId = "new",
   initialName = "",
   initialBody = "",
+  initialProvenance,
   savedPromptId,
 }: {
   draftId?: string;
   initialName?: string;
   initialBody?: string;
+  initialProvenance?: PromptTemplateProvenance;
   savedPromptId?: string;
 }) {
   const editing = Boolean(savedPromptId);
@@ -160,6 +163,7 @@ export function PromptEditor({
     >
       <input type="hidden" name="name" value={name || "Untitled prompt"} />
       <input type="hidden" name="body" value={body} />
+      {initialProvenance && <input type="hidden" name="provenance" value={JSON.stringify(initialProvenance)} />}
       {editing && <input type="hidden" name="id" value={savedPromptId} />}
       <SaveSubmit saved={saved} disabled={!hasBody} />
     </form>

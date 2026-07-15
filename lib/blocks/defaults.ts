@@ -10,7 +10,9 @@ import type {
   BlockDoc,
   BlockPreset,
   DividerBlock,
+  FormGroupBlock,
   NoteBlock,
+  OptionalToggleBlock,
   SectionBlock,
   VariableBlock,
 } from "./types";
@@ -233,6 +235,30 @@ export function newVariableBlock(type: Field["type"] = "text"): VariableBlock {
   };
 }
 
+export function newOptionalToggleBlock(): OptionalToggleBlock {
+  return {
+    id: newBlockId(),
+    kind: "optional_toggle",
+    label: "Optional choice",
+    helper: "",
+    injectedText: "",
+    suggestedSelected: false,
+    enabled: true,
+    collapsed: false,
+  };
+}
+
+export function newFormGroupBlock(): FormGroupBlock {
+  return {
+    id: newBlockId(),
+    kind: "form_group",
+    title: "Form section",
+    description: "",
+    enabled: true,
+    collapsed: false,
+  };
+}
+
 export function newNoteBlock(): NoteBlock {
   return { id: newBlockId(), kind: "note", text: "", enabled: true, collapsed: false };
 }
@@ -271,6 +297,10 @@ export function blockTypeLabel(b: Block): string {
       return PRESET_META[b.preset].label;
     case "variable":
       return VAR_META[b.field.type].label;
+    case "optional_toggle":
+      return "Optional choice";
+    case "form_group":
+      return "Form section";
     case "note":
       return "Note";
     case "divider":
@@ -285,6 +315,10 @@ export function blockTypeIcon(b: Block): IconName {
       return PRESET_ICON[b.preset];
     case "variable":
       return "zap";
+    case "optional_toggle":
+      return "check";
+    case "form_group":
+      return "list";
     case "note":
       return "note";
     case "divider":
@@ -342,6 +376,26 @@ export function paletteEntries(): PaletteEntry[] {
       keywords: `${m.label} ${m.description} input variable field ${type}`.toLowerCase(),
       make: () => newVariableBlock(type),
     });
+  });
+
+  entries.push({
+    key: "optional-toggle",
+    label: "Optional choice",
+    description: "A switch that adds Prompt text when selected.",
+    icon: "check",
+    category: "variables",
+    keywords: "optional choice toggle switch checkbox",
+    make: () => newOptionalToggleBlock(),
+  });
+
+  entries.push({
+    key: "form-group",
+    label: "Form section",
+    description: "Group the questions that follow it in the fill form.",
+    icon: "list",
+    category: "variables",
+    keywords: "form section group questions",
+    make: () => newFormGroupBlock(),
   });
 
   entries.push({

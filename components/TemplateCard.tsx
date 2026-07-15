@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { Icon } from "./Icon";
-import { RatingStars } from "./RatingStars";
 import { BookmarkButton } from "./BookmarkButton";
-import { UsesBadge } from "./UsesBadge";
 import { objectMeta } from "@/lib/library/objectMeta";
 import { useImpression } from "@/lib/metrics/useImpression";
 import type { Aggregate } from "@/lib/ratings/map";
@@ -19,8 +17,6 @@ import { CreatorChip } from "./CreatorChip";
    impression records a `view`; `uses` comes from the grid's batch fetch. */
 export function TemplateCard({
   item,
-  uses,
-  rating,
 }: {
   item: BrowseTemplateItem;
   uses?: number;
@@ -53,22 +49,13 @@ export function TemplateCard({
         <p className="tt-blurb">{item.blurb}</p>
       </div>
       <div className="tt-foot">
-        <span className="tt-tag">{item.tag}</span>
+        <span className="tt-tag">{item.category ?? item.tag}</span>
         <span className="tt-meta">
           {item.origin === "community" && <CreatorChip creator={item.creator} compact />}
-          <UsesBadge target={{ kind: item.metricKind, key: item.slug }} count={uses} managed />
-          {item.showRating && (
-            <RatingStars
-              target={{ kind: "catalog", key: item.slug }}
-              compact
-              initialAggregate={rating}
-            />
-          )}
-          {item.questionCount != null && (
-            <span className="tt-q">{item.questionCount} questions</span>
-          )}
+          <span className="tt-q">{item.questionCount != null ? `${item.questionCount} inputs` : "Quick fill"}</span>
         </span>
       </div>
+      <span className="tt-use" aria-hidden="true">Use Template <Icon name="arrow-right" size={13} /></span>
     </article>
   );
 }

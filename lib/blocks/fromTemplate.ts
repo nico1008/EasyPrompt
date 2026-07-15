@@ -11,7 +11,7 @@
 
 import type { Template, Field } from "@/data/types";
 import type { Answers } from "@/lib/buildPrompt";
-import type { Block, BlockDoc, BlockPreset, SectionBlock, VariableBlock } from "./types";
+import type { Block, BlockDoc, BlockPreset, SectionBlock, VariableBlock, OptionalToggleBlock } from "./types";
 
 function presetFor(heading: string): BlockPreset {
   const h = heading.toLowerCase();
@@ -104,15 +104,15 @@ export function blockDocFromTemplate(template: Template, answers?: Answers): Blo
   }
 
   for (const c of template.checkboxes) {
-    const body = stripLeadingHeading(c.injected_text);
-    if (!body && !c.label) continue;
-    const block: SectionBlock = {
+    if (!c.injected_text.trim() && !c.label) continue;
+    const block: OptionalToggleBlock = {
       id: id(),
-      kind: "section",
-      preset: "output",
-      heading: c.label,
-      body,
-      enabled: answers ? Boolean(answers.checks[c.id]) : Boolean(c.default),
+      kind: "optional_toggle",
+      label: c.label,
+      helper: c.sub,
+      injectedText: c.injected_text,
+      suggestedSelected: answers ? Boolean(answers.checks[c.id]) : Boolean(c.default),
+      enabled: true,
       collapsed: false,
     };
     blocks.push(block);

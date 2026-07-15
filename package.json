@@ -8,6 +8,7 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "templates:parity": "tsx tools/verify-template-parity.ts",
     "mint": "tsx scripts/mint.ts"
   },
   "dependencies": {

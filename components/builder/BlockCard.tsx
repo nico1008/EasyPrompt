@@ -14,7 +14,7 @@ import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 
 import { Icon } from "@/components/Icon";
 import { FieldControl } from "@/components/FieldControl";
 import { PRESET_META, derivePrefix, blockTypeLabel, blockTypeIcon } from "@/lib/blocks/defaults";
-import type { Block, NoteBlock, SectionBlock, VariableBlock } from "@/lib/blocks/types";
+import type { Block, FormGroupBlock, NoteBlock, OptionalToggleBlock, SectionBlock, VariableBlock } from "@/lib/blocks/types";
 import type { Field } from "@/data/types";
 import { usePopover } from "./usePopover";
 
@@ -237,6 +237,20 @@ export function BlockCard({
               labelRef={firstFieldRef as React.RefObject<HTMLInputElement>}
             />
           )}
+          {block.kind === "optional_toggle" && (
+            <OptionalToggleBody
+              block={block}
+              onChange={onChange}
+              labelRef={firstFieldRef as React.RefObject<HTMLInputElement>}
+            />
+          )}
+          {block.kind === "form_group" && (
+            <FormGroupBody
+              block={block}
+              onChange={onChange}
+              titleRef={firstFieldRef as React.RefObject<HTMLInputElement>}
+            />
+          )}
           {block.kind === "note" && (
             <NoteBody
               block={block}
@@ -319,6 +333,103 @@ function NoteBody({
   );
 }
 
+function OptionalToggleBody({
+  block,
+  onChange,
+  labelRef,
+}: {
+  block: OptionalToggleBlock;
+  onChange: (next: Block) => void;
+  labelRef: React.RefObject<HTMLInputElement>;
+}) {
+  return (
+    <>
+      <div className="field">
+        <label htmlFor={`${block.id}-label`}>Label</label>
+        <input
+          id={`${block.id}-label`}
+          ref={labelRef}
+          className="input"
+          value={block.label}
+          maxLength={80}
+          placeholder="e.g. Include examples"
+          onChange={(event) => onChange({ ...block, label: event.target.value })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={`${block.id}-helper`}>Helper <span className="muted">optional</span></label>
+        <input
+          id={`${block.id}-helper`}
+          className="input"
+          value={block.helper ?? ""}
+          maxLength={160}
+          placeholder="Explain when this choice is useful."
+          onChange={(event) => onChange({ ...block, helper: event.target.value })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={`${block.id}-injected`}>Prompt text when selected</label>
+        <textarea
+          id={`${block.id}-injected`}
+          className="textarea pb-body-area"
+          value={block.injectedText}
+          maxLength={1000}
+          placeholder="Add the exact instruction this choice contributes."
+          onChange={(event) => onChange({ ...block, injectedText: event.target.value })}
+        />
+      </div>
+      <label className="inline-check">
+        <input
+          type="checkbox"
+          checked={block.suggestedSelected}
+          onChange={(event) => onChange({ ...block, suggestedSelected: event.target.checked })}
+        />
+        Preselect in Test mode
+      </label>
+    </>
+  );
+}
+
+function FormGroupBody({
+  block,
+  onChange,
+  titleRef,
+}: {
+  block: FormGroupBlock;
+  onChange: (next: Block) => void;
+  titleRef: React.RefObject<HTMLInputElement>;
+}) {
+  return (
+    <>
+      <div className="field">
+        <label htmlFor={`${block.id}-title`}>Section title</label>
+        <input
+          id={`${block.id}-title`}
+          ref={titleRef}
+          className="input"
+          value={block.title}
+          maxLength={80}
+          placeholder="e.g. About your audience"
+          onChange={(event) => onChange({ ...block, title: event.target.value })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={`${block.id}-description`}>Description <span className="muted">optional</span></label>
+        <textarea
+          id={`${block.id}-description`}
+          className="textarea"
+          value={block.description ?? ""}
+          maxLength={200}
+          rows={2}
+          placeholder="A short explanation for this group of questions."
+          onChange={(event) => onChange({ ...block, description: event.target.value })}
+        />
+      </div>
+      <p className="helper">The questions immediately below this section stay grouped until the next Prompt content or form section.</p>
+    </>
+  );
+}
+
 function VariableBody({
   block,
   onChange,
@@ -359,6 +470,15 @@ function VariableBody({
     onChange({ ...block, field: next });
   };
 
+  const setOptions = (options: string[]) => setField({ options });
+  const moveOption = (index: number, direction: -1 | 1) => {
+    const options = [...(field.type === "select" || field.type === "pills" ? field.options : [])];
+    const target = index + direction;
+    if (target < 0 || target >= options.length) return;
+    [options[index], options[target]] = [options[target], options[index]];
+    setOptions(options);
+  };
+
   return (
     <>
       <div className="pb-var-settings">
@@ -390,22 +510,35 @@ function VariableBody({
       </div>
 
       {isChoice && (
-        <div className="field">
-          <label htmlFor={`${block.id}-options`}>Options (comma-separated)</label>
-          <input
-            id={`${block.id}-options`}
-            className="input"
-            value={(field.options ?? []).join(", ")}
-            placeholder="Option A, Option B, Option C"
-            onChange={(e) =>
-              setField({
-                options: e.target.value
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean),
-              })
-            }
-          />
+        <div className="field pb-options-editor">
+          <span className="pb-options-label">Options</span>
+          {(field.options ?? []).map((option, index) => (
+            <div className="pb-option-row" key={index}>
+              <input
+                className="input"
+                value={option}
+                maxLength={80}
+                aria-label={`Option ${index + 1}`}
+                placeholder={`Option ${index + 1}`}
+                onChange={(event) => {
+                  const next = [...(field.options ?? [])];
+                  next[index] = event.target.value;
+                  setOptions(next);
+                }}
+              />
+              <button type="button" className="pb-iconbtn" aria-label={`Move option ${index + 1} up`} disabled={index === 0} onClick={() => moveOption(index, -1)}><Icon name="arrow-right" size={14} /></button>
+              <button type="button" className="pb-iconbtn" aria-label={`Move option ${index + 1} down`} disabled={index === (field.options?.length ?? 0) - 1} onClick={() => moveOption(index, 1)}><Icon name="arrow-right" size={14} /></button>
+              <button type="button" className="pb-iconbtn" aria-label={`Remove option ${index + 1}`} onClick={() => setOptions((field.options ?? []).filter((_, itemIndex) => itemIndex !== index))}><Icon name="x" size={14} /></button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm pb-add-option"
+            disabled={(field.options?.length ?? 0) >= 12}
+            onClick={() => setOptions([...(field.options ?? []), ""])}
+          >
+            <Icon name="plus" size={14} /> Add option
+          </button>
         </div>
       )}
 

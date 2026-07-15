@@ -17,6 +17,10 @@ import {
   communityTemplateFromRow,
   type CommunityTemplateDetail,
 } from "./template";
+import { parseTemplateDocument } from "@/lib/templates/schema";
+import type { TemplateDefinition } from "@/lib/templates/model";
+import type { IconName } from "@/components/iconNames";
+import { compileTemplate } from "@/lib/templates/compiler";
 
 export type { CommunityTemplateDetail } from "./template";
 
@@ -93,6 +97,40 @@ export async function getCommunityPrompt(slug: string): Promise<CommunityPromptD
 
 export async function getCommunityTemplate(slug: string): Promise<CommunityTemplateDetail | null> {
   const supabase = createPublicClient();
+  const { data: canonical } = await supabase.rpc("public_template_revision", { p_slug: slug });
+  if (canonical?.[0]) {
+    const row = canonical[0];
+    const document = parseTemplateDocument(row.document);
+    if (document.ok) {
+      const author = row.author_username ? { username: row.author_username } : null;
+      const definition: TemplateDefinition = {
+        identity: { template_key: `user:${row.template_id}`, source_kind: "user" },
+        metadata: {
+          title: row.title,
+          outcome: row.outcome,
+          category: row.category,
+          icon: row.icon as IconName,
+          slug: row.share_slug,
+          creator_nickname: row.author_username ?? undefined,
+        },
+        document: document.value,
+        revision: { template_key: `user:${row.template_id}`, source_kind: "user", revision_id: row.revision_id },
+        publication: { visibility: "public", published_revision_id: row.revision_id, share_slug: row.share_slug },
+        provenance: { source_surface: "community_public" },
+        capabilities: { can_edit: false, can_publish: false, can_remix: true },
+      };
+      const text = compileTemplate(definition, {}).text;
+      return {
+        kind: "canonical",
+        definition,
+        title: row.title,
+        text,
+        blurb: row.outcome || "A reusable community Template.",
+        visibility: "public",
+        author,
+      };
+    }
+  }
   const { data, error } = await supabase.rpc("community_template", { p_slug: slug });
   if (error || !data || data.length === 0) return null;
   return communityTemplateFromRow(slug, data[0]);

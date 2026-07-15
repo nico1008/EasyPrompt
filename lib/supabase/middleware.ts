@@ -63,6 +63,18 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   }
 
   const pathname = request.nextUrl.pathname;
+  if (pathname.startsWith("/p/") && pathname.split("/").length === 3) {
+    const slug = pathname.slice(3);
+    const { data: routeStatus } = await supabase.rpc("template_route_status", { p_slug: slug });
+    if (routeStatus === "deleted") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/templates/removed";
+      url.search = "";
+      const gone = NextResponse.rewrite(url, { status: 410 });
+      response.cookies.getAll().forEach((cookie) => gone.cookies.set(cookie));
+      return gone;
+    }
+  }
   if (!user && isProtected(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

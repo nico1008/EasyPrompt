@@ -34,7 +34,7 @@ export function SavedPromptView({
   text: string;
   editHref: string;
   editLabel: "Edit Prompt" | "Edit answers";
-  source?: { label: string; href: string };
+  source?: { label: string; href?: string };
 }) {
   const [toast, setToast] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -68,7 +68,7 @@ export function SavedPromptView({
         metadata={
           source ? (
             <span className="pd-source">
-              Created from <Link href={source.href}>{source.label}</Link>
+              Created from {source.href ? <Link href={source.href}>{source.label}</Link> : <span>{source.label} · Source Template unavailable</span>}
             </span>
           ) : undefined
         }

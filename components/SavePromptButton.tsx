@@ -22,6 +22,7 @@ import {
   type SaveState,
 } from "@/lib/savedPrompts/actions";
 import type { Answers } from "@/lib/buildPrompt";
+import type { PromptTemplateProvenance } from "@/lib/templates/provenance";
 import "./SavePromptButton.css";
 
 export type SaveSource =
@@ -60,6 +61,9 @@ function SaveSubmit({
 type SavePromptButtonProps = SavePromptSourceProps & {
   answers: Answers;
   defaultName: string;
+  /** Frozen generated body. Template-backed Prompts never recompile against a later revision. */
+  generatedBody?: string;
+  provenance?: PromptTemplateProvenance;
   savedPromptId?: string;
   onSaved?: () => void;
   onAuthGateNavigate?: () => void;
@@ -73,6 +77,8 @@ export function SavePromptButton({
   defaultName,
   savedPromptId,
   customBody,
+  generatedBody,
+  provenance,
   onSaved,
   onAuthGateNavigate,
   authGateNext,
@@ -173,10 +179,15 @@ export function SavePromptButton({
     >
       {custom ? (
         // Manual save: the exact markdown body, no answers/source/id (forks a new row).
-        <input type="hidden" name="body" value={customBody} />
+        <>
+          <input type="hidden" name="body" value={customBody} />
+          {provenance && <input type="hidden" name="provenance" value={JSON.stringify(provenance)} />}
+        </>
       ) : (
         <>
           <input type="hidden" name="answers" value={JSON.stringify(answers)} />
+          {generatedBody !== undefined && <input type="hidden" name="generated_body" value={generatedBody} />}
+          {provenance && <input type="hidden" name="provenance" value={JSON.stringify(provenance)} />}
           {editing ? (
             <input type="hidden" name="id" value={savedPromptId} />
           ) : source?.kind === "catalog" ? (

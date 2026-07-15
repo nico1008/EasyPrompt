@@ -8,10 +8,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { getCommunityPrompt } from "@/lib/community/repo";
+import { getCommunityPrompt, getCommunityTemplate } from "@/lib/community/repo";
 import { getTemplate } from "@/data/templates";
 import { getUserTemplate } from "@/lib/userTemplates/repo";
 import { nameSchema, parseAnswers, bodySchema, type AnswersInput } from "./schema";
+import { parsePromptProvenance } from "@/lib/templates/provenance";
+import { provenanceFromTemplate, type PromptTemplateProvenance } from "@/lib/templates/provenance";
+import { curatedTemplateDefinition } from "@/lib/templates/adapters";
 
 export type SaveState = { ok?: boolean; error?: string; savedId?: string };
 
@@ -19,6 +22,56 @@ function revalidateSavedPrompt(id: string): void {
   revalidatePath("/my");
   revalidatePath(`/my/prompts/${id}`);
   revalidatePath(`/my/prompts/${id}/edit`);
+}
+
+async function verifyPromptProvenance(
+  provenance: PromptTemplateProvenance,
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<PromptTemplateProvenance | null> {
+  if (provenance.source_kind === "curated" && provenance.source_slug_snapshot) {
+    const template = getTemplate(provenance.source_slug_snapshot);
+    if (!template) return null;
+    const definition = curatedTemplateDefinition(template);
+    if (definition.revision.source_kind !== "curated" ||
+      provenance.template_key !== definition.identity.template_key ||
+      provenance.content_revision !== definition.revision.content_revision
+    ) return null;
+    return provenanceFromTemplate(definition);
+  }
+
+  if (provenance.source_kind !== "user") return null;
+  const templateId = provenance.template_key.startsWith("user:") ? provenance.template_key.slice(5) : "";
+  if (!templateId) return null;
+
+  if (provenance.source_surface === "owned_private") {
+    const template = await getUserTemplate(templateId);
+    if (!template) return null;
+    const { data: revisionId, error } = await supabase.rpc("snapshot_template_revision", {
+      p_template_id: templateId,
+      p_expected_edit_version: template.edit_version,
+    });
+    if (error || !revisionId) return null;
+    return {
+      template_key: `user:${templateId}`,
+      source_kind: "user",
+      source_surface: "owned_private",
+      revision_id: revisionId,
+      source_title_snapshot: template.title,
+      source_slug_snapshot: template.share_slug ?? undefined,
+      source_created_at: new Date().toISOString(),
+    };
+  }
+
+  if (provenance.source_surface === "community_public" && provenance.source_slug_snapshot) {
+    const community = await getCommunityTemplate(provenance.source_slug_snapshot);
+    if (!community || community.kind !== "canonical") return null;
+    if (community.definition.revision.source_kind !== "user" ||
+      community.definition.identity.template_key !== provenance.template_key ||
+      community.definition.revision.revision_id !== provenance.revision_id
+    ) return null;
+    return provenanceFromTemplate(community.definition);
+  }
+  return null;
 }
 
 /* ---------------------- create a manual (standalone) Prompt ---------------------
@@ -44,6 +97,8 @@ export async function createManualPromptAction(
   const bodyCheck = bodySchema.safeParse((formData.get("body") as string | null) ?? "");
   if (!bodyCheck.success) return { error: bodyCheck.error.issues[0].message };
 
+  const suppliedProvenance = parsePromptProvenance(formData.get("provenance"));
+  const provenance = suppliedProvenance ? await verifyPromptProvenance(suppliedProvenance, supabase) : null;
   const { data, error } = await supabase
     .from("saved_prompts")
     .insert({
@@ -54,6 +109,16 @@ export async function createManualPromptAction(
       user_template_id: null,
       answers: { fields: {}, checks: {} },
       body: bodyCheck.data,
+      ...(provenance ? {
+        template_key: provenance.template_key,
+        template_revision_id: provenance.revision_id ?? null,
+        template_content_revision: provenance.content_revision ?? null,
+        source_surface: provenance.source_surface,
+        source_title_snapshot: provenance.source_title_snapshot,
+        source_author_snapshot: provenance.source_author_snapshot ?? null,
+        source_slug_snapshot: provenance.source_slug_snapshot ?? null,
+        source_created_at: provenance.source_created_at,
+      } : {}),
     })
     .select("id")
     .single();
@@ -117,12 +182,31 @@ export async function createSavedPromptAction(
   const sourceKind = formData.get("source_kind");
   const answers = parseAnswers(formData.get("answers"));
   if (!answers.ok) return { error: answers.error };
+  const body = bodySchema.safeParse((formData.get("generated_body") as string | null) ?? "");
+  if (!body.success) return { error: body.error.issues[0].message };
+  const provenance = parsePromptProvenance(formData.get("provenance"));
+  if (!provenance) return { error: "Prompt source information is missing." };
+
+  const sourceColumns = {
+    body: body.data,
+    template_key: provenance.template_key,
+    template_revision_id: provenance.revision_id ?? null,
+    template_content_revision: provenance.content_revision ?? null,
+    source_surface: provenance.source_surface,
+    source_title_snapshot: provenance.source_title_snapshot,
+    source_author_snapshot: provenance.source_author_snapshot ?? null,
+    source_slug_snapshot: provenance.source_slug_snapshot ?? null,
+    source_created_at: provenance.source_created_at,
+  };
 
   let row;
   if (sourceKind === "catalog") {
     const slug = formData.get("catalog_slug");
     if (typeof slug !== "string" || !slug) return { error: "Missing template." };
-    if (!getTemplate(slug)) return { error: "That Template is no longer available." };
+    const template = getTemplate(slug);
+    if (!template || provenance.template_key !== `curated:${template.id}`) {
+      return { error: "That Template is no longer available." };
+    }
     row = {
       owner_id: user.id,
       name: nameCheck.data,
@@ -130,11 +214,20 @@ export async function createSavedPromptAction(
       catalog_slug: slug,
       user_template_id: null,
       answers: answers.value,
+      ...sourceColumns,
     };
   } else if (sourceKind === "user") {
     const tid = formData.get("user_template_id");
     if (typeof tid !== "string" || !tid) return { error: "Missing template." };
-    if (!(await getUserTemplate(tid))) return { error: "That Template is no longer available." };
+    const template = await getUserTemplate(tid);
+    if (!template || provenance.template_key !== `user:${tid}`) {
+      return { error: "That Template is no longer available." };
+    }
+    const { data: revisionId, error: revisionError } = await supabase.rpc("snapshot_template_revision", {
+      p_template_id: tid,
+      p_expected_edit_version: template.edit_version,
+    });
+    if (revisionError || !revisionId) return { error: "Couldn't freeze the Template revision." };
     row = {
       owner_id: user.id,
       name: nameCheck.data,
@@ -142,6 +235,8 @@ export async function createSavedPromptAction(
       catalog_slug: null,
       user_template_id: tid,
       answers: answers.value,
+      ...sourceColumns,
+      template_revision_id: revisionId,
     };
   } else {
     return { error: "Unknown template source." };
@@ -249,6 +344,15 @@ export async function duplicateSavedPromptAction(formData: FormData): Promise<vo
     body: src.body,
     category: src.category,
     remixed_from: src.remixed_from,
+    template_key: src.template_key,
+    template_revision_id: src.template_revision_id,
+    template_content_revision: src.template_content_revision,
+    source_surface: src.source_surface,
+    source_title_snapshot: src.source_title_snapshot,
+    source_author_snapshot: src.source_author_snapshot,
+    source_slug_snapshot: src.source_slug_snapshot,
+    source_snapshot: src.source_snapshot,
+    source_created_at: src.source_created_at,
   });
   revalidatePath("/my");
 }

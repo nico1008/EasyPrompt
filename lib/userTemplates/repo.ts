@@ -12,6 +12,7 @@ export async function listUserTemplates(): Promise<UserTemplateRow[]> {
   const { data } = await supabase
     .from("user_templates")
     .select("*")
+    .is("deleted_at", null)
     .order("updated_at", { ascending: false });
   return data ?? [];
 }
@@ -22,6 +23,7 @@ export async function getUserTemplate(id: string): Promise<UserTemplateRow | nul
     .from("user_templates")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   return data ?? null;
 }

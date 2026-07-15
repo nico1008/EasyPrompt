@@ -5,6 +5,10 @@ import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getUserTemplate } from "@/lib/userTemplates/repo";
 import type { Field, Checkbox } from "@/data/types";
+import "@/app/build/builder.css";
+import { PromptBuilder } from "@/components/builder/PromptBuilder";
+import { parseTemplateDocument } from "@/lib/templates/schema";
+import { blockDocFromTemplateDocument } from "@/lib/templates/adapters";
 
 export const metadata: Metadata = {
   title: "Edit template",
@@ -23,6 +27,22 @@ export default async function EditTemplatePage({
 
   const row = await getUserTemplate(id);
   if (!row) notFound();
+
+  const document = parseTemplateDocument(row.document);
+  if (document.ok) {
+    return (
+      <PromptBuilder
+        initialDoc={blockDocFromTemplateDocument(document.value, row.title)}
+        notebookId={row.id}
+        initialShareSlug={row.share_slug}
+        initialVisibility={row.visibility}
+        initialEditVersion={row.edit_version}
+        initialOutcome={row.blurb ?? ""}
+        initialCategory={row.category}
+        initialIcon={row.icon as import("@/components/iconNames").IconName}
+      />
+    );
+  }
 
   const initial: EditorInitial = {
     id: row.id,

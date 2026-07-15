@@ -12,6 +12,7 @@ import { buildPrompt, segmentMarkdown } from "@/lib/buildPrompt";
 import { getTemplate, displayTitle } from "@/data/templates";
 import type { Template } from "@/data/types";
 import { savedPromptEditMode } from "@/lib/savedPrompts/presentation";
+import { getCommunityTemplate } from "@/lib/community/repo";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -31,7 +32,7 @@ export default async function OpenSavedPromptPage({
   if (!saved) notFound();
 
   let template: Template | undefined;
-  let source: { label: string; href: string } | undefined;
+  let source: { label: string; href?: string } | undefined;
   if (saved.source_kind === "catalog" && saved.catalog_slug) {
     template = getTemplate(saved.catalog_slug);
     if (template) source = { label: displayTitle(template), href: `/templates/${saved.catalog_slug}` };
@@ -41,12 +42,34 @@ export default async function OpenSavedPromptPage({
       template = rowToTemplate(row);
       source = { label: row.title, href: `/my/templates/${row.id}` };
     }
+  } else if (saved.source_surface === "community_public" && saved.source_slug_snapshot) {
+    const community = await getCommunityTemplate(saved.source_slug_snapshot);
+    if (community) {
+      source = { label: saved.source_title_snapshot ?? community.title, href: `/p/${saved.source_slug_snapshot}` };
+    }
+  } else if (saved.source_surface === "owned_private" && saved.template_key?.startsWith("user:")) {
+    const templateId = saved.template_key.slice(5);
+    const row = await getUserTemplate(templateId);
+    if (row) source = { label: saved.source_title_snapshot ?? row.title, href: `/my/templates/${row.id}` };
+  }
+  if (!source && saved.source_title_snapshot) {
+    source = { label: saved.source_title_snapshot };
   }
 
   const editMode = savedPromptEditMode(saved, Boolean(template));
   if (editMode === "unavailable") notFound();
 
-  const built = template
+  const built = saved.body
+    ? (() => {
+        const text = saved.body ?? "";
+        return {
+          text,
+          segments: segmentMarkdown(text),
+          tokens: Math.max(1, Math.ceil(text.length / 4)),
+          kb: (new TextEncoder().encode(text).length / 1024).toFixed(1),
+        };
+      })()
+    : template
     ? buildPrompt(template, rowToAnswers(saved, template))
     : (() => {
         const text = saved.body ?? "";

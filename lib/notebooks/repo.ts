@@ -15,6 +15,7 @@ export async function listNotebooks(): Promise<NotebookRow[]> {
   const { data } = await supabase
     .from("prompt_notebooks")
     .select("*")
+    .is("deleted_at", null)
     .order("updated_at", { ascending: false });
   return data ?? [];
 }
@@ -25,6 +26,7 @@ export async function getNotebook(id: string): Promise<NotebookRow | null> {
     .from("prompt_notebooks")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   return data ?? null;
 }

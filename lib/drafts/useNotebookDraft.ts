@@ -12,6 +12,7 @@ export function useNotebookDraft(opts: {
   notebookId: string;
   /** Off when reopening a saved notebook (the saved row wins). */
   enabled: boolean;
+  restore?: boolean;
   /** Current doc to persist. */
   doc: BlockDoc;
   /** Whether the notebook has content worth keeping. */
@@ -24,6 +25,7 @@ export function useNotebookDraft(opts: {
   return useLocalDraft<BlockDoc>({
     key: notebookDraftKey(opts.notebookId),
     enabled: opts.enabled,
+    restore: opts.restore,
     value: opts.doc,
     hasContent: opts.hasContent,
     serialize: serializeNotebookDraft,
