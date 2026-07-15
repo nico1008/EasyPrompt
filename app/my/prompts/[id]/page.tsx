@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import { PromptEditor } from "@/components/builder/PromptEditor";
+import "@/app/prompts/prompts.css";
 import { SavedPromptView } from "@/components/SavedPromptView";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -11,13 +11,12 @@ import { rowToAnswers } from "@/lib/savedPrompts/map";
 import { buildPrompt, segmentMarkdown } from "@/lib/buildPrompt";
 import { getTemplate, displayTitle } from "@/data/templates";
 import type { Template } from "@/data/types";
+import { savedPromptEditMode } from "@/lib/savedPrompts/presentation";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-/* Open a saved Prompt — shows the prompt itself, not the fill-in form (the fix
- * for the old behavior). Manual prompts open the markdown editor; template-sourced
- * prompts show the generated text with Copy / Open-in and a secondary "Edit
- * answers" path back to the form at /my/prompts/[id]/edit. */
+/* Every saved Prompt opens in the canonical read view. Source and ownership only
+ * determine the metadata and edit action; editing always lives under /edit. */
 export default async function OpenSavedPromptPage({
   params,
 }: {
@@ -31,12 +30,6 @@ export default async function OpenSavedPromptPage({
   const saved = await getSavedPrompt(id);
   if (!saved) notFound();
 
-  // Manual / standalone Prompt → edit its markdown body in place.
-  if (saved.source_kind === "manual" || (saved.body && saved.source_kind !== "catalog" && saved.source_kind !== "user")) {
-    return <PromptEditor savedPromptId={saved.id} initialName={saved.name} initialBody={saved.body ?? ""} />;
-  }
-
-  // Template-sourced Prompt → resolve its Template and render the generated text.
   let template: Template | undefined;
   let source: { label: string; href: string } | undefined;
   if (saved.source_kind === "catalog" && saved.catalog_slug) {
@@ -50,28 +43,20 @@ export default async function OpenSavedPromptPage({
     }
   }
 
-  // Template gone but text was frozen at publish → show the frozen body.
-  if (!template) {
-    if (saved.body && saved.body.trim()) {
-      const segments = segmentMarkdown(saved.body);
-      const tokens = Math.max(1, Math.ceil(saved.body.length / 4));
-      const kb = (new TextEncoder().encode(saved.body).length / 1024).toFixed(1);
-      return (
-        <SavedPromptView
-          name={saved.name}
-          segments={segments}
-          tokens={tokens}
-          kb={kb}
-          text={saved.body}
-          editHref={`/my/prompts/${id}/edit`}
-        />
-      );
-    }
-    notFound();
-  }
+  const editMode = savedPromptEditMode(saved, Boolean(template));
+  if (editMode === "unavailable") notFound();
 
-  const answers = rowToAnswers(saved, template);
-  const built = buildPrompt(template, answers);
+  const built = template
+    ? buildPrompt(template, rowToAnswers(saved, template))
+    : (() => {
+        const text = saved.body ?? "";
+        return {
+          text,
+          segments: segmentMarkdown(text),
+          tokens: Math.max(1, Math.ceil(text.length / 4)),
+          kb: (new TextEncoder().encode(text).length / 1024).toFixed(1),
+        };
+      })();
 
   return (
     <SavedPromptView
@@ -81,6 +66,7 @@ export default async function OpenSavedPromptPage({
       kb={built.kb}
       text={built.text}
       editHref={`/my/prompts/${id}/edit`}
+      editLabel={editMode === "answers" ? "Edit answers" : "Edit Prompt"}
       source={source}
     />
   );

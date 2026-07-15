@@ -90,6 +90,7 @@ export function Builder({
   creator,
   bookmarkTarget,
   saveAsStandalone = false,
+  ownerEditHref,
 }: {
   template: Template;
   related: RelatedLite[];
@@ -113,6 +114,8 @@ export function Builder({
   bookmarkTarget?: BookmarkTarget;
   /** Public community Templates save their generated text as a standalone Prompt. */
   saveAsStandalone?: boolean;
+  /** Owner-only structural editor. Viewing and using the Template stays canonical. */
+  ownerEditHref?: string;
 }) {
   // Nothing is pre-selected: the fill-in starts blank (authored defaults are a
   // suggestion reference only — see lib/buildPrompt.blankAnswers).
@@ -482,10 +485,15 @@ export function Builder({
         <div className="tpl-topbar-left">
           <Breadcrumbs items={trail} />
         </div>
-        {(isCatalog || creator || bookmarkTarget) && (
+        {(isCatalog || creator || bookmarkTarget || ownerEditHref) && (
           <div className="tpl-topbar-meta">
-            <CreatorChip creator={creator ?? { kind: "house" }} />
+            {(isCatalog || creator) && <CreatorChip creator={creator ?? { kind: "house" }} />}
             {bookmarkTarget && <BookmarkButton compact target={bookmarkTarget} />}
+            {ownerEditHref && (
+              <Link className="btn btn-ghost btn-sm" href={ownerEditHref}>
+                <Icon name="wrench" size={14} /> Edit Template
+              </Link>
+            )}
           </div>
         )}
       </div>

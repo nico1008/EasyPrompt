@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import "../../../build/builder.css";
+import "@/app/templates/[slug]/builder.css";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getNotebook } from "@/lib/notebooks/repo";
 import { rowToNotebook } from "@/lib/notebooks/map";
-import { PromptBuilder } from "@/components/builder/PromptBuilder";
+import { BlockTemplateRunner } from "@/components/BlockTemplateRunner";
 
 export const metadata: Metadata = {
-  title: "Edit prompt",
+  title: "Template",
   robots: { index: false, follow: false },
 };
 
-export default async function EditPromptPage({
+export default async function OpenBlockTemplatePage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -26,12 +26,11 @@ export default async function EditPromptPage({
   if (!row) notFound();
 
   const nb = rowToNotebook(row);
-  return (
-    <PromptBuilder
-      initialDoc={nb.doc}
-      notebookId={nb.id}
-      initialShareSlug={nb.shareSlug}
-      initialVisibility={nb.visibility}
-    />
-  );
+  return <BlockTemplateRunner
+    title={nb.name || "Untitled Template"}
+    doc={nb.doc}
+    fileKey={nb.id}
+    breadcrumbs={[{ href: "/my", label: "My Library" }, { label: nb.name || "Untitled Template" }]}
+    ownerEditHref={`/my/notebooks/${nb.id}/edit`}
+  />;
 }

@@ -29,6 +29,10 @@ export type SaveSource =
   | { kind: "user"; userTemplateId: string }
   | { kind: "community"; slug: string };
 
+type SavePromptSourceProps =
+  | { source: SaveSource; customBody?: string }
+  | { source?: undefined; customBody: string };
+
 const EMPTY: SaveState = {};
 
 function saveSnapshot(name: string, answers: Answers, customBody?: string): string {
@@ -53,6 +57,16 @@ function SaveSubmit({
   );
 }
 
+type SavePromptButtonProps = SavePromptSourceProps & {
+  answers: Answers;
+  defaultName: string;
+  savedPromptId?: string;
+  onSaved?: () => void;
+  onAuthGateNavigate?: () => void;
+  authGateNext?: () => string;
+  variant?: "primary" | "outline";
+};
+
 export function SavePromptButton({
   source,
   answers,
@@ -63,27 +77,13 @@ export function SavePromptButton({
   onAuthGateNavigate,
   authGateNext,
   variant = "primary",
-}: {
-  source: SaveSource;
-  answers: Answers;
-  defaultName: string;
-  savedPromptId?: string;
-  /** When set, the prompt has been hand-edited away from the form: save the exact
-   *  markdown as a standalone (manual) Prompt instead of the template answers.
-   *  In edit mode this means "Save as new prompt" (the original row is untouched). */
-  customBody?: string;
-  /** Fired once when a save succeeds — lets the Builder clear its local draft. */
-  onSaved?: () => void;
-  /** Fired before the user leaves for auth from the soft gate. */
-  onAuthGateNavigate?: () => void;
-  /** Same-site return path for the auth gate. Defaults to the current URL. */
-  authGateNext?: () => string;
-  /** Visual weight of the submit button. "outline" demotes it below a primary Copy. */
-  variant?: "primary" | "outline";
-}) {
+}: SavePromptButtonProps) {
   const editing = Boolean(savedPromptId);
   const custom = customBody !== undefined;
   const customIsEmpty = custom && !customBody.trim();
+  if (!custom && !source) {
+    throw new Error("Template-backed Prompt saves require a source.");
+  }
   // Custom (hand-edited) text always forks to a new manual prompt; otherwise the
   // form's answers are saved (update in edit mode, create from the template fresh).
   const action = custom
@@ -179,12 +179,12 @@ export function SavePromptButton({
           <input type="hidden" name="answers" value={JSON.stringify(answers)} />
           {editing ? (
             <input type="hidden" name="id" value={savedPromptId} />
-          ) : source.kind === "catalog" ? (
+          ) : source?.kind === "catalog" ? (
             <>
               <input type="hidden" name="source_kind" value="catalog" />
               <input type="hidden" name="catalog_slug" value={source.slug} />
             </>
-          ) : source.kind === "user" ? (
+          ) : source?.kind === "user" ? (
             <>
               <input type="hidden" name="source_kind" value="user" />
               <input type="hidden" name="user_template_id" value={source.userTemplateId} />

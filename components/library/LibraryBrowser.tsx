@@ -20,6 +20,8 @@ export type LibraryBrowserItem = SearchableLibraryItem & {
   visibility: LibraryItem["visibility"] | null;
   ownedItem: LibraryItem | null;
   favoriteTarget: BookmarkTarget | null;
+  /** Stable keys that may already represent this canonical card in a workspace. */
+  membershipKeys: string[];
 };
 
 const FILTERS: { id: LibrarySearchType; label: string }[] = [
@@ -119,7 +121,7 @@ function WorkspaceItemsModal({
   selectedKeys: ReadonlySet<string>;
   pending: boolean;
   notice: string | null;
-  onToggle: (itemKey: string, included: boolean) => void;
+  onToggle: (item: LibraryBrowserItem, included: boolean) => void;
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
@@ -130,6 +132,9 @@ function WorkspaceItemsModal({
     type,
     sort: "name",
   }), [deferredQuery, items, type]);
+  const selectedCount = items.filter((item) =>
+    item.membershipKeys.some((key) => selectedKeys.has(key))
+  ).length;
 
   return (
     <LibraryModal title={`Add items to ${workspace.name}`} onClose={onClose} wide>
@@ -147,11 +152,11 @@ function WorkspaceItemsModal({
             </button>
           ))}
         </div>
-        <p className="workspace-items-summary">{selectedKeys.size} {selectedKeys.size === 1 ? "item" : "items"} in this workspace</p>
+        <p className="workspace-items-summary">{selectedCount} {selectedCount === 1 ? "item" : "items"} in this workspace</p>
       </div>
       <div className="workspace-assign-list">
         {matches.length === 0 ? <p>No items match this search.</p> : matches.map((item) => {
-          const checked = selectedKeys.has(item.key);
+          const checked = item.membershipKeys.some((key) => selectedKeys.has(key));
           const meta = objectMeta(item.objectType);
           return (
             <label key={item.key} className="workspace-assign-row">
@@ -159,7 +164,7 @@ function WorkspaceItemsModal({
                 <span className="workspace-assign-icon" aria-hidden="true"><Icon name={meta.icon} size={14} /></span>
                 <span className="workspace-assign-copy"><strong>{item.title}</strong><small>{meta.label}</small></span>
               </span>
-              <input type="checkbox" checked={checked} disabled={pending} onChange={(event) => onToggle(item.key, event.target.checked)} />
+              <input type="checkbox" checked={checked} disabled={pending} onChange={(event) => onToggle(item, event.target.checked)} />
             </label>
           );
         })}
@@ -221,7 +226,6 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
     return map;
   }, [membershipState]);
   const itemByKey = useMemo(() => new Map(items.map((item) => [item.key, item])), [items]);
-  const libraryKeys = useMemo(() => new Set(itemByKey.keys()), [itemByKey]);
   const typeCounts = useMemo(() => {
     const counts = { all: items.length, template: 0, prompt: 0, workflow: 0, favorite: 0 };
     for (const item of items) {
@@ -231,14 +235,21 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
     return counts;
   }, [items]);
   const workspaceCount = (id: string) => {
-    let count = 0;
-    for (const key of membershipMap.get(id) ?? []) if (libraryKeys.has(key)) count += 1;
-    return count;
+    const selected = membershipMap.get(id) ?? EMPTY_KEYS;
+    return items.filter((item) => item.membershipKeys.some((key) => selected.has(key))).length;
   };
 
   const workspaceKeys = useMemo(
-    () => workspaceId ? membershipMap.get(workspaceId) ?? EMPTY_KEYS : null,
-    [membershipMap, workspaceId]
+    () => {
+      if (!workspaceId) return null;
+      const selected = membershipMap.get(workspaceId) ?? EMPTY_KEYS;
+      return new Set(
+        items
+          .filter((item) => item.membershipKeys.some((key) => selected.has(key)))
+          .map((item) => item.key)
+      );
+    },
+    [items, membershipMap, workspaceId]
   );
   const visible = useMemo(() => searchLibrary(items, {
     query: deferredQuery,
@@ -272,21 +283,29 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
     window.history.replaceState(null, "", legacy ? `/my?filter=${legacy}` : "/my");
   };
 
-  const toggleMembership = (targetWorkspaceId: string, itemKey: string, included: boolean) => {
+  const toggleMembership = (targetWorkspaceId: string, item: LibraryBrowserItem, included: boolean) => {
     const before = membershipState;
+    const selected = membershipMap.get(targetWorkspaceId) ?? EMPTY_KEYS;
+    const itemKeys = included
+      ? [item.key]
+      : item.membershipKeys.filter((key) => selected.has(key));
+    if (itemKeys.length === 0) return;
     setMembershipState((current) => included
-      ? [...current, { workspace_id: targetWorkspaceId, owner_id: "optimistic", item_key: itemKey, created_at: new Date().toISOString() }]
-      : current.filter((entry) => !(entry.workspace_id === targetWorkspaceId && entry.item_key === itemKey)));
+      ? [...current, { workspace_id: targetWorkspaceId, owner_id: "optimistic", item_key: item.key, created_at: new Date().toISOString() }]
+      : current.filter((entry) => !(entry.workspace_id === targetWorkspaceId && itemKeys.includes(entry.item_key))));
     setNotice(null);
-    const formData = new FormData();
-    formData.set("workspaceId", targetWorkspaceId);
-    formData.set("itemKey", itemKey);
-    formData.set("included", String(included));
     startTransition(async () => {
-      const result = await setWorkspaceItemAction(formData);
-      if (result.error) {
+      const results = await Promise.all(itemKeys.map((itemKey) => {
+        const formData = new FormData();
+        formData.set("workspaceId", targetWorkspaceId);
+        formData.set("itemKey", itemKey);
+        formData.set("included", String(included));
+        return setWorkspaceItemAction(formData);
+      }));
+      const error = results.find((result) => result.error)?.error;
+      if (error) {
         setMembershipState(before);
-        setNotice(result.error);
+        setNotice(error);
       }
     });
   };
@@ -389,7 +408,7 @@ export function LibraryBrowser({ items, workspaces, memberships, initialFilter }
           selectedKeys={membershipMap.get(assignWorkspace.id) ?? EMPTY_KEYS}
           pending={pending}
           notice={notice}
-          onToggle={(itemKey, included) => toggleMembership(assignWorkspace.id, itemKey, included)}
+          onToggle={(item, included) => toggleMembership(assignWorkspace.id, item, included)}
           onClose={() => { setAssignWorkspaceId(null); setNotice(null); }}
         />
       ) : null}

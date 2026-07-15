@@ -1,25 +1,21 @@
 "use client";
 
-/* Read view for a saved, template-sourced Prompt (My Library → Open). Shows the
- * generated prompt itself — the fix for the old behavior that dropped the user
- * back into the fill-in form. Copy + Open-in act on the text; "Edit answers" is
- * the secondary path back to the form. Manual prompts use the PromptEditor
- * instead; this is only for prompts generated from a Template. */
+/* Canonical owner view for a saved Prompt (My Library → Open). Ownership only
+ * adds the edit action; the reading experience matches public Prompt details. */
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { CodeWell } from "@/components/CodeWell";
 import { Icon } from "@/components/Icon";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Toast } from "@/components/Toast";
 import { DetailActions } from "@/components/detail/DetailActions";
+import { DetailShell } from "@/components/detail/DetailShell";
 import {
   ProviderOpenActions,
   type ProviderOpenLinks,
 } from "@/components/detail/ProviderOpenActions";
 import { copyText } from "@/lib/clipboard";
 import { openInUrl, type Segment } from "@/lib/buildPrompt";
-import "./SavedPromptView.css";
 
 export function SavedPromptView({
   name,
@@ -28,6 +24,7 @@ export function SavedPromptView({
   kb,
   text,
   editHref,
+  editLabel,
   source,
 }: {
   name: string;
@@ -36,6 +33,7 @@ export function SavedPromptView({
   kb: string;
   text: string;
   editHref: string;
+  editLabel: "Edit Prompt" | "Edit answers";
   source?: { label: string; href: string };
 }) {
   const [toast, setToast] = useState(false);
@@ -58,43 +56,42 @@ export function SavedPromptView({
   };
 
   return (
-    <main className="saved-view">
+    <>
       <Toast show={toast} message="Prompt copied to clipboard" />
-      <div className="sv-wrap">
-        <Breadcrumbs
-          className="sv-breadcrumbs"
-          items={[
-            { href: "/my", label: "My Library" },
-            { label: name || "Untitled prompt" },
-          ]}
-        />
-
-        <div className="sv-head">
-          <h1>{name || "Untitled prompt"}</h1>
-          {source && (
-            <p className="sv-source">
+      <DetailShell
+        breadcrumbItems={[
+          { href: "/my", label: "My Library" },
+          { label: name || "Untitled Prompt" },
+        ]}
+        badge="Prompt"
+        title={name || "Untitled Prompt"}
+        metadata={
+          source ? (
+            <span className="pd-source">
               Created from <Link href={source.href}>{source.label}</Link>
-            </p>
-          )}
-        </div>
-
-        <CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />
-
-        <DetailActions
-          primary={
-            <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
-              <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
-              {copied ? "Copied" : "Copy prompt"}
-            </button>
-          }
-          secondary={
-            <Link className="btn btn-ghost" href={editHref}>
-              <Icon name="list" size={15} /> Edit answers
-            </Link>
-          }
-          providers={<ProviderOpenActions links={providerLinks} disabled={!text} />}
-        />
-      </div>
-    </main>
+            </span>
+          ) : undefined
+        }
+        preview={<CodeWell title={fileName} segments={segments} tokens={tokens} kb={kb} />}
+        actionsPlacement="before-preview"
+        actions={
+          <DetailActions
+            primary={
+              <button className="btn btn-primary" onClick={() => void copy()} disabled={!text}>
+                <Icon name={copied ? "check" : "copy"} size={15} strokeWidth={2} />{" "}
+                {copied ? "Copied" : "Copy Prompt"}
+              </button>
+            }
+            secondary={
+              <Link className="btn btn-ink" href={editHref}>
+                <Icon name={editLabel === "Edit answers" ? "list" : "wrench"} size={15} />
+                {editLabel}
+              </Link>
+            }
+            providers={<ProviderOpenActions links={providerLinks} disabled={!text} />}
+          />
+        }
+      />
+    </>
   );
 }

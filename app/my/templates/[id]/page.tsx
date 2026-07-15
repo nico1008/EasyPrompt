@@ -34,6 +34,7 @@ export default async function RunUserTemplatePage({
         template={template}
         related={[]}
         source={{ kind: "user", userTemplateId: row.id }}
+        ownerEditHref={`/my/templates/${row.id}/edit`}
         crumbs={[{ href: "/my", label: "My Library" }, { label: template.seo_title }]}
       />
     </>

@@ -14,6 +14,7 @@ import { listBookmarks } from "@/lib/bookmarks/repo";
 import { listUserWorkflows } from "@/lib/userWorkflows/repo";
 import { resolveFavoriteRows } from "@/lib/bookmarks/resolve";
 import { buildLibrary, isLibraryFilter, type LibraryFilter } from "@/lib/library/list";
+import { mergeOwnedFavorites } from "@/lib/library/merge";
 import { favoriteLibraryItemKey } from "@/lib/workspaces/schema";
 import { listLibraryWorkspaceData } from "@/lib/workspaces/repo";
 
@@ -45,6 +46,7 @@ export default async function MyLibraryPage({
     Promise.resolve(buildLibrary({ notebooks, userTemplates, prompts, workflows })),
     resolveFavoriteRows(bookmarkRows),
   ]);
+  const mergedFavorites = mergeOwnedFavorites(ownedItems, favorites);
 
   const browserItems: LibraryBrowserItem[] = [
     ...ownedItems.map((item) => ({
@@ -56,14 +58,18 @@ export default async function MyLibraryPage({
       categoryLabel: item.categoryLabel,
       sourceLabel: item.source?.label ?? null,
       updatedAt: item.updatedAt,
-      isFavorite: false,
+      isFavorite: mergedFavorites.favoriteTargetByOwnedKey.has(item.key),
       href: item.primaryHref,
       icon: item.icon,
       visibility: item.visibility,
       ownedItem: item,
-      favoriteTarget: null,
+      favoriteTarget: mergedFavorites.favoriteTargetByOwnedKey.get(item.key) ?? null,
+      membershipKeys: [
+        item.key,
+        ...(mergedFavorites.favoriteKeysByOwnedKey.get(item.key) ?? []),
+      ],
     })),
-    ...favorites.map((item) => ({
+    ...mergedFavorites.externalFavorites.map((item) => ({
       key: favoriteLibraryItemKey(item.target),
       title: item.title,
       objectType: item.objectType,
@@ -78,6 +84,7 @@ export default async function MyLibraryPage({
       visibility: null,
       ownedItem: null,
       favoriteTarget: item.target,
+      membershipKeys: [favoriteLibraryItemKey(item.target)],
     })),
   ];
 

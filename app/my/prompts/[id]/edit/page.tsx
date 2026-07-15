@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import "@/app/templates/[slug]/builder.css";
 import { Builder } from "@/app/templates/[slug]/Builder";
+import { PromptEditor } from "@/components/builder/PromptEditor";
 import type { SaveSource } from "@/components/SavePromptButton";
 import { getServerUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -11,12 +12,12 @@ import { rowToTemplate } from "@/lib/userTemplates/map";
 import { rowToAnswers } from "@/lib/savedPrompts/map";
 import { getTemplate } from "@/data/templates";
 import type { Template } from "@/data/types";
+import { savedPromptEditMode } from "@/lib/savedPrompts/presentation";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-/* Edit a template-sourced Prompt's answers — the fill-in form. Reached from the
- * prompt view's secondary "Edit answers" action. Manual prompts have no form, so
- * they bounce back to the editor view. */
+/* Explicit edit route. Template-backed Prompts edit answers; standalone Prompts
+ * and frozen Prompts whose source disappeared edit their markdown body. */
 export default async function EditSavedPromptAnswersPage({
   params,
 }: {
@@ -30,9 +31,6 @@ export default async function EditSavedPromptAnswersPage({
   const saved = await getSavedPrompt(id);
   if (!saved) notFound();
 
-  // Manual prompts are edited in the markdown editor, not the form.
-  if (saved.source_kind === "manual") redirect(`/my/prompts/${id}`);
-
   let template: Template | undefined;
   let source: SaveSource | undefined;
   if (saved.source_kind === "catalog" && saved.catalog_slug) {
@@ -45,7 +43,17 @@ export default async function EditSavedPromptAnswersPage({
       source = { kind: "user", userTemplateId: row.id };
     }
   }
-  if (!template || !source) notFound();
+  const editMode = savedPromptEditMode(saved, Boolean(template && source));
+  if (editMode === "body") {
+    return (
+      <PromptEditor
+        savedPromptId={saved.id}
+        initialName={saved.name}
+        initialBody={saved.body ?? ""}
+      />
+    );
+  }
+  if (editMode === "unavailable" || !template || !source) notFound();
 
   const initialAnswers = rowToAnswers(saved, template);
 
